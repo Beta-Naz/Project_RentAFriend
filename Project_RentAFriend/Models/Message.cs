@@ -53,4 +53,3 @@ public class Message
     [ForeignKey(nameof(BookingID))]
     public virtual Booking? Booking { get; set; }
 }
-}

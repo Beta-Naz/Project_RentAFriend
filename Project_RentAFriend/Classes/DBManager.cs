@@ -94,7 +94,7 @@ namespace Project_RentAFriend.Classes
                 .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.FriendProfile)
-                    .WithMany(fp => fp.Booking)
+                    .WithMany(fp => fp.Bookings)
                     .HasForeignKey(e => e.FriendProfileID)
                     .OnDelete(DeleteBehavior.Restrict);
 
