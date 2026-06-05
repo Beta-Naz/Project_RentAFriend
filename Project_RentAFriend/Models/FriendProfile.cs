@@ -41,5 +41,7 @@ namespace Project_RentAFriend.Models
 
         [ForeignKey(nameof(UserID))]
         public virtual User? User { get; set; }
+        public virtual ICollection<Schedule>? Schedules { get; set; }
+        public virtual ICollection<Booking>? Bookings { get; set; }
     }
 }

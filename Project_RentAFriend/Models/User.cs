@@ -30,5 +30,6 @@ namespace Project_RentAFriend.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public virtual ICollection<Booking>? Bookings { get; set; }
     }
 }

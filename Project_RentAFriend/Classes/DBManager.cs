@@ -62,27 +62,42 @@ namespace Project_RentAFriend.Classes
                 entity.Property(e => e.AverageRating)
                     .HasColumnType("decimal(3,2)");
             });
-            
+
             // 3. Schedule
             modelBuilder.Entity<Schedule>(entity =>
             {
                 entity.HasKey(e => e.ScheduleID);
-                
+
+                // ✅ ДОБАВИТЬ ЭТУ СВЯЗЬ
+                entity.HasOne(e => e.FriendProfile)
+                    .WithMany(fp => fp.Schedules)
+                    .HasForeignKey(e => e.ProfileID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
                 entity.HasOne(e => e.Booking)
-                    .WithOne()  // Schedule → Booking (один-к-одному)
+                    .WithOne()
                     .HasForeignKey<Schedule>(e => e.BookingID)
-                    .OnDelete(DeleteBehavior.SetNull); // Удалили Booking -> Schedule.BookingID = null
-                
-                // 🔧 Индекс для быстрого поиска доступных слотов
+                    .OnDelete(DeleteBehavior.SetNull);
+
                 entity.HasIndex(e => new { e.ProfileID, e.Date, e.StartTime, e.IsAvailable })
                     .HasDatabaseName("IX_Schedule_Search");
             });
-            
+
             //4. Booking
             modelBuilder.Entity<Booking>(entity =>
             {
                 entity.HasKey(e => e.BookingID);
-                
+
+                 entity.HasOne(e => e.Client)
+                .WithMany(u => u.Bookings)
+                .HasForeignKey(e => e.ClientID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.FriendProfile)
+                    .WithMany(fp => fp.Booking)
+                    .HasForeignKey(e => e.FriendProfileID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
                 // Связь с Schedule
                 entity.HasOne(e => e.Schedule)
                     .WithOne(s => s.Booking)
