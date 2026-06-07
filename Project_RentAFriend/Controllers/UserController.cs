@@ -39,7 +39,8 @@ namespace Project_RentAFriend.Controllers
                 return Ok(new
                 {
                     token = newToken,
-                    role = authUser.Role
+                    role = authUser.Role,
+                    message = "Авторизация успешна"
                 });
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using RentAFriendApp.Models;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace RentAFriendApp
@@ -12,7 +13,7 @@ namespace RentAFriendApp
         private string? _currentUserRole;
         private string? _currentUserName;
         public static MainWindow? Instanse { get; private set; }
-        public MainWindow()
+        public MainWindow(Auth authData)
         {
             InitializeComponent();
             Instanse = this;

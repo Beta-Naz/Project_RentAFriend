@@ -9,7 +9,7 @@ namespace RentAFriendApp.Context
     class UserContext
     {
         private static readonly string _url = "https://localhost:7091/user";
-        public static async Task<string?> Login(string email , string password)
+        public static async Task<Auth?> Login(string email , string password)
         {
             using HttpClient client = new();
             using HttpRequestMessage request = new(HttpMethod.Post, _url + "login");
@@ -27,7 +27,7 @@ namespace RentAFriendApp.Context
                 Auth? dataAuth = JsonConvert.DeserializeObject<Auth>(result);
                 if (dataAuth != null)
                 {
-                    return dataAuth.Token;
+                    return dataAuth;
                 }
             }
             return null;

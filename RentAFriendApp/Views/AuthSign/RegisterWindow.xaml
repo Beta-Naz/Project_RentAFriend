@@ -1,0 +1,590 @@
+﻿<Window x:Class="RentAFriendApp.Views.AuthSign.RegisterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="RentAFriend - Регистрация" 
+        Height="650" 
+        Width="1000"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#F8F9FA">
+
+    <Window.Resources>
+        <!-- Переиспользуем стили из LoginWindow -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                        VerticalAlignment="Center"
+                                        Padding="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernPasswordBox" TargetType="PasswordBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                        VerticalAlignment="Center"
+                                        Padding="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="10"
+                                Padding="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#388E3C"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2E7D32"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="#4CAF50"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8F5E8"/>
+                    <Setter Property="BorderBrush" Value="#388E3C"/>
+                    <Setter Property="Foreground" Value="#388E3C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Изменено на ToggleButton для поддержки IsChecked -->
+        <Style x:Key="RoleCardButton" TargetType="ToggleButton">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="120"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="0">
+                            <StackPanel Orientation="Vertical" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center">
+                                <ContentPresenter/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter TargetName="border" Property="Background" Value="#F9FDF9"/>
+                            </Trigger>
+                            <!-- Теперь IsChecked работает, так как TargetType - ToggleButton -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="3"/>
+                                <Setter TargetName="border" Property="Background" Value="#F0F9F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Иконки -->
+        <Geometry x:Key="UserIcon">M12,12C14.21,12 16,10.21 16,8C16,5.79 14.21,4 12,4C9.79,4 8,5.79 8,8C8,10.21 9.79,12 12,12ZM12,14C9.33,14 4,15.34 4,18V20H20V18C20,15.34 14.67,14 12,14Z</Geometry>
+        <Geometry x:Key="ClientIcon">M16,11C18.21,11 20,12.79 20,15V18H12V15C12,12.79 13.79,11 16,11M8,8C8,5.79 9.79,4 12,4C14.21,4 16,5.79 16,8C16,10.21 14.21,12 12,12C9.79,12 8,10.21 8,8M8,13C5.79,13 4,14.79 4,17V20H12V17C12,14.79 10.21,13 8,13Z</Geometry>
+        <Geometry x:Key="FriendIcon">M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z</Geometry>
+        <Geometry x:Key="CloseIcon">M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z</Geometry>
+        <Geometry x:Key="AlertIcon">M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16</Geometry>
+        <Geometry x:Key="BackIcon">M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z</Geometry>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Основной контейнер с тенью -->
+        <Border CornerRadius="15" Background="White" Margin="20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" Opacity="0.1" ShadowDepth="2"/>
+            </Border.Effect>
+
+            <Grid>
+                <!-- Левая часть - Приветствие -->
+                <Border CornerRadius="15,0,0,15" Background="#4CAF50">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Логотип и название -->
+                        <StackPanel Grid.Row="0" Margin="30,40,30,0">
+                            <Viewbox Width="40" Height="40" HorizontalAlignment="Left" Margin="0,0,0,10">
+                                <Path Data="{StaticResource UserIcon}" Fill="White" Stretch="Uniform"/>
+                            </Viewbox>
+                            <TextBlock Text="RentAFriend" 
+                                       FontSize="28" 
+                                       FontWeight="Bold" 
+                                       Foreground="White"/>
+                            <TextBlock Text="Присоединяйся к нашему сообществу" 
+                                       FontSize="14" 
+                                       Foreground="#E0E0E0"
+                                       Margin="0,5,0,0"/>
+                        </StackPanel>
+
+                        <!-- Декоративный элемент -->
+                        <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse Width="150" Height="150" Fill="#388E3C" Opacity="0.2"/>
+                            <Viewbox Width="80" Height="80">
+                                <Path Data="{StaticResource UserIcon}" Fill="White" Stretch="Uniform" Opacity="0.7"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- Прогресс регистрации -->
+                        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,30">
+                            <TextBlock x:Name="progressNumber"
+                                       Text="Шаг 1 из 2" 
+                                       Foreground="White" 
+                                       FontSize="12"
+                                       HorizontalAlignment="Center"/>
+                            <Border Width="200" Height="4" Background="#388E3C" CornerRadius="2" Margin="0,5,0,0">
+                                <Border x:Name="progressLine" Width="100" Height="4" Background="White" CornerRadius="2" 
+                                        HorizontalAlignment="Left"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Правая часть - Форма регистрации -->
+                <Border Grid.Column="1" Background="White" CornerRadius="0,15,15,0">
+                    <Grid>
+                        <!-- Контент - меняется в зависимости от шага -->
+                        <Grid x:Name="ContentGrid">
+                            <!-- Шаг 1: Выбор роли -->
+                            <Border x:Name="Step1RoleSelection" Visibility="Visible">
+                                <Grid Margin="40,40,40,30">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Заголовок и кнопка назад/закрытия -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,30">
+                                        <StackPanel>
+                                            <TextBlock Text="Выберите вашу роль" 
+                                                       FontSize="24" 
+                                                       FontWeight="Bold"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="Это поможет нам настроить ваш аккаунт" 
+                                                       FontSize="14" 
+                                                       Foreground="#666666"
+                                                       Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Карточки выбора роли -->
+                                    <Grid Grid.Row="1" Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Клиент -->
+                                        <ToggleButton x:Name="ClientRoleButton"
+                                                      Style="{StaticResource RoleCardButton}"
+                                                      Tag="Client"
+                                                      Checked="RoleButton_Checked"
+                                                      Unchecked="RoleButton_Unchecked"
+                                                      IsChecked="{Binding IsClientRoleSelected, Mode=OneWay}">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Viewbox Width="40" Height="40" Margin="0,0,0,10">
+                                                    <Path Data="{StaticResource ClientIcon}" 
+                                                          Fill="#4CAF50" 
+                                                          Stretch="Uniform"/>
+                                                </Viewbox>
+                                                <TextBlock 
+                                                           HorizontalAlignment="Center"
+                                                           Text="Клиент" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock Text="Ищу друзей для встреч" 
+                                                           FontSize="12" 
+                                                           Foreground="#666666"
+                                                           TextAlignment="Center"
+                                                           Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+
+                                        <!-- Друг -->
+                                        <ToggleButton Grid.Column="2"
+                                                      x:Name="FriendRoleButton"
+                                                      Style="{StaticResource RoleCardButton}"
+                                                      Tag="Friend"
+                                                      Checked="RoleButton_Checked"
+                                                      Unchecked="RoleButton_Unchecked">
+                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                                <Viewbox Width="40" Height="40" Margin="0,0,0,10">
+                                                    <Path Data="{StaticResource FriendIcon}" 
+                                                          Fill="#4CAF50" 
+                                                          Stretch="Uniform"/>
+                                                </Viewbox>
+                                                <TextBlock 
+                                                           HorizontalAlignment="Center"
+                                                           Text="Друг" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock 
+                                                           Text="Предлагаю свое время и компанию" 
+                                                           FontSize="12" 
+                                                           Foreground="#666666"
+                                                           TextAlignment="Center"
+                                                           Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+                                    </Grid>
+
+                                    <!-- Информация о выбранной роли -->
+                                    <Border Grid.Row="2" 
+                                            x:Name="RoleInfoBorder"
+                                            Background="#F9FDF9" 
+                                            BorderBrush="#E8F5E8" 
+                                            BorderThickness="1"
+                                            CornerRadius="8" 
+                                            Padding="20"
+                                            Visibility="Collapsed"
+                                            VerticalAlignment="Center">
+                                        <StackPanel>
+                                            <TextBlock x:Name="RoleTitle" 
+                                                       Text="Вы выбрали: Клиент" 
+                                                       FontSize="16" 
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#333333"
+                                                       Margin="0,0,0,10"/>
+                                            <TextBlock x:Name="RoleDescription" 
+                                                       Text="Как клиент вы сможете искать и бронировать встречи с друзьями, оставлять отзывы и накапливать репутацию." 
+                                                       Foreground="#666666"
+                                                       FontSize="14"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Кнопка продолжения -->
+                                    <Button
+                                            Grid.Row="3" 
+                                            x:Name="ContinueButton"
+                                            Content="Продолжить" 
+                                            Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding ContinueToStep2Command}"
+                                            Click="ContinueButton_Click"
+                                            Margin="0,20,0,20"
+                                            Cursor="Hand"/>
+
+                                    <!-- Уже есть аккаунт -->
+                                    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="Уже есть аккаунт?" 
+                                                   Foreground="#666666" 
+                                                   FontSize="14"/>
+                                        <TextBlock Text="Войти" 
+                                                   Foreground="#4CAF50"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Cursor="Hand"
+                                                   MouseDown="Login_Click"
+                                                   Margin="5,0,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="TextDecorations" Value="Underline"/>
+                                                            <Setter Property="Foreground" Value="#388E3C"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Шаг 2: Заполнение данных -->
+                            <Border x:Name="Step2DataForm" Visibility="Collapsed">
+                                <ScrollViewer>
+                                <Grid Margin="40,40,40,30">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Заголовок и кнопка назад -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,30">
+                                        <StackPanel>
+                                            <TextBlock x:Name="FormTitle" 
+                                                       Text="Регистрация клиента" 
+                                                       FontSize="24" 
+                                                       FontWeight="Bold"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="Заполните информацию для завершения регистрации" 
+                                                       FontSize="14" 
+                                                       Foreground="#666666"
+                                                       Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                        <Button x:Name="BackButton"
+                                                Click="BackButton_Click"
+                                                HorizontalAlignment="Right"
+                                                Width="30" 
+                                                Height="30"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Cursor="Hand">
+                                            <Path Data="{StaticResource BackIcon}" 
+                                                  Fill="#999999" 
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Полное имя -->
+                                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                                        <TextBlock Text="Полное имя" 
+                                                   Foreground="#666666" 
+                                                   FontSize="13"
+                                                   Margin="0,0,0,5"/>
+                                            <TextBox x:Name="FullNameTextBox"
+                                                     Style="{StaticResource ModernTextBox}"
+                                                     Text="{Binding FullName, UpdateSourceTrigger=PropertyChanged}"
+                                                     KeyDown="TextBox_KeyDown"
+                                                     TextChanged="FullNameTextBox_TextChanged"/>
+                                        </StackPanel>
+
+                                    <!-- Email -->
+                                    <StackPanel Grid.Row="2" Margin="0,0,0,15">
+                                        <TextBlock Text="Email" 
+                                                   Foreground="#666666" 
+                                                   FontSize="13"
+                                                   Margin="0,0,0,5"/>
+                                            <TextBox x:Name="EmailTextBox"
+                                                   Style="{StaticResource ModernTextBox}"
+                                                   Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
+                                                   KeyDown="TextBox_KeyDown"
+                                                   TextChanged="EmailTextBox_TextChanged"/>
+                                    </StackPanel>
+
+                                    <!-- Телефон -->
+                                    <StackPanel Grid.Row="3" Margin="0,0,0,15">
+                                        <TextBlock Text="Телефон (необязательно)" 
+                                                   Foreground="#666666" 
+                                                   FontSize="13"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBox LostFocus="PhoneTextBox_LostFocus"
+                                                 TextChanged="PhoneTextBox_TextChanged"
+                                                 x:Name="PhoneTextBox"
+                                                 Style="{StaticResource ModernTextBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Пароль -->
+                                    <StackPanel Grid.Row="4" Margin="0,0,0,15">
+                                        <TextBlock Text="Пароль" 
+                                                   Foreground="#666666" 
+                                                   FontSize="13"
+                                                   Margin="0,0,0,5"/>
+                                        <PasswordBox x:Name="PasswordBox"
+                                                     Style="{StaticResource ModernPasswordBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Подтверждение пароля -->
+                                    <StackPanel Grid.Row="5" Margin="0,0,0,20">
+                                        <TextBlock Text="Подтверждение пароля" 
+                                                   Foreground="#666666" 
+                                                   FontSize="13"
+                                                   Margin="0,0,0,5"/>
+                                        <PasswordBox x:Name="ConfirmPasswordBox"
+                                                     Style="{StaticResource ModernPasswordBox}"/>
+                                    </StackPanel>
+
+                                    <!-- Чекбокс согласия -->
+                                        <CheckBox Grid.Row="6" 
+                                              x:Name="AgreementCheckBox"
+                                              Content="Я согласен с условиями использования и политикой конфиденциальности"
+                                              Foreground="#666666"
+                                              FontSize="13"
+                                              Margin="0,0,0,20"
+                                              Click="AgreementCheckBox_Click">
+                                            <CheckBox.Template>
+                                            <ControlTemplate TargetType="CheckBox">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border x:Name="checkBoxBorder" 
+                                                            Width="20" 
+                                                            Height="20" 
+                                                            BorderBrush="#E0E0E0" 
+                                                            BorderThickness="1"
+                                                            Background="White"
+                                                            CornerRadius="4"
+                                                            Margin="0,0,10,0">
+                                                        <Path x:Name="checkMark" 
+                                                              Data="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z" 
+                                                              Fill="White" 
+                                                              Stretch="Uniform"
+                                                              Visibility="Collapsed"/>
+                                                    </Border>
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="checkBoxBorder" Property="Background" Value="#4CAF50"/>
+                                                        <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="#4CAF50"/>
+                                                        <Setter TargetName="checkMark" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="#4CAF50"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </CheckBox.Template>
+                                    </CheckBox>
+
+                                    <!-- Сообщение об ошибке -->
+                                    <Border Grid.Row="7" 
+                                            x:Name="ErrorBorder"
+                                            Background="#FFF5F5" 
+                                            BorderBrush="#FFCDD2" 
+                                            BorderThickness="1"
+                                            CornerRadius="8" 
+                                            Padding="12"
+                                            Visibility="Collapsed"
+                                            Margin="0,0,0,20">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+                                            <Path Data="{StaticResource AlertIcon}" 
+                                                  Fill="#D32F2F" 
+                                                  Width="20" 
+                                                  Height="20"
+                                                  Margin="0,0,8,0"
+                                                  Stretch="Uniform"/>
+                                            <TextBlock Grid.Column="1" 
+                                                       x:Name="ErrorText" 
+                                                       Text="Пароли не совпадают" 
+                                                       Foreground="#D32F2F"
+                                                       FontSize="13"
+                                                       VerticalAlignment="Center"
+                                                       TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Кнопка регистрации -->
+                                    <Button Grid.Row="8" 
+                                            x:Name="RegisterButton"
+                                            Click="RegisterButton_Click"
+                                            Content="Зарегистрироваться" 
+                                            Style="{StaticResource PrimaryButton}"
+                                            IsEnabled="True"
+                                            VerticalAlignment="Bottom"
+                                            Margin="0,0,0,30"/>
+
+                                    <!-- Прогресс -->
+                                    <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Ellipse Width="8" Height="8" Fill="#E0E0E0" Margin="0,0,5,0"/>
+                                        <Ellipse Width="8" Height="8" Fill="#4CAF50" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Разделение колонок -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
