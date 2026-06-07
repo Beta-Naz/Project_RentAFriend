@@ -147,13 +147,6 @@ namespace Project_RentAFriend.Controllers
                 return Ok(new
                 {
                     message = "Чаты получены",
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     chats
                 });
             }
