@@ -69,13 +69,6 @@ namespace Project_RentAFriend.Controllers
                 {
                     message = "Уведомления получены",
                     unreadCount,
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     notifications
                 });
             }
