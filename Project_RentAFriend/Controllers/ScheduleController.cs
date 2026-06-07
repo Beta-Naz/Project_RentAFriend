@@ -496,12 +496,12 @@ namespace Project_RentAFriend.Controllers
                     query = query.Where(s => s.ScheduleID != overlapData.ScheduleID.Value);
                 }
 
-                var hasOverlap = await query.AnyAsync();
+                bool result = await query.AnyAsync();
 
                 return Ok(new
                 {
-                    hasOverlap,
-                    message = hasOverlap ? "Обнаружено пересечение с существующим слотом" : "Слоты не пересекаются"
+                    result,
+                    message = result ? "Обнаружено пересечение с существующим слотом" : "Слоты не пересекаются"
                 });
             }
             catch (Exception ex)

@@ -49,7 +49,7 @@ namespace Project_RentAFriend.Controllers
         }
         [Route("get")]
         [HttpGet]
-        public async Task<ActionResult> Get([FromHeader] string token)
+        public async Task<ActionResult> Get([FromHeader(Name = "TOKEN")] string token)
         {
             try
             {
@@ -132,8 +132,8 @@ namespace Project_RentAFriend.Controllers
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
-                bool emailExists = await _dbManager.Users.AnyAsync(u => u.Email == email);
-                return Ok(new { exists = emailExists });
+                bool result = await _dbManager.Users.AnyAsync(u => u.Email == email);
+                return Ok(new {result});
             }
             catch (Exception ex)
             {
