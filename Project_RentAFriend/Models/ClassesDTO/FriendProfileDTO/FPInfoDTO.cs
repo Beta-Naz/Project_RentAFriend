@@ -3,7 +3,6 @@
     public class FPInfoDTO
     {
         public int ProfileID { get; set; }
-        public int UserID { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string? Bio { get; set; }
         public int? Age { get; set; }
@@ -17,7 +16,6 @@
             return new FPInfoDTO
             {
                 ProfileID = profile.ProfileID,
-                UserID = profile.UserID,
                 FullName = profile.User?.FullName ?? string.Empty,
                 Bio = profile.Bio,
                 Age = profile.Age,

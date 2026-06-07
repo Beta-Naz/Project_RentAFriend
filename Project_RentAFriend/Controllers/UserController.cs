@@ -143,7 +143,7 @@ namespace Project_RentAFriend.Controllers
         [Route("update")]
         [HttpPut]
         public async Task<ActionResult> Update([FromHeader(Name = "TOKEN")] 
-                string token, [FromBody] UserUpdateDTO updateData)
+                string token, [FromBody] UserMainInfoDTO updateData)
         {
             try
             {

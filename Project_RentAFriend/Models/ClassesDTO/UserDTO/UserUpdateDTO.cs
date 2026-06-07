@@ -2,7 +2,7 @@
 
 namespace Project_RentAFriend.Models.ClassesDTO.UserDTO
 {
-    public class UserUpdateDTO
+    public class UserMainInfoDTO
     {
         [Required]
         public string Email { get; set; } = string.Empty;

@@ -1,6 +1,6 @@
 ﻿namespace Project_RentAFriend.Models.ClassesDTO.FriendProfileDTO
 {
-    public class FPUpdateDTO
+    public class FPMainInfoDTO
     {
         public string? Bio { get; set; }
         public int? Age { get; set; }
