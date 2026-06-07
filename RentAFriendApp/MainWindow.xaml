@@ -5,12 +5,127 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RentAFriendApp"
         mc:Ignorable="d"
-        Title="Main" 
-        Height="450" 
-        Width="800"
-        MinHeight="450" 
-        MinWidth="800">
-    <Grid>
+        Title="RentAFriend" 
+        Height="700" 
+        Width="1200"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        ResizeMode="CanResizeWithGrip"
+        Background="#F8F9FA">
+    <Window.Resources>
+        <!-- Стили для навигационных кнопок -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="15,0,0,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Left" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E8F5E8"/>
+                                <Setter Property="Foreground" Value="#2E7D32"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
+        <!-- Стиль для активной кнопки -->
+        <Style x:Key="ActiveNavButtonStyle" TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+            <Setter Property="Background" Value="#E8F5E8"/>
+            <Setter Property="Foreground" Value="#2E7D32"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="0,0,3,0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Верхняя шапка -->
+        <Border Height="60" Background="White" VerticalAlignment="Top">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Логотип и название -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0">
+                    <Border Width="32" Height="32" CornerRadius="8" 
+                            VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Image Source="/Resources/Image/rentiIco.png"/>
+                    </Border>
+                    <TextBlock Text="RentAFriend" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="#333333"/>
+                </StackPanel>
+
+                <StackPanel Cursor="Hand"
+                            MouseDown="Profile_Click"
+                            Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal" 
+                            VerticalAlignment="Center" Margin="0,0,20,0">
+                    <Border Width="36" Height="36" Background="#E8F5E8" CornerRadius="18"
+                            VerticalAlignment="Center" Margin="0,0,10,0">
+                        <TextBlock Text="{Binding CurrentUserInitial}" 
+                                   Foreground="#4CAF50" 
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock x:Name="CurrentUserName" Text="Иван Клиентов" 
+                                   FontWeight="SemiBold" Foreground="#333333"/>
+                        <TextBlock x:Name="CurrentUserRole" Text="Клиент" 
+                                   FontSize="12" Foreground="#666666"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Кнопка выхода -->
+                <Button Grid.Column="2" 
+                        Content="Выйти" 
+                        Width="80"
+                        Height="32"
+                        Background="Transparent"
+                        BorderBrush="#FF5252"
+                        BorderThickness="1"
+                        Foreground="#FF5252"
+                        FontWeight="SemiBold"
+                        Margin="0,0,20,0"
+                        Cursor="Hand"
+                        Click="BtnLogout_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Основная область -->
+        <Grid Margin="0,60,0,0">
+            <!-- Основная область контента -->
+            <Border Background="White" Margin="10">
+                <Frame x:Name="MainFrame" 
+                       NavigationUIVisibility="Hidden"
+                       BorderThickness="0"/>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
