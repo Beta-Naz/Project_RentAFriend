@@ -427,14 +427,13 @@ namespace Project_RentAFriend.Controllers
 
                 var bookings = await _dbManager.Bookings
                     .Include(b => b.FriendProfile)
-                    .ThenInclude(fp => fp != null ? fp.User : null)
+                        .ThenInclude(fp => fp != null ? fp.User : null)
                     .Include(b => b.Schedule)
-                    .Where(b => b.ClientID == userId
-                                && (b.Status == "Pending" || b.Status == "Confirmed")
-                                && b.Schedule != null
-                                && b.Schedule.Date >= DateTime.UtcNow.Date)
-                    .OrderBy(b => b.Schedule.Date)
-                    .ThenBy(b => b.Schedule.StartTime)
+                    .Where(b => b.ClientID == userId)
+                    .Where(b => b.Status == "Pending" || b.Status == "Confirmed")
+                    .Where(b => b.Schedule != null && b.Schedule.Date >= DateTime.UtcNow.Date)
+                    .OrderBy(b => b.Schedule!.Date)
+                    .ThenBy(b => b.Schedule!.StartTime)
                     .Take(top)
                     .Select(b => new
                     {
@@ -443,12 +442,10 @@ namespace Project_RentAFriend.Controllers
                         b.Purpose,
                         b.TotalAmount,
                         b.PaymentStatus,
-                        FriendName = b.FriendProfile != null && b.FriendProfile.User != null
-                            ? b.FriendProfile.User.FullName
-                            : "Unknown",
-                        Date = b.Schedule != null ? b.Schedule.Date : DateTime.MinValue,
-                        StartTime = b.Schedule != null ? b.Schedule.StartTime : TimeSpan.Zero,
-                        EndTime = b.Schedule != null ? b.Schedule.EndTime : TimeSpan.Zero,
+                        FriendName = b.FriendProfile!.User!.FullName ?? "Unknown",
+                        b.Schedule!.Date,
+                        b.Schedule!.StartTime,
+                        b.Schedule!.EndTime,
                         b.MeetingLocation
                     })
                     .ToListAsync();
