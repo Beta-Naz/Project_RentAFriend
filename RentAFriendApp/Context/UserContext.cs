@@ -11,83 +11,71 @@ namespace RentAFriendApp.Context
         private static readonly string _url = "https://localhost:7091/user";
         public static async Task<string?> Login(string email , string password)
         {
-            using(HttpClient client = new ())
+            using HttpClient client = new();
+            using HttpRequestMessage request = new(HttpMethod.Post, _url + "login");
+            Dictionary<string, string> formData = new()
             {
-                using(HttpRequestMessage request = new(HttpMethod.Post, _url + "login"))
+                ["email"] = email,
+                ["password"] = password
+            };
+            FormUrlEncodedContent content = new(formData);
+            request.Content = content;
+            var response = await client.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                Auth? dataAuth = JsonConvert.DeserializeObject<Auth>(result);
+                if (dataAuth != null)
                 {
-                    Dictionary<string, string> formData = new Dictionary<string, string>()
-                    {
-                        ["email"] = email,
-                        ["password"] = password
-                    };
-                    FormUrlEncodedContent content = new FormUrlEncodedContent(formData);
-                    request.Content = content;
-                    var response = await client.SendAsync(request);
-                    if(response.StatusCode == HttpStatusCode.OK)
-                    {
-                        string result = await response.Content.ReadAsStringAsync();
-                        Auth? dataAuth = JsonConvert.DeserializeObject<Auth>(result);
-                        if(dataAuth != null)
-                        {
-                            return dataAuth.Token;
-                        }
-                    }
+                    return dataAuth.Token;
                 }
             }
             return null;
         }
         public static async Task<UserLoginDTO?> GetUser(string token)
         {
-            using (HttpClient client = new())
-            {
-                client.DefaultRequestHeaders.Add("TOKEN", token);
-                var response = await client.GetAsync(_url + "/get");
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync(_url + "/get");
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<UserLoginDTO>(result);
-                }
-                return null;
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<UserLoginDTO>(result);
             }
+            return null;
         }
         public static async Task<bool> Register(UserRegisterDTO registerData)
         {
-            using (HttpClient client = new())
-            {
-                var content = new StringContent(JsonConvert.SerializeObject(registerData),
-                    System.Text.Encoding.UTF8, "application/json");
-                var response = await client.PostAsync(_url + "/create", content);
-                return response.StatusCode == HttpStatusCode.OK;
-            }
+            using HttpClient client = new();
+            var content = new StringContent(JsonConvert.SerializeObject(registerData),
+                System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(_url + "/create", content);
+            return response.StatusCode == HttpStatusCode.OK;
         }
         public static async Task<bool> ExistsEmail(string email)
         {
-            using (HttpClient client = new())
-            {
-                var formData = new Dictionary<string, string> { ["email"] = email };
-                var content = new FormUrlEncodedContent(formData);
-                var response = await client.PostAsync(_url + "/existsEmail", content);
+            using HttpClient client = new();
+            var formData = new Dictionary<string, string> { ["email"] = email };
+            var content = new FormUrlEncodedContent(formData);
+            var response = await client.PostAsync(_url + "/existsEmail", content);
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject<BoolResult>(result);
-                    return data?.Result ?? false;
-                }
-                return false;
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<BoolResult>(result);
+                return data?.Result ?? false;
             }
+            return false;
         }
         public static async Task<bool> UpdateUser(string token, UserMainInfoDTO updateData)
         {
-            using (HttpClient client = new())
-            {
-                client.DefaultRequestHeaders.Add("TOKEN", token);
-                var content = new StringContent(JsonConvert.SerializeObject(updateData),
-                    System.Text.Encoding.UTF8, "application/json");
-                var response = await client.PutAsync(_url + "/update", content);
-                return response.StatusCode == HttpStatusCode.OK;
-            }
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var content = new StringContent(JsonConvert.SerializeObject(updateData),
+                System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PutAsync(_url + "/update", content);
+            return response.StatusCode == HttpStatusCode.OK;
         }
     }
 }

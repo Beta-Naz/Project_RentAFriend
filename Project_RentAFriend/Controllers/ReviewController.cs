@@ -165,13 +165,6 @@ namespace Project_RentAFriend.Controllers
                 {
                     message = "Отзывы получены",
                     averageRating = avgRating,
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     reviews
                 });
             }
@@ -233,13 +226,6 @@ namespace Project_RentAFriend.Controllers
                 return Ok(new
                 {
                     message = "Ваши отзывы",
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     reviews
                 });
             }
@@ -306,13 +292,6 @@ namespace Project_RentAFriend.Controllers
                 return Ok(new
                 {
                     message = "Отзывы на модерации",
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     reviews
                 });
             }
