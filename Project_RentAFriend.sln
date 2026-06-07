@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project_RentAFriend", "Project_RentAFriend\Project_RentAFriend.csproj", "{771489E2-2986-4E8A-B375-1D2E8F459E73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RentAFriendApp", "RentAFriendApp\RentAFriendApp.csproj", "{796C8779-A6E3-4EEB-8B32-EFCDFA668E6C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{771489E2-2986-4E8A-B375-1D2E8F459E73} = {771489E2-2986-4E8A-B375-1D2E8F459E73}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -12,7 +12,7 @@ namespace RentAFriendApp.Context
         public static async Task<Auth?> Login(string email , string password)
         {
             using HttpClient client = new();
-            using HttpRequestMessage request = new(HttpMethod.Post, _url + "login");
+            using HttpRequestMessage request = new(HttpMethod.Post, _url + "/login");
             Dictionary<string, string> formData = new()
             {
                 ["email"] = email,
@@ -21,14 +21,11 @@ namespace RentAFriendApp.Context
             FormUrlEncodedContent content = new(formData);
             request.Content = content;
             var response = await client.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.OK)
+            string result = await response.Content.ReadAsStringAsync();
+            Auth? dataAuth = JsonConvert.DeserializeObject<Auth>(result);
+            if (dataAuth != null)
             {
-                string result = await response.Content.ReadAsStringAsync();
-                Auth? dataAuth = JsonConvert.DeserializeObject<Auth>(result);
-                if (dataAuth != null)
-                {
-                    return dataAuth;
-                }
+                return dataAuth;
             }
             return null;
         }
