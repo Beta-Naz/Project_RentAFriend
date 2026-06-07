@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Project_RentAFriend.Classes;
 using Project_RentAFriend.Models;
 using Project_RentAFriend.Models.ClassesDTO.FriendProfileDTO;
-using Project_RentAFriend.Models.ClassesDTO.UserDTO;
 
 namespace Project_RentAFriend.Controllers
 {
@@ -44,7 +43,7 @@ namespace Project_RentAFriend.Controllers
                 {
                     return Conflict(new { message = "Нету данных для профиля" });
                 }
-                FriendProfile friendProfile = new()
+                FriendProfile newFriendProfile = new()
                 {
                     Bio = infoDTO.Bio,
                     Hobbies = infoDTO.Hobbies,
@@ -56,12 +55,13 @@ namespace Project_RentAFriend.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UserID = user.UserID
                 };
-                _dbManager.FriendProfiles.Add(friendProfile);
+                _dbManager.FriendProfiles.Add(newFriendProfile);
                 await _dbManager.SaveChangesAsync();
+                FPInfoDTO dataInfo = FPInfoDTO.Convert(newFriendProfile);
                 return Ok(new 
                 { 
                     message = "Профиль успешно создан",
-                    friendProfile 
+                    dataInfo
                 });
             }
             catch (Exception ex)
