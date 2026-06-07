@@ -177,13 +177,6 @@ namespace Project_RentAFriend.Controllers
                 return Ok(new
                 {
                     message = "Ваши бронирования",
-                    pagination = new
-                    {
-                        currentPage = page,
-                        pageSize,
-                        totalCount,
-                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                    },
                     bookings
                 });
             }
