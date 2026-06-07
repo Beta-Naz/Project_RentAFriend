@@ -9,6 +9,6 @@ namespace Project_RentAFriend.Classes
             "database=RendAFriendDB;" +
             "uid=root;" +
             "pwd=1234;";
-        public static readonly MySqlServerVersion CurrentVersion = new MySqlServerVersion(new Version(8, 0, 11));
+        public static readonly MySqlServerVersion CurrentVersion = new(new Version(8, 0, 11));
     }
 }

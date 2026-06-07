@@ -15,7 +15,7 @@ namespace Project_RentAFriend.Classes
         /// Секретный ключ для подписи токенов
         /// static означает, что ключ общий для всех экземпляров класса
         /// </summary>
-        static byte[] Key = Encoding.UTF8.GetBytes("RentAFriendTheBestKursovoiProject!!!");
+        static readonly byte[] Key = Encoding.UTF8.GetBytes("RentAFriendTheBestKursovoiProject!!!");
 
         /// <summary>
         /// Генерирует JWT токен для пользователя
@@ -24,13 +24,12 @@ namespace Project_RentAFriend.Classes
         /// <returns>Строка с JWT токеном</returns>
         public static string Generate(User user)
         {
-            JwtSecurityTokenHandler TokenHandler = new JwtSecurityTokenHandler();
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            JwtSecurityTokenHandler TokenHandler = new();
+            SecurityTokenDescriptor tokenDescriptor = new()
             {
-                Subject = new ClaimsIdentity(new[]
-                {
+                Subject = new ClaimsIdentity([
                 new Claim("UserId", user.UserID.ToString())
-            }),
+            ]),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(Key),
@@ -50,7 +49,7 @@ namespace Project_RentAFriend.Classes
         {
             try
             {
-                JwtSecurityTokenHandler TokenHandler = new JwtSecurityTokenHandler();
+                JwtSecurityTokenHandler TokenHandler = new();
 
                 TokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
