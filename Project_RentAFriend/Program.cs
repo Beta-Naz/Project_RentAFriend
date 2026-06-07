@@ -1,24 +1,37 @@
+using Project_RentAFriend.Classes;
+
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddMvc(option => option.EnableEndpointRouting = true);
-builder.Services.AddSwaggerGen(option =>
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    option.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new()
     {
         Version = "v1",
-        Title = "Инструментарий"
+        Title = "RentAFriend API"
     });
-    string PathFile = Path.Combine(AppContext.BaseDirectory, "APIRentAFriend.xml");
-    option.IncludeXmlComments(PathFile);
+
+    var xmlFile = "APIRentAFriend.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
 });
+
+builder.Services.AddScoped<DBManager>();
+builder.Services.AddCors();
+
 var app = builder.Build();
+
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Инструментарий");
-});
+app.UseSwaggerUI();
+app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseRouting();
-app.UseEndpoints(endpoints =>
+app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
 {
-    endpoints.MapControllers();
-});
+    var db = scope.ServiceProvider.GetRequiredService<DBManager>();
+    await db.Database.EnsureCreatedAsync();
+}
+
 app.Run();
