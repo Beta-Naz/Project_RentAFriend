@@ -1,4 +1,4 @@
-﻿namespace RentAFriendApp.Models.ClassesDTO.ReviewDTO
+﻿namespace RentAFriendApp.Models.ClassesDTO.ReviewDTO.Response
 {
     public class ApproveReviewResponse
     {

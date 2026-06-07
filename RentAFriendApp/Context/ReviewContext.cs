@@ -1,8 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
+using RentAFriendApp.Models.ClassesDTO.ReviewDTO.Response;
+using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
-using RentAFriendApp.Models;
-using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
+
 
 namespace RentAFriendApp.Context
 {
@@ -124,7 +125,7 @@ namespace RentAFriendApp.Context
         /// <summary>
         /// Удалить отзыв (администратор или автор)
         /// </summary>
-        public static async Task<ApproveReviewResponse?> DeleteReview(string token, int reviewId)
+        public static async Task<DeleteReviewResponse?> DeleteReview(string token, int reviewId)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
@@ -133,7 +134,7 @@ namespace RentAFriendApp.Context
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<ApproveReviewResponse>(result);
+                return JsonConvert.DeserializeObject<DeleteReviewResponse>(result);
             }
             return null;
         }
