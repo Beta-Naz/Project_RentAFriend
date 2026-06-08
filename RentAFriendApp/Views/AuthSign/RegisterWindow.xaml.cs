@@ -67,8 +67,6 @@ namespace RentAFriendApp.Views.AuthSign
             if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
             {
                 viewModel.ConfirmPassword = ConfirmPasswordBox.Password;
-
-                // Проверка совпадения паролей в реальном времени
                 ValidatePasswordMatch();
             }
         }
@@ -107,7 +105,7 @@ namespace RentAFriendApp.Views.AuthSign
 
                 // Активируем кнопку продолжения
                 ContinueButton.IsEnabled = true;
-
+                RoleInfoBorder.BeginAnimation(OpacityProperty, null);
                 // Анимация появления информации
                 RoleInfoBorder.Opacity = 0;
                 RoleInfoBorder.BeginAnimation(OpacityProperty,
@@ -167,6 +165,9 @@ namespace RentAFriendApp.Views.AuthSign
         {
             if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
             {
+                progressLine.Width = 100;
+                progressNumber.Text = "Шаг 1 из 2";
+
                 viewModel.BackToStep1Command.Execute(null);
 
                 // Возврат к первому шагу с анимацией
@@ -174,10 +175,16 @@ namespace RentAFriendApp.Views.AuthSign
                 Step1RoleSelection.Visibility = Visibility.Visible;
 
                 // Анимация
+                Step1RoleSelection.BeginAnimation(OpacityProperty, null);
                 Step1RoleSelection.Opacity = 0;
                 Step1RoleSelection.BeginAnimation(OpacityProperty,
                     new System.Windows.Media.Animation.DoubleAnimation(1,
                         TimeSpan.FromSeconds(0.3)));
+                ConfirmPasswordBox.Password = string.Empty;
+                PasswordBox.Password = string.Empty;
+                AgreementCheckBox.IsChecked = false;
+                PhoneTextBox.Text = string.Empty;
+                viewModel.ClearFormData();
             }
         }
 
@@ -191,19 +198,6 @@ namespace RentAFriendApp.Views.AuthSign
                 }
             }
             
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         private void Login_Click(object sender, MouseButtonEventArgs e)
@@ -314,7 +308,7 @@ namespace RentAFriendApp.Views.AuthSign
 
             return isValid;
         }
-
+        
         // Валидация телефона
         private bool ValidatePhone(string phone)
         {
@@ -324,13 +318,15 @@ namespace RentAFriendApp.Views.AuthSign
                 PhoneTextBox.ClearValue(TextBox.BorderBrushProperty);
                 return true;
             }
-
+            if (phone[0] == '+')
+            {
+                bool tr = false;
+            }
             // Убираем все нецифровые символы
             string digits = Regex.Replace(phone, @"[^\d]", "");
 
             // Российские номера: +7 XXX XXX-XX-XX или 8 XXX XXX-XX-XX
-            bool isValid = (digits.Length == 11 && (digits.StartsWith("7") || digits.StartsWith("8"))) ||
-                          (digits.Length == 10);
+            bool isValid = digits.Length == 11 && (digits.StartsWith("8") || digits.StartsWith("7"));
 
             if (!isValid)
             {

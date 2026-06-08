@@ -265,7 +265,7 @@ namespace RentAFriendApp.ViewModels.AuthSign
             }
         }
 
-        private void ClearFormData()
+        public void ClearFormData()
         {
             FullName = string.Empty;
             Email = string.Empty;
@@ -274,6 +274,10 @@ namespace RentAFriendApp.ViewModels.AuthSign
             ConfirmPassword = string.Empty;
             AgreeToTerms = false;
             ClearErrors();
+            OnPropertyChanged(nameof(Phone));
+            OnPropertyChanged(nameof(Password));
+            OnPropertyChanged(nameof(ConfirmPassword));
+            OnPropertyChanged(nameof(AgreeToTerms));
         }
     }
 }

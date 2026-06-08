@@ -166,7 +166,7 @@
 
         <!-- Иконки -->
         <Geometry x:Key="UserIcon">M12,12C14.21,12 16,10.21 16,8C16,5.79 14.21,4 12,4C9.79,4 8,5.79 8,8C8,10.21 9.79,12 12,12ZM12,14C9.33,14 4,15.34 4,18V20H20V18C20,15.34 14.67,14 12,14Z</Geometry>
-        <Geometry x:Key="ClientIcon">M16,11C18.21,11 20,12.79 20,15V18H12V15C12,12.79 13.79,11 16,11M8,8C8,5.79 9.79,4 12,4C14.21,4 16,5.79 16,8C16,10.21 14.21,12 12,12C9.79,12 8,10.21 8,8M8,13C5.79,13 4,14.79 4,17V20H12V17C12,14.79 10.21,13 8,13Z</Geometry>
+        <Geometry x:Key="ClientIcon">M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z</Geometry>
         <Geometry x:Key="FriendIcon">M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z</Geometry>
         <Geometry x:Key="CloseIcon">M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z</Geometry>
         <Geometry x:Key="AlertIcon">M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16</Geometry>
@@ -193,7 +193,7 @@
                         <!-- Логотип и название -->
                         <StackPanel Grid.Row="0" Margin="30,40,30,0">
                             <Viewbox Width="40" Height="40" HorizontalAlignment="Left" Margin="0,0,0,10">
-                                <Path Data="{StaticResource UserIcon}" Fill="White" Stretch="Uniform"/>
+                                <Image Source="/Resources/Image/rentiIco.png"/>
                             </Viewbox>
                             <TextBlock Text="RentAFriend" 
                                        FontSize="28" 
