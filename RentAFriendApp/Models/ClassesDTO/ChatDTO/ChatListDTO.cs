@@ -8,5 +8,7 @@
         public DateTime? LastMessageAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
+        public string? LastMessage { get; set; } = string.Empty;
+        public int UnreadCount { get; set; }
     }
 }

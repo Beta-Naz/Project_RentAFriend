@@ -110,7 +110,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Chats == null)
+                if (_dbManager == null || _dbManager.Chats == null || _dbManager.Messages == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -124,23 +124,43 @@ namespace Project_RentAFriend.Controllers
                 var query = _dbManager.Chats
                     .Include(c => c.Client)
                     .Include(c => c.Friend)
-                    .Where(c => (c.ClientID == userId || c.FriendID == userId) && c.IsActive)
-                    .OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt);
+                    .Where(c => (c.ClientID == userId || c.FriendID == userId) && c.IsActive);
 
                 var totalCount = await query.CountAsync();
+
                 var chats = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(c => new ChatListDTO
+                    .Select(c => new
                     {
-                        ChatID = c.ChatID,
-                        InterlocutorID = c.ClientID == userId ? c.FriendID : c.ClientID,
-                        InterlocutorName = c.ClientID == userId
-                            ? (c.Friend != null ? c.Friend.FullName : "Unknown")
-                            : (c.Client != null ? c.Client.FullName : "Unknown"),
-                        LastMessageAt = c.LastMessageAt,
-                        CreatedAt = c.CreatedAt,
-                        IsActive = c.IsActive
+                        Chat = c,
+                        LastMessage = _dbManager.Messages
+                            .Where(m => m.ChatID == c.ChatID && !m.IsDeleted)
+                            .OrderByDescending(m => m.CreatedAt)
+                            .Select(m => new { m.Content, m.CreatedAt })
+                            .FirstOrDefault()
+                    })
+                    .OrderByDescending(x => x.LastMessage != null ? x.LastMessage.CreatedAt : x.Chat.CreatedAt)
+                    .Select(x => new ChatListDTO
+                    {
+                        ChatID = x.Chat.ChatID,
+                        InterlocutorID = x.Chat.ClientID == userId ? x.Chat.FriendID : x.Chat.ClientID,
+                        InterlocutorName = x.Chat.ClientID == userId
+                            ? (x.Chat.Friend != null ? x.Chat.Friend.FullName : "Unknown")
+                            : (x.Chat.Client != null ? x.Chat.Client.FullName : "Unknown"),
+                        LastMessageAt = x.LastMessage != null ? x.LastMessage.CreatedAt : x.Chat.CreatedAt,
+                        CreatedAt = x.Chat.CreatedAt,
+                        IsActive = x.Chat.IsActive,
+                        LastMessage = x.LastMessage != null
+                            ? (x.LastMessage.Content.Length > 50
+                                ? x.LastMessage.Content.Substring(0, 50) + "..."
+                                : x.LastMessage.Content)
+                            : "Нет сообщений",
+                        UnreadCount = _dbManager.Messages
+                            .Count(m => m.ChatID == x.Chat.ChatID
+                                        && m.SenderID != userId
+                                        && !m.IsRead
+                                        && !m.IsDeleted)
                     })
                     .ToListAsync();
 

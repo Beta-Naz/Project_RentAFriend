@@ -81,5 +81,21 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        /// <summary>
+        /// Получить профиль друга по ID
+        /// </summary>
+        public static async Task<FPInfoDTO?> GetFriendProfileById(int profileId, string token)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/profile/{profileId}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<FPInfoDTO>(result);
+            }
+            return null;
+        }
     }
 }

@@ -249,5 +249,57 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        /// <summary>
+        /// Получить профиль друга по ID
+        /// </summary>
+        [Route("profile/{profileId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetFriendProfileById(
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.FriendProfiles == null || _dbManager.Users == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                // Проверяем токен
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                // Получаем профиль
+                var friendProfile = await _dbManager.FriendProfiles
+                    .Include(fp => fp.User)
+                    .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
+
+                if (friendProfile == null)
+                {
+                    return NotFound(new { message = "Профиль не найден" });
+                }
+
+                // Проверяем, что пользователь активен
+                if (friendProfile.User == null || !friendProfile.User.IsActive)
+                {
+                    return NotFound(new { message = "Профиль недоступен" });
+                }
+
+                var profileDTO = FPInfoDTO.Convert(friendProfile);
+
+                return Ok(new
+                {
+                    message = "Профиль успешно получен",
+                    profile = profileDTO
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }
