@@ -418,7 +418,6 @@ namespace RentAFriendApp.Views.Client
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            // Адаптация интерфейса при изменении размера окна
             if (e.NewSize.Width < 1200)
             {
                 // Можно добавить адаптивную верстку
