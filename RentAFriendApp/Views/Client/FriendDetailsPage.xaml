@@ -1,0 +1,752 @@
+﻿<Page x:Class="RentAFriendApp.Views.Client.FriendDetailsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:RentAFriendApp.Views.Client"
+      xmlns:system="clr-namespace:System;assembly=mscorlib" 
+      xmlns:client="clr-namespace:RentAFriendApp.ViewModels.Client"
+      xmlns:converters="clr-namespace:RentAFriendApp.Converters" 
+      mc:Ignorable="d" 
+      d:DesignHeight="1080" d:DesignWidth="1920"
+      Title="Профиль друга - RentAFriend"
+      Background="#F8F9FA"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
+
+    <Page.Resources>
+        <!-- Стили для карточек -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="20"
+                            Padding="8">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InfoCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" Opacity="0.06" ShadowDepth="1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ReviewCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" Opacity="0.05" ShadowDepth="0"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TimeSlotStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F0F9F0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Стиль для забронированных слотов -->
+        <Style x:Key="BookedTimeSlotStyle" TargetType="Border" BasedOn="{StaticResource TimeSlotStyle}">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+
+        <!-- Стиль для выбранных слотов -->
+        <Style x:Key="SelectedTimeSlotStyle" TargetType="Border" BasedOn="{StaticResource TimeSlotStyle}">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="BorderBrush" Value="#388E3C"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <!-- Конвертер для дат -->
+        <converters:DateAddConverter x:Key="DateAddConverter"/>
+        <converters:InitialsConverter x:Key="InitialsConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:RatingToStarsConverterFigure x:Key="RatingToStarsConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <!-- Иконки -->
+        <Geometry x:Key="StarIcon">M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z</Geometry>
+        <Geometry x:Key="LocationIcon">M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z</Geometry>
+        <Geometry x:Key="ClockIcon">M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z</Geometry>
+        <Geometry x:Key="VerifiedIcon">M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z</Geometry>
+        <Geometry x:Key="CalendarIcon">M9,1V3H15V1H17V3H21C22.11,3 23,3.89 23,5V21C23,22.11 22.11,23 21,23H3C1.89,23 1,22.11 1,21V5C1,3.89 1.89,3 3,3H7V1H9M7,7V9H9V7H7M11,7V9H13V7H11M15,7V9H17V7H15M19,7V9H21V7H19M3,10V21H21V10H3Z</Geometry>
+        <Geometry x:Key="UserIcon">M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z</Geometry>
+        <Geometry x:Key="MessageIcon">M20,2H4C2.9,2 2,2.9 2,4V22L6,18H20C21.1,18 22,17.1 22,16V4C22,2.9 21.1,2 20,2Z</Geometry>
+        <Geometry x:Key="ArrowBackIcon">M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z</Geometry>
+        <Geometry x:Key="HeartIcon">M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z</Geometry>
+        <Geometry x:Key="ShareIcon">M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.16,18.34C15.11,18.55 15.08,18.77 15.08,19C15.08,20.61 16.39,21.91 18,21.91C19.61,21.91 20.92,20.61 20.92,19C20.92,17.39 19.61,16.08 18,16.08Z</Geometry>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+
+            <!-- Основной контент -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="500"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Левая колонка: Информация о друге -->
+                <StackPanel Grid.Column="0" Margin="0,0,30,0">
+                    <!-- Карточка профиля -->
+                    <Border Style="{StaticResource InfoCardStyle}">
+                        <StackPanel>
+                            <!-- Аватар и основная информация -->
+                            <Grid Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Аватар -->
+                                <Grid Grid.Column="0">
+                                    <Border Width="120"
+                                            Height="120"
+                                            Background="#E8F5E8"
+                                            CornerRadius="60">
+                                        <TextBlock x:Name="AvatarText"
+                                                   Text="АК"
+                                                   FontSize="36"
+                                                   FontWeight="Bold"
+                                                   Foreground="#4CAF50"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <!-- Значок верификации -->
+                                    <Border Width="32"
+                                            Height="32"
+                                            Background="#4CAF50"
+                                            CornerRadius="16"
+                                            BorderBrush="White"
+                                            BorderThickness="3"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            Visibility="{Binding IsVerified, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Path Data="{StaticResource VerifiedIcon}"
+                                              Fill="White"
+                                              Width="24"
+                                              Height="24"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Имя и рейтинг -->
+                                <StackPanel Grid.Column="1" 
+                                            Margin="20,0,0,0"
+                                            VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FriendName}"
+                                               FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"/>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Path Data="{StaticResource LocationIcon}"
+                                              Fill="#666666"
+                                              Width="24"
+                                              Height="22"
+                                              VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding FriendCity}"
+                                                   FontSize="14"
+                                                   Foreground="#666666"
+                                                   Margin="6,0,20,0"
+                                                   VerticalAlignment="Center"/>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="{StaticResource StarIcon}"
+                                                  Fill="#FFC107"
+                                                  Width="24"
+                                                  Height="22"
+                                                  VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding FriendRating, StringFormat={}{0:0.0}}"
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#333333"
+                                                       Margin="4,0,4,0"/>
+                                            <TextBlock Text="{Binding Reviews.Count, StringFormat='({0} отзывов)'}"
+                                                       FontSize="13"
+                                                       Foreground="#666666"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Цена -->
+                                    <TextBlock Text="{Binding FriendRateDisplay}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#4CAF50"
+                                               Margin="0,12,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="Мои интересы:"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="#333333"
+                                       Margin="0,0,0,10"
+                                       Visibility="{Binding FriendHobbies, Converter={StaticResource StringToVisibilityConverter}}"/>
+                            <!-- Описание -->
+                            <TextBlock Text="{Binding FriendBio}"
+                                       FontSize="14"
+                                       Foreground="#666666"
+                                       TextWrapping="Wrap"
+                                       LineHeight="1.5"
+                                       Margin="0,0,0,20"/>
+
+                            <!-- Хобби будут загружаться динамически -->
+                            <WrapPanel x:Name="HobbiesPanel" 
+                                       Margin="0,0,0,20"
+                                       Visibility="{Binding FriendHobbies, Converter={StaticResource StringToVisibilityConverter}}">
+                                <!-- Хобби будут добавляться в коде -->
+                            </WrapPanel>
+
+                            <!-- Статистика -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,0,10,0">
+                                    <TextBlock Text="124"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="встречи"
+                                               FontSize="12"
+                                               Foreground="#666666"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Border Grid.Column="1" 
+                                        Width="1" 
+                                        Background="#E0E0E0"
+                                        HorizontalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="1" 
+                                            HorizontalAlignment="Center"
+                                            Margin="10,0,10,0">
+                                    <TextBlock Text="98%"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="успешных"
+                                               FontSize="12"
+                                               Foreground="#666666"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+
+                                <Border Grid.Column="2" 
+                                        Width="1" 
+                                        Background="#E0E0E0"
+                                        HorizontalAlignment="Center"/>
+
+                                <StackPanel Grid.Column="2" 
+                                            HorizontalAlignment="Center"
+                                            Margin="10,0,0,0">
+                                    <TextBlock Text="2 года"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="на платформе"
+                                               FontSize="12"
+                                               Foreground="#666666"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <!-- Контактные кнопки -->
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button x:Name="MessageButton"
+                                Grid.Column="0"
+                                Background="White"
+                                BorderBrush="#4CAF50"
+                                BorderThickness="1"
+                                Foreground="#4CAF50"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Height="48"
+                                Margin="0,0,10,0"
+                                Cursor="Hand"
+                                Click="MessageButton_Click">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Path Data="{StaticResource MessageIcon}"
+                                      Fill="#4CAF50"
+                                      Width="24"
+                                      Height="22"
+                                      Margin="0,0,8,0"/>
+                                <TextBlock Text="Написать сообщение"/>
+                            </StackPanel>
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <Button x:Name="BookButton"
+                                Grid.Column="1"
+                                Content="Забронировать"
+                                Background="#4CAF50"
+                                Foreground="White"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Height="48"
+                                Padding="24,0"
+                                Cursor="Hand"
+                                Click="BookButton_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        
+                    </Grid>
+                    <!-- Кнопка назад -->
+                    <Button x:Name="BackButton"
+                        Grid.Column="0" 
+                        Style="{StaticResource IconButtonStyle}"
+                        Height="40"
+                        Width="40"
+                        Margin="0,0,20,0"
+                        Click="BackButton_Click"
+                            HorizontalAlignment="Left">
+                        <Path Data="{StaticResource ArrowBackIcon}"
+                          Fill="#666666"
+                          Width="24"
+                          Height="24"/>
+
+                    </Button>
+                </StackPanel>
+
+                <!-- Правая колонка: Бронирование и отзывы -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель бронирования -->
+                    <Border Style="{StaticResource InfoCardStyle}" Grid.Row="0">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Path Data="{StaticResource CalendarIcon}"
+                                      Fill="#4CAF50"
+                                      Width="26"
+                                      Height="22"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,8,0"/>
+                                <TextBlock Text="Выбрать время для встречи"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="#333333"/>
+                            </StackPanel>
+
+                            <!-- Выбор даты -->
+                            <TextBlock x:Name="SelectedDateText"
+                                       Text="Выберите дату:"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#333333"
+                                       Margin="0,0,0,12"/>
+
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="DatePanel" Orientation="Horizontal" Margin="0,0,0,20">
+                                    <!-- Даты будут добавляться динамически -->
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- Выбор времени -->
+                            <TextBlock Text="{Binding SelectedDate, StringFormat='Доступное время на {0:dd MMMM}:'}"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#333333"
+                                       Margin="0,0,0,12"/>
+
+                            <WrapPanel x:Name="TimeSlotsPanel" Margin="0,0,0,20">
+                                <!-- Временные слоты будут добавляться динамически -->
+                            </WrapPanel>
+
+                            <!-- Итоговая стоимость -->
+                            <Border Background="#F9FDF9"
+                                    CornerRadius="10"
+                                    Padding="16"
+                                    BorderBrush="#E8F5E8"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding SelectedTimeDisplay, StringFormat='Выбрано: {0}'}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Visibility="{Binding HasSelectedTimeSlot, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                        <TextBlock Text="{Binding SelectedDuration, StringFormat='Продолжительность: {0:hh\\:mm}'}"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Margin="0,4,0,0"
+                                                   Visibility="{Binding HasSelectedTimeSlot, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="Итого к оплате:"
+                                                   FontSize="14"
+                                                   Foreground="#666666"/>
+                                        <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0} ₽}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   Foreground="#4CAF50"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel HorizontalAlignment="Right" Grid.Row="1" Height="40" Orientation="Horizontal">
+                        <Button x:Name="AddToFavoritesButton"
+                         Style="{StaticResource IconButtonStyle}"
+                         Height="40"
+                         Width="40"
+                         Margin="0,0,8,0"
+                         Click="AddToFavoritesButton_Click">
+                                         <Path Data="{StaticResource HeartIcon}"
+                           Fill="#666666"
+                           Width="24"
+                           Height="22"/>
+                                     </Button>
+
+                                     <Button x:Name="ShareButton"
+                         Style="{StaticResource IconButtonStyle}"
+                         Height="40"
+                         Width="40"
+                         Click="ShareButton_Click">
+                                         <Path Data="{StaticResource ShareIcon}"
+                           Fill="#666666"
+                           Width="24"
+                           Height="22"/>
+                                     </Button>
+                    </StackPanel>
+                    <!-- Отзывы -->
+                    <Border Style="{StaticResource InfoCardStyle}" Grid.Row="2" Margin="0,20,0,0">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <Path Data="{StaticResource StarIcon}"
+                                      Fill="#FFC107"
+                                      Width="24"
+                                      Height="22"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding Reviews.Count, StringFormat='Отзывы ({0})'}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="#333333"/>
+                            </StackPanel>
+
+                            <!-- Рейтинг -->
+                            <Grid Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,0,20,0">
+                                    <TextBlock Text="{Binding FriendRating, StringFormat={}{0:0.0}}"
+                                               FontSize="36"
+                                               FontWeight="Bold"
+                                               Foreground="#333333"
+                                               HorizontalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+                                        <Path Data="{StaticResource StarIcon}"
+                                              Fill="#FFC107"
+                                              Width="24"
+                                              Height="22"
+                                              Margin="1,0"/>
+                                        <Path Data="{StaticResource StarIcon}"
+                                              Fill="#FFC107"
+                                              Width="24"
+                                              Height="22"
+                                              Margin="1,0"/>
+                                        <Path Data="{StaticResource StarIcon}"
+                                              Fill="#FFC107"
+                                              Width="24"
+                                              Height="22"
+                                              Margin="1,0"/>
+                                        <Path Data="{StaticResource StarIcon}"
+                                              Fill="#FFC107"
+                                              Width="24"
+                                              Height="22"
+                                              Margin="1,0"/>
+                                        <Path Data="{StaticResource StarIcon}"
+                                              Fill="#FFC107"
+                                              Width="24"
+                                              Height="22"
+                                              Margin="1,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Средняя оценка"
+                                               FontSize="12"
+                                               Foreground="#666666"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                                <!-- Распределение оценок -->
+                                <StackPanel Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <TextBlock Text="5 звезд"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Width="60"/>
+                                        <ProgressBar Value="85" 
+                                                     Maximum="100" 
+                                                     Height="8"
+                                                     Margin="10,0"
+                                                     Background="#E0E0E0">
+                                            <ProgressBar.Foreground>
+                                                <SolidColorBrush Color="#4CAF50"/>
+                                            </ProgressBar.Foreground>
+                                        </ProgressBar>
+                                        <TextBlock Text="0%"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Margin="10,0,0,0"
+                                                   Width="30"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <TextBlock Text="4 звезды"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Width="60"/>
+                                        <ProgressBar Value="12" 
+                                                     Maximum="100" 
+                                                     Height="8"
+                                                     Margin="10,0"
+                                                     Background="#E0E0E0">
+                                            <ProgressBar.Foreground>
+                                                <SolidColorBrush Color="#4CAF50"/>
+                                            </ProgressBar.Foreground>
+                                        </ProgressBar>
+                                        <TextBlock Text="0%"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Margin="10,0,0,0"
+                                                   Width="30"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <TextBlock Text="3 звезды"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Width="60"/>
+                                        <ProgressBar Value="0" 
+                                                     Maximum="100" 
+                                                     Height="8"
+                                                     Margin="10,0"
+                                                     Background="#E0E0E0">
+                                            <ProgressBar.Foreground>
+                                                <SolidColorBrush Color="#FFC107"/>
+                                            </ProgressBar.Foreground>
+                                        </ProgressBar>
+                                        <TextBlock Text="0%"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Margin="10,0,0,0"
+                                                   Width="30"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <TextBlock Text="2 звезды"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Width="60"/>
+                                        <ProgressBar Value="1" 
+                                                     Maximum="100" 
+                                                     Height="8"
+                                                     Margin="10,0"
+                                                     Background="#E0E0E0">
+                                            <ProgressBar.Foreground>
+                                                <SolidColorBrush Color="#FF9800"/>
+                                            </ProgressBar.Foreground>
+                                        </ProgressBar>
+                                        <TextBlock Text="0%"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Margin="10,0,0,0"
+                                                   Width="30"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="1 звезда"
+                                                   FontSize="13"
+                                                   Foreground="#666666"
+                                                   Width="60"/>
+                                        <ProgressBar Value="0" 
+                                                     Maximum="100" 
+                                                     Height="8"
+                                                     Margin="10,0"
+                                                     Background="#E0E0E0">
+                                            <ProgressBar.Foreground>
+                                                <SolidColorBrush Color="#F44336"/>
+                                            </ProgressBar.Foreground>
+                                        </ProgressBar>
+                                        <TextBlock Text="0%"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#333333"
+                                                   Margin="10,0,0,0"
+                                                   Width="30"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Последние отзывы -->
+                            <ScrollViewer x:Name="ReviewsScrollViewer"
+                                          VerticalScrollBarVisibility="Auto" 
+                                          MaxHeight="300"
+                                          ScrollChanged="ReviewsScrollViewer_ScrollChanged">
+                                <ItemsControl x:Name="ReviewsList" ItemsSource="{Binding Reviews}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource ReviewCardStyle}"
+                                                    MouseRightButtonDown="ReviewBorder_MouseRightButtonDown">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Border Grid.Column="0"
+                                                                Width="40"
+                                                                Height="40"
+                                                                Background="#E8F5E8"
+                                                                CornerRadius="20">
+                                                            <TextBlock Text="{Binding Tag.ReviewerName, Converter={StaticResource InitialsConverter}}"
+                                                                       FontSize="14"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#4CAF50"
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+
+                                                        <StackPanel Grid.Column="1" 
+                                                                    Margin="12,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Tag.ReviewerName}"
+                                                                       FontSize="14"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#333333"/>
+
+                                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                                <ItemsControl ItemsSource="{Binding Rating, Converter={StaticResource RatingToStarsConverter}}">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <StackPanel Orientation="Horizontal"/>
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Path Data="{StaticResource StarIcon}"
+                                                                                  Fill="#FFC107"
+                                                                                  Width="14"
+                                                                                  Height="14"/>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                                <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:dd MMMM yyyy}'}"
+                                                                           FontSize="11"
+                                                                           Foreground="#999999"
+                                                                           Margin="12,0,0,0"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding Comment}"
+                                                               FontSize="13"
+                                                               Foreground="#666666"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Кнопка "Все отзывы" -->
+                            <Button x:Name="ViewAllReviewsButton"
+                                    Content="Показать все отзывы"
+                                    Background="Transparent"
+                                    BorderBrush="#4CAF50"
+                                    BorderThickness="1"
+                                    Foreground="#4CAF50"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Height="40"
+                                    Margin="0,20,0,0"
+                                    Cursor="Hand"
+                                    Click="ViewAllReviewsButton_Click">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="8"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</Page>
