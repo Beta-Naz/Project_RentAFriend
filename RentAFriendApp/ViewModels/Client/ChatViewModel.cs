@@ -23,7 +23,7 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 if (SetProperty(ref _selectedChat, value) && value != null)
                 {
-                    _ = LoadMessagesAsync(value.ChatID);
+                    LoadMessagesAsync(value.ChatID);
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace RentAFriendApp.ViewModels.Client
             RefreshCommand = new RelayCommandAsync(LoadChatsAsync);
 
             // Загрузка чатов при инициализации
-            _ = LoadChatsAsync();
+            LoadChatsAsync();
         }
 
         private async Task LoadChatsAsync()

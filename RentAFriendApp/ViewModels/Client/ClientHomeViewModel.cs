@@ -1,6 +1,7 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
+using RentAFriendApp.Models.ClassesDTO.UserDTO;
 using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
@@ -139,11 +140,10 @@ namespace RentAFriendApp.ViewModels.Client
         public ICommand FindRandomFriendCommand { get; }
         public ICommand OpenChatCommand { get; }
 
-        public ClientHomeViewModel(string token, int userId)
+        public ClientHomeViewModel(string token)
         {
             _token = token;
-            _currentUserId = userId;
-            _userStatistics.UserID = userId;
+
             Title = "Главная";
 
             UpcomingBookings = new ObservableCollection<UpcomingBookingItem>();
@@ -168,6 +168,14 @@ namespace RentAFriendApp.ViewModels.Client
         {
             try
             {
+                UserLoginDTO? user = await UserContext.GetUser(_token);
+                if(user == null)
+                {
+                    return;
+                }
+                _currentUserId = user.UserID;
+                _userStatistics.UserID = user.UserID;
+
                 IsBusy = true;
                 ClearErrors();
 
@@ -293,7 +301,7 @@ namespace RentAFriendApp.ViewModels.Client
             }
         }
 
-        private async Task LoadRecommendedFriendsAsync()
+        public async Task LoadRecommendedFriendsAsync()
         {
             try
             {

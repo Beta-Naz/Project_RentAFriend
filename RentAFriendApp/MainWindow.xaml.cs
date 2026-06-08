@@ -9,15 +9,14 @@ namespace RentAFriendApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int? _currentUserId;
-        private string? _currentUserRole;
-        private string? _currentUserName;
         public static MainWindow? Instanse { get; private set; }
+        private Auth _currentData;
         public MainWindow(Auth authData)
         {
             InitializeComponent();
             Instanse = this;
-            if (Application.Current.Properties.Contains("CurrentUserId"))
+            _currentData = authData;
+            if (authData != null)
             {
                 SetupNavigationByRole();
                 UpdateUserInfo();
@@ -30,29 +29,29 @@ namespace RentAFriendApp
 
         private void SetupNavigationByRole()
         {
-            //switch (_currentUserRole)
-            //{
-            //    case "Client":
-            //        MainFrame.Navigate(new Views.Client.ClientHomePage(_currentUserId));
-            //        Title = "RentAFriend - Клиент";
-            //        break;
-            //    case "Friend":
-            //        MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentUserId));
-            //        Title = "RentAFriend - Друг";
-            //        break;
-            //    case "Admin":
-            //        MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentUserId)); ;
-            //        Title = "RentAFriend - Администратор";
-            //        break;
-            //}
+            switch (_currentData.Role)
+            {
+                case "Client":
+                    MainFrame.Navigate(new Views.Client.ClientHomePage(_currentData.Token));
+                    Title = "RentAFriend - Клиент";
+                    break;
+                //case "Friend":
+                //    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
+                //    Title = "RentAFriend - Друг";
+                //    break;
+                //case "Admin":
+                //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                //    Title = "RentAFriend - Администратор";
+                //    break;
+            }
         }
 
         private void UpdateUserInfo()
         {
-            CurrentUserName.Text = _currentUserName;
+            CurrentUserName.Text = _currentData.FullName;
 
             string? roleDisplay = null;
-            switch (_currentUserRole)
+            switch (_currentData.Role)
             {
                 case "Client": roleDisplay = "Клиент"; break;
                 case "Friend": roleDisplay = "Друг"; break;
@@ -80,25 +79,25 @@ namespace RentAFriendApp
 
         private void ShowLoginWindow()
         {
-            //var loginWindow = new Views.Auth.LoginWindow();
-            //loginWindow.Show();
-            //this.Close();
+            var loginWindow = new Views.AuthSign.LoginWindow();
+            loginWindow.Show();
+            this.Close();
         }
 
         private void Profile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            //switch (_currentUserRole)
-            //{
-            //    case "Client":
-            //        MainFrame.Navigate(new Views.Client.ClientHomePage(_currentUserId));
-            //        break;
-            //    case "Friend":
-            //        MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentUserId));
-            //        break;
-            //    case "Admin":
-            //        MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentUserId)); ;
-            //        break;
-            //}
+            switch (_currentData.Role)
+            {
+                case "Client":
+                    MainFrame.Navigate(new Views.Client.ClientHomePage(_currentData.Token));
+                    break;
+                    //case "Friend":
+                    //    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
+                    //    break;
+                    //case "Admin":
+                    //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    //    break;
+            }
         }
     }
 }

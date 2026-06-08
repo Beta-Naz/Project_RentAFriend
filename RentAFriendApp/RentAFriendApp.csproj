@@ -31,7 +31,6 @@
     <Folder Include="ViewModels\Friend\" />
     <Folder Include="Views\Admin\" />
     <Folder Include="Views\Friend\" />
-    <Folder Include="Views\Client\" />
   </ItemGroup>
 
 </Project>

@@ -38,6 +38,7 @@ namespace Project_RentAFriend.Controllers
                 await _dbManager.SaveChangesAsync();
                 return Ok(new
                 {
+                    fullname = authUser.FullName,
                     token = newToken,
                     role = authUser.Role,
                     message = "Авторизация успешна"
