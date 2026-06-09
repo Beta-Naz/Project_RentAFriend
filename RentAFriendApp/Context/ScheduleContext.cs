@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.ScheduleDTO;
+using RentAFriendApp.Models.ClassesDTO.ScheduleDTO.Response;
 
 namespace RentAFriendApp.Context
 {
@@ -13,7 +14,7 @@ namespace RentAFriendApp.Context
         /// <summary>
         /// Получить расписание на конкретную дату
         /// </summary>
-        public static async Task<ScheduleDTO?> GetScheduleByDate(int profileId, DateTime date, string token)
+        public static async Task<ScheduleDateResponse?> GetScheduleByDate(int profileId, DateTime date, string token)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
@@ -21,7 +22,7 @@ namespace RentAFriendApp.Context
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<ScheduleDTO>(result);
+                return JsonConvert.DeserializeObject<ScheduleDateResponse>(result);
             }
             return null;
         }
@@ -46,7 +47,7 @@ namespace RentAFriendApp.Context
         /// <summary>
         /// Создать временной слот (для друга)
         /// </summary>
-        public static async Task<CreateScheduleDTO?> CreateTimeSlot(string token, CreateScheduleDTO scheduleData)
+        public static async Task<CreateScheduleResponse?> CreateTimeSlot(string token, CreateScheduleResponse scheduleData)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
@@ -57,7 +58,7 @@ namespace RentAFriendApp.Context
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<CreateScheduleDTO>(result);
+                return JsonConvert.DeserializeObject<CreateScheduleResponse>(result);
             }
             return null;
         }
@@ -149,6 +150,22 @@ namespace RentAFriendApp.Context
                 {
                     return boolResult.Result;
                 }
+            }
+            return null;
+        }
+        /// <summary>
+        /// Получить статистику календаря (количество слотов по дням)
+        /// </summary>
+        public static async Task<List<CalendarStatDTO>?> GetCalendarStats(string token, int profileId, DateTime startDate, DateTime endDate)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/calendarStats/{profileId}?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<CalendarStatDTO>>(result);
             }
             return null;
         }

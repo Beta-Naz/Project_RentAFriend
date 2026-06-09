@@ -61,7 +61,6 @@ namespace RentAFriendApp.Views.Client
                 {
                     _friendProfile = updatedProfile;
                 }
-
                 if (_friendProfile == null)
                 {
                     Dispatcher.Invoke(() =>

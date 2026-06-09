@@ -14,6 +14,7 @@
         public DateTime UpdatedAt { get; set; }
 
         // Client info
+        public int ClientID { get; set; }
         public string ClientName { get; set; } = string.Empty;
         public string ClientEmail { get; set; } = string.Empty;
         public string ClientPhone { get; set; } = string.Empty;

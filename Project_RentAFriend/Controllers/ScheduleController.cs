@@ -509,5 +509,59 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        /// <summary>
+        /// Получить статистику календаря (количество слотов по дням)
+        /// </summary>
+        [Route("calendarStats/{profileId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetCalendarStats(
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId,
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Schedules == null || _dbManager.FriendProfiles == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                var friendProfile = await _dbManager.FriendProfiles
+                    .FirstOrDefaultAsync(fp => fp.ProfileID == profileId && fp.UserID == userId);
+
+                if (friendProfile == null)
+                {
+                    return Forbid("Доступ запрещен");
+                }
+
+                var stats = await _dbManager.Schedules
+                    .Where(s => s.ProfileID == profileId
+                                && s.Date >= startDate.Date
+                                && s.Date <= endDate.Date)
+                    .GroupBy(s => s.Date)
+                    .Select(g => new CalendarStatDTO
+                    {
+                        Date = g.Key,
+                        SlotCount = g.Count(),
+                        AvailableCount = g.Count(s => s.IsAvailable && s.BookingID == null),
+                        BookedCount = g.Count(s => s.BookingID != null)
+                    })
+                    .OrderBy(s => s.Date)
+                    .ToListAsync();
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

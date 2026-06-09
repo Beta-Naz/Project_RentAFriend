@@ -1,4 +1,4 @@
-﻿namespace RentAFriendApp.Models.ClassesDTO.ScheduleDTO
+﻿namespace RentAFriendApp.Models.ClassesDTO.ScheduleDTO.Response
 {
     public class AvailableSlotsResponse
     {

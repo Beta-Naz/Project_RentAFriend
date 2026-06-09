@@ -301,5 +301,195 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        /// <summary>
+        /// Получить статистику профиля друга
+        /// </summary>
+        [Route("stats/{profileId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetFriendProfileStats(
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.FriendProfiles == null || _dbManager.Bookings == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                // Проверяем токен
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                // Проверяем существование профиля
+                var profile = await _dbManager.FriendProfiles
+                    .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
+
+                if (profile == null)
+                {
+                    return NotFound(new { message = "Профиль не найден" });
+                }
+
+                // Статистика бронирований
+                var totalBookings = await _dbManager.Bookings
+                    .CountAsync(b => b.FriendProfileID == profileId);
+
+                var completedBookings = await _dbManager.Bookings
+                    .CountAsync(b => b.FriendProfileID == profileId && b.Status == "Completed");
+
+                var totalEarnings = await _dbManager.Bookings
+                    .Where(b => b.FriendProfileID == profileId && b.Status == "Completed" && b.PaymentStatus == "Paid")
+                    .SumAsync(b => (decimal?)b.TotalAmount) ?? 0;
+
+                var averageRating = await _dbManager.Reviews
+                    .Where(r => r.Booking != null && r.Booking.FriendProfileID == profileId && r.IsApproved)
+                    .AverageAsync(r => (decimal?)r.Rating) ?? 0;
+
+                var reviewCount = await _dbManager.Reviews
+                    .CountAsync(r => r.Booking != null && r.Booking.FriendProfileID == profileId && r.IsApproved);
+
+                var stats = new FPStatsDTO
+                {
+                    TotalBookings = totalBookings,
+                    CompletedBookings = completedBookings,
+                    TotalEarnings = totalEarnings,
+                    AverageRating = (decimal)averageRating,
+                    ReviewCount = reviewCount
+                };
+
+                return Ok(new
+                {
+                    message = "Статистика получена",
+                    statistics = stats
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Получить ближайшие встречи друга
+        /// </summary>
+        [Route("upcomingMeetings/{profileId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetUpcomingMeetings(
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId,
+            [FromQuery] int top = 5)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                // Проверяем токен
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                // Проверяем существование профиля
+                var profile = await _dbManager.FriendProfiles
+                    .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
+
+                if (profile == null)
+                {
+                    return NotFound(new { message = "Профиль не найден" });
+                }
+
+                // Получаем ближайшие встречи
+                var meetings = await _dbManager.Bookings
+                    .Include(b => b.Client)
+                    .Include(b => b.Schedule)
+                    .Where(b => b.FriendProfileID == profileId
+                                && (b.Status == "Pending" || b.Status == "Confirmed")
+                                && b.Schedule != null
+                                && b.Schedule.Date >= DateTime.UtcNow.Date)
+                    .OrderBy(b => b.Schedule.Date)
+                    .ThenBy(b => b.Schedule.StartTime)
+                    .Take(top)
+                    .Select(b => new
+                    {
+                        b.BookingID,
+                        b.Status,
+                        b.Purpose,
+                        b.TotalAmount,
+                        b.PaymentStatus,
+                        b.MeetingLocation,
+                        ClientName = b.Client != null ? b.Client.FullName : "Unknown",
+                        ScheduleDate = b.Schedule != null ? b.Schedule.Date : DateTime.MinValue,
+                        StartTime = b.Schedule != null ? b.Schedule.StartTime : TimeSpan.Zero,
+                        EndTime = b.Schedule != null ? b.Schedule.EndTime : TimeSpan.Zero
+                    })
+                    .ToListAsync();
+
+                var meetingsList = meetings.Select(m => new UpcomingMeetingItem
+                {
+                    BookingID = m.BookingID,
+                    ClientName = m.ClientName,
+                    Status = m.Status,
+                    Purpose = m.Purpose,
+                    TotalAmount = m.TotalAmount,
+                    PaymentStatus = m.PaymentStatus,
+                    MeetingLocation = m.MeetingLocation,
+                    ScheduleDate = m.ScheduleDate,
+                    StartTime = m.StartTime,
+                    EndTime = m.EndTime
+                }).ToList();
+
+                return Ok(new
+                {
+                    message = "Ближайшие встречи получены",
+                    count = meetingsList.Count,
+                    meetings = meetingsList
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+        /// <summary>
+        /// Получить доступные города для фильтрации
+        /// </summary>
+        [Route("cities")]
+        [HttpGet]
+        public async Task<ActionResult> GetAvailableCities([FromHeader(Name = "TOKEN")] string token)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.FriendProfiles == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                var cities = await _dbManager.FriendProfiles
+                    .Where(fp => fp.City != null && fp.City != "" && fp.IsVerified)
+                    .Select(fp => fp.City)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToListAsync();
+
+                return Ok(cities);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

@@ -97,5 +97,54 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        /// <summary>
+        /// Получить статистику профиля друга
+        /// </summary>
+        public static async Task<FPStatsDTO?> GetFriendProfileStats(string token, int profileId)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/stats/{profileId}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<FPStatsDTO>(result);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Получить ближайшие встречи друга
+        /// </summary>
+        public static async Task<UpcomingMeetingsResponse?> GetUpcomingMeetings(string token, int profileId, int top = 5)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/upcomingMeetings/{profileId}?top={top}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<UpcomingMeetingsResponse>(result);
+            }
+            return null;
+        }
+        /// <summary>
+        /// Получить список доступных городов для фильтрации и автодополнения
+        /// </summary>
+        public static async Task<List<string>?> GetAvailableCities(string token)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/cities");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<string>>(result);
+            }
+            return null;
+        }
     }
 }

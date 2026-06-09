@@ -583,5 +583,234 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        /// <summary>
+        /// Обновить статус бронирования
+        /// </summary>
+        [Route("updateStatus/{bookingId}")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateBookingStatus(
+            [FromHeader(Name = "TOKEN")] string token,
+            int bookingId,
+            [FromForm] string newStatus)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+                if (newStatus == "Rejected" || newStatus == "Cancelled")
+                {
+                    return BadRequest(new { message = $"К сожалению вы не можете использовать этот запрос для отклонения или отмены бронирования" });
+                }
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+                var booking = await _dbManager.Bookings
+                    .Include(b => b.FriendProfile)
+                    .FirstOrDefaultAsync(b => b.BookingID == bookingId);
+
+                if (booking == null)
+                {
+                    return NotFound(new { message = "Бронирование не найдено" });
+                }
+
+                if (booking.FriendProfile == null || booking.FriendProfile.UserID != userId)
+                {
+                    return Forbid("Только друг может изменить статус бронирования");
+                }
+
+                // Проверка допустимости перехода
+                if (!IsValidStatusTransition(booking.Status, newStatus))
+                {
+                    return BadRequest(new { message = $"Невозможно изменить статус с {booking.Status} на {newStatus}" });
+                }
+                                // Если бронирование отклонено или отменено - освобождаем слот
+                if (newStatus == "Rejected" || newStatus == "Cancelled")
+                {
+                    return BadRequest(new { message = $"К сожалению вы не можете использовать этот запрос для отклонения бронирования" });
+                }
+                booking.Status = newStatus;
+                booking.UpdatedAt = DateTime.UtcNow;
+                await _dbManager.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Message = $"Статус бронирования изменен на {newStatus}",
+                    BookingId = booking.BookingID,
+                    newStatus
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Отклонить бронирование
+        /// </summary>
+        [Route("reject/{bookingId}")]
+        [HttpPut]
+        public async Task<ActionResult> RejectBooking(
+            [FromHeader(Name = "TOKEN")] string token,
+            int bookingId)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                var booking = await _dbManager.Bookings
+                    .Include(b => b.FriendProfile)
+                    .FirstOrDefaultAsync(b => b.BookingID == bookingId);
+
+                if (booking == null)
+                {
+                    return NotFound(new { message = "Бронирование не найдено" });
+                }
+
+                if (booking.FriendProfile == null || booking.FriendProfile.UserID != userId)
+                {
+                    return Forbid("Только друг может отклонить бронирование");
+                }
+
+                if (booking.Status != "Pending")
+                {
+                    return BadRequest(new { message = $"Невозможно отклонить бронирование со статусом {booking.Status}" });
+                }
+
+                booking.Status = "Rejected";
+                booking.UpdatedAt = DateTime.UtcNow;
+
+                var schedule = await _dbManager.Schedules.FindAsync(booking.ScheduleID);
+                if (schedule != null)
+                {
+                    schedule.IsAvailable = true;
+                    schedule.BookingID = null;
+                }
+                
+                await _dbManager.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    Message = "Бронирование отклонено",
+                    BookingId = booking.BookingID,
+                    Reason = "Бронирование отклонено другом"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Получить бронирования друга
+        /// </summary>
+        [Route("friendBookings/{profileId}")]
+        [HttpGet]
+        public async Task<ActionResult> GetFriendBookings(
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId,
+            [FromQuery] string? status = null)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Bookings == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                var friendProfile = await _dbManager.FriendProfiles
+                    .FirstOrDefaultAsync(fp => fp.ProfileID == profileId && fp.UserID == userId);
+
+                if (friendProfile == null)
+                {
+                    return Forbid("Доступ запрещен");
+                }
+
+                var query = _dbManager.Bookings
+                    .Include(b => b.Client)
+                    .Include(b => b.Schedule)
+                    .Where(b => b.FriendProfileID == profileId);
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    query = query.Where(b => b.Status == status);
+                }
+
+                var bookings = await query
+                    .OrderByDescending(b => b.CreatedAt)
+                    .Select(b => new BookingDetailsDTO
+                    {
+                        BookingID = b.BookingID,
+                        ClientID = b.ClientID,
+                        ClientName = b.Client != null ? b.Client.FullName : "Unknown",
+                        Status = b.Status,
+                        TotalAmount = b.TotalAmount,
+                        PaymentStatus = b.PaymentStatus,
+                        Purpose = b.Purpose,
+                        StartTime = b.Schedule != null ? b.Schedule.StartTime : TimeSpan.Zero,
+                        EndTime = b.Schedule != null ? b.Schedule.EndTime : TimeSpan.Zero,
+                        MeetingLocation = b.MeetingLocation,
+                        SpecialRequests = b.SpecialRequests,
+                        CreatedAt = b.CreatedAt,
+                        HasReview = b.Review != null
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    Message = "Бронирования получены",
+                    Bookings = bookings
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+        /// <summary>
+        /// Проверяет допустимость перехода статуса бронирования
+        /// </summary>
+        private bool IsValidStatusTransition(string currentStatus, string newStatus)
+        {
+            // Допустимые переходы статусов
+            return (currentStatus, newStatus) switch
+            {
+                // Из Pending можно в Confirmed, Rejected
+                ("Pending", "Confirmed") => true,
+                ("Pending", "Rejected") => true,
+
+                // Из Confirmed можно в Completed, Cancelled
+                ("Confirmed", "Completed") => true,
+                ("Confirmed", "Cancelled") => true,
+
+                // Завершенные и отмененные статусы - конечные, их нельзя менять
+                ("Completed", _) => false,
+                ("Cancelled", _) => false,
+                ("Rejected", _) => false,
+
+                // Любые другие переходы запрещены
+                _ => false
+            };
+        }
     }
 }

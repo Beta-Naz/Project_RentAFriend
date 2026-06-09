@@ -154,5 +154,66 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        /// <summary>
+        /// Обновить статус бронирования
+        /// </summary>
+        public static async Task<UpdateBookingStatusResponse?> UpdateBookingStatus(string token, int bookingId, string newStatus)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var formData = new Dictionary<string, string>
+            {
+                ["newStatus"] = newStatus
+            };
+            var content = new FormUrlEncodedContent(formData);
+            var response = await client.PutAsync($"{_url}/updateStatus/{bookingId}", content);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<UpdateBookingStatusResponse>(result);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Отклонить бронирование
+        /// </summary>
+        public static async Task<RejectBookingResponse?> RejectBooking(string token, int bookingId)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.PutAsync($"{_url}/reject/{bookingId}",null);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<RejectBookingResponse>(result);
+            }
+            return null;
+        }
+        /// <summary>
+        /// Получить бронирования друга
+        /// </summary>
+        public static async Task<FriendBookingsResponse?> GetFriendBookings(string token, int profileId, string? statusFilter = null)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+
+            string url = $"{_url}/friendBookings/{profileId}";
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "Все")
+            {
+                url += $"?status={statusFilter}";
+            }
+
+            var response = await client.GetAsync(url);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<FriendBookingsResponse>(result);
+            }
+            return null;
+        }
     }
 }
