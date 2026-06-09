@@ -172,7 +172,11 @@ namespace RentAFriendApp.ViewModels.Friend
         public string Hobbies
         {
             get => _hobbies;
-            set => SetProperty(ref _hobbies, value);
+            set
+            {
+                SetProperty(ref _hobbies, value);
+                OnPropertyChanged(nameof(SaveButtonText));
+            }
         }
 
         private string _hourlyRateText;
@@ -316,7 +320,7 @@ namespace RentAFriendApp.ViewModels.Friend
         public string BioProgressColor => BioLength > 1900 ? "#F44336" : BioLength > 1500 ? "#FF9800" : "#4CAF50";
         public int BioProgressPercent => BioLength * 100 / 2000;
         public string HourlyRateDisplay => HourlyRate.HasValue ? $"{HourlyRate.Value:N0} ₽/час" : "Не указано";
-        public string AgeDisplay => Age.HasValue ? $"{Age.Value} лет" : "Не указан";
+        public string AgeDisplay => Age.HasValue && Age.Value >= 18 && Age.Value <= 100 ? $"{Age.Value} лет" : "Не указан";
 
         public EditProfileViewModel(string token)
         {
@@ -388,8 +392,9 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 OnPropertyChanged(nameof(HasChanges));
                 OnPropertyChanged(nameof(Initials));
-                DataLoaded?.Invoke(this, new DataLoadEventArgs { Success = true });
                 OnPropertyChanged(nameof(SaveButtonText));
+                DataLoaded?.Invoke(this, new DataLoadEventArgs { Success = true });
+                
                 CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
@@ -467,9 +472,6 @@ namespace RentAFriendApp.ViewModels.Friend
                 IsBusy = true;
                 ClearErrors();
 
-                if (!ValidateProfileData())
-                    return;
-
                 UpdateHobbiesFromList();
 
                 // Обновляем пользователя
@@ -508,7 +510,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 UpdateOriginalValues();
                 OnPropertyChanged(nameof(HasChanges));
-                OnPropertyChanged(nameof(SaveButtonText));
+                
                 CommandManager.InvalidateRequerySuggested();
                 
 
@@ -556,7 +558,7 @@ namespace RentAFriendApp.ViewModels.Friend
             LoadHobbiesToList();
 
             OnPropertyChanged(nameof(HasChanges));
-            OnPropertyChanged(nameof(SaveButtonText));
+            
             OnPropertyChanged(nameof(Initials));
 
             Base.Messenger.Default.SendNotification("Форма сброшена к исходным значениям");
@@ -574,6 +576,7 @@ namespace RentAFriendApp.ViewModels.Friend
                 OnPropertyChanged(nameof(ChangesCountDisplay));
                 ValidationStateChanged?.Invoke(this, EventArgs.Empty);
             }
+            OnPropertyChanged(nameof(SaveButtonText));
             await Task.CompletedTask;
         }
 
@@ -586,6 +589,7 @@ namespace RentAFriendApp.ViewModels.Friend
                 OnPropertyChanged(nameof(ChangesCountDisplay));
                 ValidationStateChanged?.Invoke(this, EventArgs.Empty);
             }
+            OnPropertyChanged(nameof(SaveButtonText));
             await Task.CompletedTask;
         }
 
@@ -644,33 +648,6 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private bool ValidateProfileData()
-        {
-            ClearErrors();
-            var errors = new System.Text.StringBuilder();
-
-            if (string.IsNullOrWhiteSpace(FullName) || FullName.Length < 2)
-                errors.AppendLine("• ФИО должно содержать минимум 2 символа");
-            if (!IsValidEmail(Email))
-                errors.AppendLine("• Введите корректный email");
-            if (Age.HasValue && (Age < 18 || Age > 100))
-                errors.AppendLine("• Возраст должен быть от 18 до 100 лет");
-            if (string.IsNullOrWhiteSpace(City) || City.Length < 2)
-                errors.AppendLine("• Укажите корректный город");
-            if (!HourlyRate.HasValue || HourlyRate.Value <= 0 || HourlyRate.Value > 10000)
-                errors.AppendLine("• Почасовая ставка должна быть от 1 до 10,000 рублей");
-            if (BioLength > 2000)
-                errors.AppendLine("• Описание не должно превышать 2000 символов");
-
-            if (errors.Length > 0)
-            {
-                SetError($"Исправьте следующие ошибки:\n{errors}");
-                return false;
-            }
-
-            return true;
-        }
-
         private static bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -689,6 +666,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private bool CheckForChanges()
         {
+            
             OnPropertyChanged(nameof(ChangesCountDisplay));
             return FullName != _originalFullName ||
                    Email != _originalEmail ||

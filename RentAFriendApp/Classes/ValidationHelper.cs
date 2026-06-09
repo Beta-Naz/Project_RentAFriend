@@ -28,7 +28,7 @@ namespace RentAFriendApp.Classes
         {
             if (string.IsNullOrWhiteSpace(name)) return "⚠ Обязательное поле";
             if (name.Length < 2) return "⚠ Минимум 2 символа";
-            if (name.Length < 2) return "⚠ Максимум 100 символа";
+            if (name.Length > 100) return "⚠ Максимум 100 символа";
             return "✓";
         }
         public static string HourlyRateTextValidation(string text, decimal? hourlyRate)

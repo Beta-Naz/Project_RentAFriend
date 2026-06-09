@@ -567,6 +567,55 @@ namespace RentAFriendApp.ViewModels.Friend
                     return IsAvailable ? "Доступно" : "Недоступно";
                 }
             }
+            public Geometry StatusIcon
+            {
+                get
+                {
+                    if (IsBooked)
+                        return Geometry.Parse("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z");
+
+                    return IsAvailable
+                        ? Geometry.Parse("M9,16.2L4.8,12l-1.4,1.4L9,19L21,7l-1.4-1.4L9,16.2z")
+                        : Geometry.Parse("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z");
+                }
+            }
+
+            /// <summary>
+            /// Иконка для кнопки переключения доступности
+            /// </summary>
+            public Geometry ToggleIcon
+            {
+                get
+                {
+                    return IsAvailable
+                        ? Geometry.Parse("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z")
+                        : Geometry.Parse("M9,16.2L4.8,12l-1.4,1.4L9,19L21,7l-1.4-1.4L9,16.2z");
+                }
+            }
+
+            /// <summary>
+            /// Цвет для кнопки переключения
+            /// </summary>
+            public Brush ToggleButtonColor
+            {
+                get
+                {
+                    return IsAvailable
+                        ? new SolidColorBrush(Color.FromRgb(211, 47, 47))  // Красный для "сделать недоступным"
+                        : new SolidColorBrush(Color.FromRgb(76, 175, 80));  // Зеленый для "сделать доступным"
+                }
+            }
+
+            /// <summary>
+            /// Подсказка для кнопки переключения
+            /// </summary>
+            public string ToggleTooltip
+            {
+                get
+                {
+                    return IsAvailable ? "Сделать недоступным" : "Сделать доступным";
+                }
+            }
         }
 
         // Внутренний класс для дней календаря
