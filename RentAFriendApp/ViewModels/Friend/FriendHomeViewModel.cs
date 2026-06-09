@@ -3,6 +3,7 @@ using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
 using RentAFriendApp.ViewModels.Base;
+using RentAFriendApp.Views.Friend;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -113,10 +114,9 @@ namespace RentAFriendApp.ViewModels.Friend
         public ICommand ViewBookingRequestsCommand { get; }
         public ICommand RefreshCommand { get; }
 
-        public FriendHomeViewModel(string token, int userId)
+        public FriendHomeViewModel(string token)
         {
             _token = token;
-            _currentUserId = userId;
             Title = "Панель управления";
 
             UpcomingMeetings = new ObservableCollection<UpcomingMeetingItem>();

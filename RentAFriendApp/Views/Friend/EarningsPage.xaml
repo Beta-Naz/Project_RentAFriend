@@ -1,0 +1,189 @@
+﻿<Page x:Class="RentAFriendApp.Views.Friend.EarningsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:RentAFriendApp.Views.Friend"
+      mc:Ignorable="d" 
+      d:DesignHeight="700" d:DesignWidth="1200"
+      Title="Доходы"
+      Background="#F8F9FA">
+
+    <Page.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+
+        <Style x:Key="StatValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+
+        <Style x:Key="StatLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#666666"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,25">
+                <TextBlock Text="Доходы" 
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="#333333"/>
+                <TextBlock Text="Статистика ваших заработков и выплат"
+                           FontSize="14"
+                           Foreground="#666666"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Основная статистика -->
+            <Grid Grid.Row="1" Margin="0,0,0,25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Общий заработок -->
+                <Border Style="{StaticResource CardStyle}" Grid.Column="0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TotalEarnings, StringFormat={}{0:C}}" 
+                                   Style="{StaticResource StatValueStyle}"/>
+                        <TextBlock Text="Общий заработок" 
+                                   Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Доход за месяц -->
+                <Border Style="{StaticResource CardStyle}" Grid.Column="2">
+                    <StackPanel>
+                        <TextBlock Text="{Binding MonthlyEarnings, StringFormat={}{0:C}}" 
+                                   Style="{StaticResource StatValueStyle}"/>
+                        <TextBlock Text="За этот месяц" 
+                                   Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Средний доход -->
+                <Border Style="{StaticResource CardStyle}" Grid.Column="4">
+                    <StackPanel>
+                        <TextBlock Text="{Binding AverageEarnings, StringFormat={}{0:C}}" 
+                                   Style="{StaticResource StatValueStyle}"/>
+                        <TextBlock Text="Средний доход за встречу" 
+                                   Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Количество оплаченных встреч -->
+                <Border Style="{StaticResource CardStyle}" Grid.Column="6">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CompletedBookings}" 
+                                   Style="{StaticResource StatValueStyle}"/>
+                        <TextBlock Text="Оплаченные встречи" 
+                                   Style="{StaticResource StatLabelStyle}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Детали доходов -->
+            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Заголовок таблицы -->
+                    <Border Grid.Row="0" 
+                            Background="#F9FDF9" 
+                            CornerRadius="8"
+                            Padding="15"
+                            Margin="0,0,0,15">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Детали доходов" 
+                                       FontSize="16" 
+                                       FontWeight="SemiBold"
+                                       Foreground="#333333"/>
+                            <TextBlock Text="{Binding Earnings.Count, StringFormat={}({0} записей)}" 
+                                       FontSize="14"
+                                       Foreground="#666666"
+                                       Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Таблица доходов -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Earnings}"
+                              AutoGenerateColumns="False"
+                              HeadersVisibility="Column"
+                              BorderThickness="0"
+                              Background="Transparent"
+                              RowBackground="Transparent"
+                              AlternatingRowBackground="#F9F9F9">
+                        <DataGrid.Columns>
+                            <!-- Дата -->
+                            <DataGridTextColumn Header="Дата" 
+                                                Binding="{Binding Date, StringFormat={}dd.MM.yyyy}"
+                                                Width="100"/>
+
+                            <!-- Клиент -->
+                            <DataGridTextColumn Header="Клиент" 
+                                                Binding="{Binding ClientName}"
+                                                Width="*"/>
+
+                            <!-- Длительность -->
+                            <DataGridTextColumn Header="Длительность" 
+                                                Binding="{Binding Duration}"
+                                                Width="100"/>
+
+                            <!-- Ставка -->
+                            <DataGridTextColumn Header="Ставка" 
+                                                Binding="{Binding HourlyRate, StringFormat={}{0:C}/час}"
+                                                Width="120"/>
+
+                            <!-- Сумма -->
+                            <DataGridTextColumn Header="Сумма" 
+                                                Binding="{Binding Amount, StringFormat={}{0:C}}"
+                                                Width="120"
+                                                Foreground="#4CAF50"
+                                                FontWeight="SemiBold"/>
+
+                            <!-- Статус -->
+                            <DataGridTemplateColumn Header="Статус" Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding StatusColor}" 
+                                                CornerRadius="4" 
+                                                Padding="6,3"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding Status}" 
+                                                       FontSize="11" 
+                                                       Foreground="White"
+                                                       FontWeight="SemiBold"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>

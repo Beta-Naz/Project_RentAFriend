@@ -40,12 +40,8 @@ namespace RentAFriendApp.Context
                 System.Text.Encoding.UTF8, "application/json");
             var response = await client.PutAsync($"{_url}/update", content);
 
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<UpdateProfileResponse>(result);
-            }
-            return null;
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<UpdateProfileResponse>(result);
         }
 
         /// <summary>

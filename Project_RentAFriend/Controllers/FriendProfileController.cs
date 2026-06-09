@@ -17,7 +17,7 @@ namespace Project_RentAFriend.Controllers
         }
         [Route("create")]
         [HttpPost]
-        public async Task<ActionResult> Create([FromHeader(Name = "TOKEN")] string token, FPMainInfoDTO infoDTO)
+        public async Task<ActionResult> Create([FromHeader(Name = "TOKEN")] string token, [FromBody] FPMainInfoDTO infoDTO)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace Project_RentAFriend.Controllers
         }
         [Route("update")]
         [HttpPut]
-        public async Task<ActionResult> Update([FromHeader(Name = "TOKEN")] string token, FPMainInfoDTO infoDTO)
+        public async Task<ActionResult> Update([FromHeader(Name = "TOKEN")] string token, [FromBody] FPMainInfoDTO infoDTO)
         {
             try
             {

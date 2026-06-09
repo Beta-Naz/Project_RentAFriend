@@ -1,12 +1,16 @@
-﻿using RentAFriendApp.Context;
+﻿using RentAFriendApp.Classes;
+using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
+using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
 using RentAFriendApp.Models.ClassesDTO.UserDTO;
 using RentAFriendApp.ViewModels.Base;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace RentAFriendApp.ViewModels.Friend
@@ -14,12 +18,10 @@ namespace RentAFriendApp.ViewModels.Friend
     internal class EditProfileViewModel : BaseViewModel
     {
         private readonly string _token;
-        private int _currentUserId;
 
-        // Оригинальные значения для отслеживания изменений
         private string _originalFullName;
         private string _originalEmail;
-        private string _originalPhone;
+        private string _originalPhone = string.Empty;
         private string _originalBio;
         private int? _originalAge;
         private string _originalCity;
@@ -33,6 +35,7 @@ namespace RentAFriendApp.ViewModels.Friend
             get => _fullName;
             set
             {
+                if (value.Length > 115) return;
                 if (SetProperty(ref _fullName, value))
                 {
                     OnPropertyChanged(nameof(IsFormValid));
@@ -52,6 +55,7 @@ namespace RentAFriendApp.ViewModels.Friend
             get => _email;
             set
             {
+                if(value.Length > 100) return;
                 if (SetProperty(ref _email, value))
                 {
                     OnPropertyChanged(nameof(IsFormValid));
@@ -65,8 +69,8 @@ namespace RentAFriendApp.ViewModels.Friend
                 }
             }
         }
-
-        private string _phone;
+        
+        private string _phone = string.Empty;
         public string Phone
         {
             get => _phone;
@@ -90,6 +94,7 @@ namespace RentAFriendApp.ViewModels.Friend
             get => _bio;
             set
             {
+                if (value.Length > 2100) return;
                 if (SetProperty(ref _bio, value))
                 {
                     OnPropertyChanged(nameof(HasChanges));
@@ -138,7 +143,10 @@ namespace RentAFriendApp.ViewModels.Friend
         public int? Age
         {
             get => _age;
-            set => SetProperty(ref _age, value);
+            set
+            {
+                SetProperty(ref _age, value);
+            }
         }
 
         private string _city;
@@ -191,7 +199,6 @@ namespace RentAFriendApp.ViewModels.Friend
                             HourlyRate = null;
                         }
                     }
-
                     OnPropertyChanged(nameof(HourlyRateDisplay));
                     OnPropertyChanged(nameof(HourlyRateValidation));
                     OnPropertyChanged(nameof(IsFormValid));
@@ -262,6 +269,7 @@ namespace RentAFriendApp.ViewModels.Friend
         public ICommand SelectCityCommand { get; }
         public ICommand LoadDataCommand { get; }
         public ICommand ResetFormCommand { get; }
+        public ICommand LostFocusPhoneCommand { get; }
 
         // События
         public event EventHandler? ProfileSaved;
@@ -270,30 +278,35 @@ namespace RentAFriendApp.ViewModels.Friend
         public event EventHandler? ValidationStateChanged;
 
         // Вычисляемые свойства
-        public string FullNameValidation => string.IsNullOrWhiteSpace(FullName) ? "⚠ Обязательное поле" :
-                                           FullName.Length < 2 ? "⚠ Минимум 2 символа" : "✓";
+        public string FullNameValidation => ValidationHelper.ValidationFullName(FullName);
         public string EmailValidation => string.IsNullOrWhiteSpace(Email) ? "⚠ Обязательное поле" :
                                        !IsValidEmail(Email) ? "⚠ Неверный формат" : "✓";
-        public string PhoneValidation => !string.IsNullOrWhiteSpace(Phone) && Phone.Length < 10 ? "⚠ Минимум 10 цифр" : "✓";
+        public string PhoneValidation => ValidationHelper.ValidPhoneText(Phone);
+
         public string CityValidation => string.IsNullOrWhiteSpace(City) ? "⚠ Обязательное поле" :
                                        City.Length < 2 ? "⚠ Минимум 2 символа" : "✓";
         public string AgeValidation => Age.HasValue && (Age < 18 || Age > 100) ? "⚠ От 18 до 100 лет" : "✓";
-        public string HourlyRateValidation => !HourlyRate.HasValue ? "⚠ Обязательное поле" :
-                                            HourlyRate.Value <= 0 ? "⚠ Должна быть > 0" :
-                                            HourlyRate.Value > 10000 ? "⚠ Максимум 10,000" : "✓";
+        public string HourlyRateValidation => ValidationHelper.HourlyRateTextValidation(HourlyRateText, HourlyRate);
+        public string ChangesCountDisplay => GetChangesCount() > 0 ? $"{GetChangesCount()} изменений" : "Нет изменений";
+        public string HobbiesValidation => HobbiesList.Count > 20 ? "⚠ Максимум 20 хобби" : "✓";
+        public string VerificationIcon => IsVerified ? "✓" : "⚠";
+        public string VerificationStatus => IsVerified ? "Верифицирован" : "Не верифицирован";
+        public System.Windows.Media.Brush VerificationStatusColor => IsVerified
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green)
+            : new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Orange);
         public string BioValidation => BioLength > 2000 ? "⚠ Максимум 2000 символов" : "✓";
         public string EmailValidationMessage => IsValidEmail(Email) ? "✓ Корректный email" : "⚠ Неверный формат email";
         public bool IsEmailValid => IsValidEmail(Email);
         public bool CanAddHobby => !string.IsNullOrWhiteSpace(NewHobby) && NewHobby.Length >= 2;
         public bool IsFormValid => CanSaveProfile();
         public bool HasChanges => CheckForChanges();
-        public string SaveButtonText => IsBusy ? "Сохранение..." : HasChanges ? "Сохранить изменения" : "Нет изменений";
+        public string SaveButtonText => IsBusy && HasChanges ? "Сохранение..." : HasChanges ? "Сохранить изменения" : "Нет изменений";
         public string Initials
         {
             get
             {
                 if (string.IsNullOrEmpty(FullName)) return "??";
-                var parts = FullName.Split(' ');
+                var parts = FullName.Trim().Split(' ');
                 if (parts.Length >= 2)
                     return $"{parts[0][0]}{parts[1][0]}".ToUpper();
                 return FullName.Length >= 2 ? FullName.Substring(0, 2).ToUpper() : FullName.ToUpper();
@@ -301,32 +314,40 @@ namespace RentAFriendApp.ViewModels.Friend
         }
         public int BioLength => Bio?.Length ?? 0;
         public string BioProgressColor => BioLength > 1900 ? "#F44336" : BioLength > 1500 ? "#FF9800" : "#4CAF50";
-        public int BioProgressPercent => (BioLength * 100) / 2000;
+        public int BioProgressPercent => BioLength * 100 / 2000;
         public string HourlyRateDisplay => HourlyRate.HasValue ? $"{HourlyRate.Value:N0} ₽/час" : "Не указано";
         public string AgeDisplay => Age.HasValue ? $"{Age.Value} лет" : "Не указан";
 
-        public EditProfileViewModel(string token, int userId)
+        public EditProfileViewModel(string token)
         {
             _token = token;
-            _currentUserId = userId;
             Title = "Редактирование профиля";
 
             AvailableCities = new ObservableCollection<string>();
             FilteredCities = new ObservableCollection<string>();
             HobbiesList = new ObservableCollection<string>();
 
-            SaveProfileCommand = new RelayCommandAsync(SaveProfileAsync, () => CanSaveProfile() && HasChanges);
+            SaveProfileCommand = new RelayCommandAsync(SaveProfileAsync, () => CanSaveProfile() && HasChanges && !IsBusy);
             CancelCommand = new RelayCommandAsync(OnCancel);
             AddHobbyCommand = new RelayCommandAsync(AddHobby, () => CanAddHobby);
             RemoveHobbyCommand = new RelayCommandAsync<string>(RemoveHobby);
             SelectCityCommand = new RelayCommandAsync<string>(SelectCity);
             LoadDataCommand = new RelayCommandAsync(LoadProfileDataAsync);
             ResetFormCommand = new RelayCommandAsync(ResetForm, () => HasChanges);
+            LostFocusPhoneCommand = new RelayCommandAsync(FormatPhone);
 
             _ = LoadProfileDataAsync();
             _ = LoadAvailableCitiesAsync();
         }
-
+        private Task FormatPhone()
+        {
+            if (ValidationHelper.IsValidRegexPhone(Phone) && Phone[0] == '8')
+            {
+                string digits = Regex.Replace(Phone, @"[^\d]", "");
+                Phone = $"+7 ({digits.Substring(1, 3)}) {digits.Substring(4, 3)}-{digits.Substring(7, 2)}-{digits.Substring(9, 2)}";
+            }
+            return Task.CompletedTask;
+        }
         private async Task LoadProfileDataAsync()
         {
             try
@@ -348,28 +369,27 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 // Получаем профиль друга
                 var profiles = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profiles?.Profiles?.FirstOrDefault(p => p.UserID == _currentUserId);
+                var profile = profiles?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
 
                 if (profile != null)
                 {
                     Bio = profile.Bio ?? string.Empty;
-                    Age = profile.Age;
+                    AgeText = profile.Age.ToString() ?? string.Empty;
                     City = profile.City ?? string.Empty;
                     Hobbies = profile.Hobbies ?? string.Empty;
-                    HourlyRate = profile.HourlyRate;
+                    HourlyRateText = profile.HourlyRate.ToString() ?? string.Empty;
                     IsVerified = profile.IsVerified;
                 }
-
+                FilteredCities.Clear();
                 // Сохраняем оригинальные значения
                 UpdateOriginalValues();
-
                 // Загрузка хобби в список
                 LoadHobbiesToList();
 
                 OnPropertyChanged(nameof(HasChanges));
                 OnPropertyChanged(nameof(Initials));
-                OnPropertyChanged(nameof(SaveButtonText));
                 DataLoaded?.Invoke(this, new DataLoadEventArgs { Success = true });
+                OnPropertyChanged(nameof(SaveButtonText));
                 CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
@@ -422,13 +442,15 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private bool CanSaveProfile()
         {
-            return !IsBusy &&
-                   !string.IsNullOrWhiteSpace(FullName) &&
+            return !string.IsNullOrWhiteSpace(FullName) &&
                    FullName.Length >= 2 &&
+                   FullName.Length <= 100 &&
                    !string.IsNullOrWhiteSpace(Email) &&
                    IsValidEmail(Email) &&
+                   Email.Length <= 100 &&
                    !string.IsNullOrWhiteSpace(City) &&
                    City.Length >= 2 &&
+                   City.Length <= 100 &&
                    HourlyRate.HasValue &&
                    Age.HasValue &&
                    Age >= 18 &&
@@ -467,15 +489,28 @@ namespace RentAFriendApp.ViewModels.Friend
                     Hobbies = Hobbies,
                     HourlyRate = HourlyRate
                 };
-                await FriendProfileContext.UpdateProfile(_token, profileUpdate);
+                string message = "Ошибка сохранения профиля, попробуйте позже";
+                var getProfile = await FriendProfileContext.GetMyProfile(_token);
+                if (getProfile != null)
+                {
+                    if (getProfile.Profile != null)
+                    {
+                        var profile = await FriendProfileContext.UpdateProfile(_token, profileUpdate);
+                        message = profile?.Message ?? message;
+                    }
+                    else
+                    {
+                        var profile = await FriendProfileContext.CreateProfile(_token, profileUpdate);
+                        message = profile?.Message ?? message;
+                    }
+                }
+                Messenger.Default.SendNotification(message);
 
                 UpdateOriginalValues();
-
-                Base.Messenger.Default.SendNotification("✅ Профиль успешно обновлен!");
-
                 OnPropertyChanged(nameof(HasChanges));
                 OnPropertyChanged(nameof(SaveButtonText));
                 CommandManager.InvalidateRequerySuggested();
+                
 
                 ProfileSaved?.Invoke(this, EventArgs.Empty);
             }
@@ -654,6 +689,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private bool CheckForChanges()
         {
+            OnPropertyChanged(nameof(ChangesCountDisplay));
             return FullName != _originalFullName ||
                    Email != _originalEmail ||
                    Phone != _originalPhone ||
@@ -686,8 +722,6 @@ namespace RentAFriendApp.ViewModels.Friend
             if (!HobbiesListsEqual()) count++;
             return count;
         }
-
-        private string ChangesCountDisplay => GetChangesCount() > 0 ? $"{GetChangesCount()} изменений" : "Нет изменений";
 
         private void UpdateOriginalValues()
         {

@@ -10,7 +10,6 @@ namespace RentAFriendApp.ViewModels.Friend
     internal class FriendBookingsViewModel : BaseViewModel
     {
         private readonly string _token;
-        private int _currentUserId;
         private int _profileId;
 
         // Коллекции
@@ -58,10 +57,9 @@ namespace RentAFriendApp.ViewModels.Friend
         public decimal TotalEarnings => Items?.Where(b => b.PaymentStatus == "Paid" && b.Status == "Completed").Sum(b => b.TotalAmount) ?? 0;
         public bool HasItems => Items?.Count > 0;
 
-        public FriendBookingsViewModel(string token, int userId)
+        public FriendBookingsViewModel(string token)
         {
             _token = token;
-            _currentUserId = userId;
             Title = "Запросы на бронирование";
 
             Items = new ObservableCollection<BookingDetailsDTO>();
@@ -91,9 +89,9 @@ namespace RentAFriendApp.ViewModels.Friend
         {
             try
             {
-                // Получаем профиль друга через контекст
+                var user = UserContext.GetUser(_token).Result;
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == _currentUserId);
+                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.UserID);
 
                 if (profile != null)
                 {

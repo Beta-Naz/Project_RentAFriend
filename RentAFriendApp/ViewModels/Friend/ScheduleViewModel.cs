@@ -13,7 +13,6 @@ namespace RentAFriendApp.ViewModels.Friend
     internal class ScheduleViewModel : BaseViewModel
     {
         private readonly string _token;
-        private int _currentUserId;
         private int _profileId;
         private DateTime _currentMonth = DateTime.Today;
 
@@ -86,10 +85,9 @@ namespace RentAFriendApp.ViewModels.Friend
         public ICommand SelectDateCommand { get; }
         public ICommand RefreshCommand { get; }
 
-        public ScheduleViewModel(string token, int userId)
+        public ScheduleViewModel(string token)
         {
             _token = token;
-            _currentUserId = userId;
             Title = "Управление расписанием";
 
             ScheduleSlots = new ObservableCollection<ScheduleSlot>();
@@ -136,8 +134,9 @@ namespace RentAFriendApp.ViewModels.Friend
         {
             try
             {
+                var user = await UserContext.GetUser(_token);
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == _currentUserId);
+                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
 
                 if (profile != null)
                 {
@@ -490,6 +489,31 @@ namespace RentAFriendApp.ViewModels.Friend
             await LoadScheduleForDateAsync();
             await LoadCalendarDataAsync();
             Base.Messenger.Default.SendNotification("Данные обновлены");
+        }
+        /// <summary>
+        /// Изменить порядок слотов (только в UI)
+        /// </summary>
+        public async Task ReorderSlotsAsync(ScheduleSlot draggedSlot, ScheduleSlot targetSlot)
+        {
+            if (draggedSlot == null || targetSlot == null) return;
+
+            try
+            {
+                int draggedIndex = ScheduleSlots.IndexOf(draggedSlot);
+                int targetIndex = ScheduleSlots.IndexOf(targetSlot);
+
+                if (draggedIndex != -1 && targetIndex != -1 && draggedIndex != targetIndex)
+                {
+                    ScheduleSlots.Move(draggedIndex, targetIndex);
+                    Base.Messenger.Default.SendNotification("Порядок слотов изменен");
+                }
+
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                SetError($"Ошибка изменения порядка слотов: {ex.Message}");
+            }
         }
 
         // Вычисляемые свойства

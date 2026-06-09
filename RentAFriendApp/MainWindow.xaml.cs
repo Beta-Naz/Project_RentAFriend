@@ -35,14 +35,14 @@ namespace RentAFriendApp
                     MainFrame.Navigate(new Views.Client.ClientHomePage(_currentData.Token));
                     Title = "RentAFriend - Клиент";
                     break;
-                //case "Friend":
-                //    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
-                //    Title = "RentAFriend - Друг";
-                //    break;
-                //case "Admin":
-                //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
-                //    Title = "RentAFriend - Администратор";
-                //    break;
+                case "Friend":
+                    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
+                    Title = "RentAFriend - Друг";
+                    break;
+                    //case "Admin":
+                    //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    //    Title = "RentAFriend - Администратор";
+                    //    break;
             }
         }
 
@@ -91,9 +91,9 @@ namespace RentAFriendApp
                 case "Client":
                     MainFrame.Navigate(new Views.Client.ClientHomePage(_currentData.Token));
                     break;
-                    //case "Friend":
-                    //    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
-                    //    break;
+                case "Friend":
+                    MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
+                    break;
                     //case "Admin":
                     //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
                     //    break;
