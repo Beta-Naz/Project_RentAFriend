@@ -330,10 +330,8 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 if (_currentFriend == null) return;
 
-                IsBusy = true;
                 AvailableTimeSlots.Clear();
 
-                // Получаем доступные слоты на выбранную дату
                 var availableSlots = await ScheduleContext.GetAvailableTimeSlots(
                     _currentFriend.ProfileID, SelectedDate, _token);
 
@@ -358,10 +356,6 @@ namespace RentAFriendApp.ViewModels.Client
             catch (Exception ex)
             {
                 SetError($"Ошибка загрузки расписания: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
             }
         }
 

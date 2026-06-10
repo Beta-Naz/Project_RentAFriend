@@ -1,14 +1,8 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
-using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
 using RentAFriendApp.ViewModels.Client;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -19,12 +13,13 @@ namespace RentAFriendApp.Views.Client
         private readonly string _token;
         private FPInfoDTO _currentFriend;
         private FriendDetailsViewModel _viewModel;
+        private int _friendIndex;
 
         public FriendDetailsPage(string token, int friendId)
         {
             InitializeComponent();
             _token = token;
-            _currentFriend = FriendProfileContext.GetFriendProfileById(friendId, _token).Result;
+            _friendIndex = friendId;
 
             Loaded += Page_Loaded;
         }
@@ -67,11 +62,11 @@ namespace RentAFriendApp.Views.Client
         {
             try
             {
-                // Получаем актуальные данные профиля через контекст
-                var updatedFriend = await FriendProfileContext.GetFriendProfileById(_currentFriend.ProfileID, _token);
-                if (updatedFriend != null)
+                var updatedFriend = await FriendProfileContext.GetFriendProfileById(_friendIndex, _token);
+                if (updatedFriend?.Profile != null)
                 {
-                    _currentFriend = updatedFriend;
+                    _currentFriend = updatedFriend.Profile;
+                    MessageBox.Show(updatedFriend.Message);
                 }
             }
             catch (Exception ex)

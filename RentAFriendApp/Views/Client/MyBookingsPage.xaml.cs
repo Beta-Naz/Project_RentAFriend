@@ -210,13 +210,13 @@ namespace RentAFriendApp.Views.Client
                 try
                 {
                     // Получаем профиль друга
-                    var friendProfile = await FriendProfileContext.GetFriendProfileById(friendProfileId, _token);
-                    if (friendProfile != null)
+                    var getProfile = await FriendProfileContext.GetFriendProfileById(friendProfileId, _token);
+                    if (getProfile?.Profile != null)
                     {
-                        var chat = await ChatContext.GetOrCreateChat(_token, friendProfile.UserID);
+                        var chat = await ChatContext.GetOrCreateChat(_token, getProfile.Profile.UserID);
                         if (chat != null)
                         {
-                            var chatPage = new ChatPage(_token, friendProfile.UserID);
+                            var chatPage = new ChatPage(_token, getProfile.Profile.UserID);
                             MainWindow.Instanse.MainFrame.Navigate(chatPage);
                         }
                     }

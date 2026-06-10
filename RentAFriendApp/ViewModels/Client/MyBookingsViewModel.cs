@@ -309,16 +309,16 @@ namespace RentAFriendApp.ViewModels.Client
                 // Сначала получаем профиль друга по ID
                 var friendProfile = await FriendProfileContext.GetFriendProfileById(friendProfileId, _token);
 
-                if (friendProfile != null)
+                if (friendProfile?.Profile != null)
                 {
-                    var chat = await ChatContext.GetOrCreateChat(_token, friendProfile.UserID);
+                    var chat = await ChatContext.GetOrCreateChat(_token, friendProfile.Profile.UserID);
 
                     if (chat != null)
                     {
                         Messenger.Default.SendData(new
                         {
                             chat.ChatId,
-                            FriendName = friendProfile.FullName
+                            FriendName = friendProfile.Profile.FullName
                         });
                     }
                 }

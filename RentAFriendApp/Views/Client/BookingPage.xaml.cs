@@ -57,9 +57,9 @@ namespace RentAFriendApp.Views.Client
             {
                 // Обновляем профиль через API
                 var updatedProfile = await FriendProfileContext.GetFriendProfileById(_friendProfile.ProfileID, _token);
-                if (updatedProfile != null)
+                if (updatedProfile?.Profile != null)
                 {
-                    _friendProfile = updatedProfile;
+                    _friendProfile = updatedProfile.Profile;
                 }
                 if (_friendProfile == null)
                 {
