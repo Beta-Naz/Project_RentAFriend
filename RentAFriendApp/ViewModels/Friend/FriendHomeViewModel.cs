@@ -13,8 +13,7 @@ namespace RentAFriendApp.ViewModels.Friend
     internal class FriendHomeViewModel : BaseViewModel
     {
         private readonly string _token;
-        private int _currentUserId;
-        private FPInfoDTO _currentProfile;
+        private FPInfoDTO? _currentProfile;
 
         // Статистика
         private int _totalBookings;
@@ -163,8 +162,13 @@ namespace RentAFriendApp.ViewModels.Friend
             try
             {
                 // Получаем профиль друга
+                var user = await UserContext.GetUser(_token);
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                _currentProfile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == _currentUserId);
+                if (profilesResponse == null || user == null)
+                {
+                    return;
+                }
+                _currentProfile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
 
                 if (_currentProfile != null)
                 {

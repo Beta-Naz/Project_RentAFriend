@@ -33,7 +33,7 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private TimeSpan _newStartTime = new TimeSpan(9, 0, 0);
+        private TimeSpan _newStartTime = new(9, 0, 0);
         public TimeSpan NewStartTime
         {
             get => _newStartTime;
@@ -47,7 +47,7 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private TimeSpan _newEndTime = new TimeSpan(17, 0, 0);
+        private TimeSpan _newEndTime = new(17, 0, 0);
         public TimeSpan NewEndTime
         {
             get => _newEndTime;
@@ -61,15 +61,15 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private ObservableCollection<ScheduleSlot> _scheduleSlots;
-        public ObservableCollection<ScheduleSlot> ScheduleSlots
+        private ObservableCollection<ScheduleSlot>? _scheduleSlots;
+        public ObservableCollection<ScheduleSlot>? ScheduleSlots
         {
             get => _scheduleSlots;
             set => SetProperty(ref _scheduleSlots, value);
         }
 
-        private ObservableCollection<CalendarDay> _calendarDays;
-        public ObservableCollection<CalendarDay> CalendarDays
+        private ObservableCollection<CalendarDay>? _calendarDays;
+        public ObservableCollection<CalendarDay>? CalendarDays
         {
             get => _calendarDays;
             set => SetProperty(ref _calendarDays, value);
@@ -90,8 +90,8 @@ namespace RentAFriendApp.ViewModels.Friend
             _token = token;
             Title = "Управление расписанием";
 
-            ScheduleSlots = new ObservableCollection<ScheduleSlot>();
-            CalendarDays = new ObservableCollection<CalendarDay>();
+            ScheduleSlots = [];
+            CalendarDays = [];
 
             AddTimeSlotCommand = new RelayCommandAsync(AddTimeSlotAsync, () => CanAddTimeSlot);
             NextDayCommand = new RelayCommandAsync(NextDay);
@@ -134,7 +134,7 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 var user = await UserContext.GetUser(_token);
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
+                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.UserID);
 
                 if (profile != null)
                 {
@@ -216,14 +216,14 @@ namespace RentAFriendApp.ViewModels.Friend
                         Date = createdSlot.Date
                     };
 
-                    ScheduleSlots.Add(newSlot);
+                    ScheduleSlots?.Add(newSlot);
                     SortScheduleSlots();
                     await UpdateCalendarDayAsync(SelectedDate, true);
 
                     NewStartTime = new TimeSpan(9, 0, 0);
                     NewEndTime = new TimeSpan(17, 0, 0);
 
-                    Base.Messenger.Default.SendNotification($"Слот добавлен: {newSlot.TimeRange}");
+                    Messenger.Default.SendNotification($"Слот добавлен: {newSlot.TimeRange}");
                 }
             }
             catch (Exception ex)
@@ -254,7 +254,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
                     if (deleted)
                     {
-                        ScheduleSlots.Remove(slot);
+                        ScheduleSlots?.Remove(slot);
                         await UpdateCalendarDayAsync(SelectedDate, false);
                         Messenger.Default.SendNotification("Слот удален");
                     }
@@ -351,7 +351,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     await LoadScheduleForDateAsync();
                     await LoadCalendarDataAsync();
 
-                    Base.Messenger.Default.SendNotification($"Расписание на неделю создано ({result.SlotsCount} слотов)");
+                    Messenger.Default.SendNotification($"Расписание на неделю создано ({result.SlotsCount} слотов)");
                 }
             }
             catch (Exception ex)
@@ -372,13 +372,13 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    ScheduleSlots.Clear();
+                    ScheduleSlots?.Clear();
 
                     if (schedule?.Slots != null)
                     {
                         foreach (var slot in schedule.Slots)
                         {
-                            ScheduleSlots.Add(new ScheduleSlot(this)
+                            ScheduleSlots?.Add(new ScheduleSlot(this)
                             {
                                 ScheduleID = slot.ScheduleID,
                                 StartTime = slot.StartTime,
@@ -405,27 +405,35 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private void SortScheduleSlots()
         {
-            var sorted = ScheduleSlots.OrderBy(s => s.StartTime).ToList();
-            ScheduleSlots = new ObservableCollection<ScheduleSlot>(sorted);
+            var sorted = ScheduleSlots?.OrderBy(s => s.StartTime).ToList();
+            if(sorted != null)
+            {
+                ScheduleSlots = new ObservableCollection<ScheduleSlot>(sorted);
+            }
+            
         }
 
         private async Task LoadCalendarDataAsync()
         {
             try
             {
+                if(CalendarDays == null)
+                {
+                    return;
+                }
                 var startDate = new DateTime(_currentMonth.Year, _currentMonth.Month, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
                 var calendarStats = await ScheduleContext.GetCalendarStats(_token, _profileId, startDate, endDate);
 
-                var dateStats = calendarStats?.ToDictionary(s => s.Date, s => s.SlotCount) ?? new Dictionary<DateTime, int>();
+                var dateStats = calendarStats?.ToDictionary(s => s.Date, s => s.SlotCount) ?? [];
 
                 foreach (var day in CalendarDays.Where(d => d.Day > 0))
                 {
-                    if (dateStats.ContainsKey(day.Date))
+                    if (dateStats.TryGetValue(day.Date, out int value))
                     {
                         day.HasSlots = true;
-                        day.SlotCount = dateStats[day.Date];
+                        day.SlotCount = value;
                     }
                     else
                     {
@@ -442,6 +450,10 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private async Task UpdateCalendarDayAsync(DateTime date, bool increment)
         {
+            if (CalendarDays == null)
+            {
+                return;
+            }
             var day = CalendarDays.FirstOrDefault(d => d.Date.Date == date.Date);
             if (day != null)
             {
@@ -453,6 +465,10 @@ namespace RentAFriendApp.ViewModels.Friend
 
         private void GenerateCalendarDays()
         {
+            if (CalendarDays == null)
+            {
+                return;
+            }
             CalendarDays.Clear();
 
             var today = DateTime.Today;
@@ -505,12 +521,12 @@ namespace RentAFriendApp.ViewModels.Friend
 
             try
             {
-                int draggedIndex = ScheduleSlots.IndexOf(draggedSlot);
-                int targetIndex = ScheduleSlots.IndexOf(targetSlot);
+                int draggedIndex = ScheduleSlots?.IndexOf(draggedSlot) ?? -1;
+                int targetIndex = ScheduleSlots?.IndexOf(targetSlot) ?? -1;
 
                 if (draggedIndex != -1 && targetIndex != -1 && draggedIndex != targetIndex)
                 {
-                    ScheduleSlots.Move(draggedIndex, targetIndex);
+                    ScheduleSlots?.Move(draggedIndex, targetIndex);
                     Base.Messenger.Default.SendNotification("Порядок слотов изменен");
                 }
 
@@ -526,12 +542,12 @@ namespace RentAFriendApp.ViewModels.Friend
         public string DateDisplay => SelectedDate.ToString("dddd, dd MMMM yyyy");
         public string SelectedDateDisplay => SelectedDate.ToString("dd MMMM yyyy");
         public string CurrentMonthYear => _currentMonth.ToString("MMMM yyyy");
-        public int TotalSlots => ScheduleSlots.Count;
-        public int AvailableSlots => ScheduleSlots.Count(s => s.IsAvailable && !s.IsBooked);
-        public int BookedSlots => ScheduleSlots.Count(s => s.IsBooked);
+        public int TotalSlots => ScheduleSlots?.Count ?? 0;
+        public int AvailableSlots => ScheduleSlots?.Count(s => s.IsAvailable && !s.IsBooked) ?? 0;
+        public int BookedSlots => ScheduleSlots?.Count(s => s.IsBooked) ?? 0;
         public string DurationDisplay =>
             $"{NewStartTime:hh\\:mm} - {NewEndTime:hh\\:mm} ({(NewEndTime - NewStartTime).TotalHours:0.##} ч)";
-        public bool HasScheduleSlots => ScheduleSlots.Any();
+        public bool HasScheduleSlots => ScheduleSlots?.Any() ?? false;
 
         // Внутренний класс для временных слотов
         public class ScheduleSlot : BaseViewModel

@@ -13,8 +13,8 @@ namespace RentAFriendApp.ViewModels.Friend
         private int _profileId;
 
         // Коллекции
-        private ObservableCollection<BookingDetailsDTO> _items;
-        public ObservableCollection<BookingDetailsDTO> Items
+        private ObservableCollection<BookingDetailsDTO>? _items;
+        public ObservableCollection<BookingDetailsDTO>? Items
         {
             get => _items;
             set => SetProperty(ref _items, value);
@@ -35,8 +35,8 @@ namespace RentAFriendApp.ViewModels.Friend
         }
 
         // Доступные статусы для фильтрации
-        private ObservableCollection<string> _availableStatuses;
-        public ObservableCollection<string> AvailableStatuses
+        private ObservableCollection<string>? _availableStatuses;
+        public ObservableCollection<string>? AvailableStatuses
         {
             get => _availableStatuses;
             set => SetProperty(ref _availableStatuses, value);
@@ -62,16 +62,16 @@ namespace RentAFriendApp.ViewModels.Friend
             _token = token;
             Title = "Запросы на бронирование";
 
-            Items = new ObservableCollection<BookingDetailsDTO>();
-            AvailableStatuses = new ObservableCollection<string>
-            {
+            Items = [];
+            AvailableStatuses =
+            [
                 "Все",
                 "Pending",
                 "Confirmed",
                 "Completed",
                 "Cancelled",
                 "Rejected"
-            };
+            ];
 
             ViewBookingDetailsCommand = new RelayCommandAsync<BookingDetailsDTO>(ViewBookingDetails);
             AcceptBookingCommand = new RelayCommandAsync<BookingDetailsDTO>(AcceptBookingAsync, CanAcceptBooking);
@@ -81,7 +81,7 @@ namespace RentAFriendApp.ViewModels.Friend
             MessageClientCommand = new RelayCommandAsync<BookingDetailsDTO>(MessageClient);
             RefreshCommand = new RelayCommandAsync(LoadItemsAsync);
 
-            LoadProfileAsync();
+            _ = LoadProfileAsync();
             _ = LoadItemsAsync();
         }
 
@@ -127,13 +127,13 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    Items.Clear();
+                    Items?.Clear();
 
                     if (bookings?.Bookings != null)
                     {
                         foreach (var booking in bookings.Bookings)
                         {
-                            Items.Add(booking);
+                            Items?.Add(booking);
                         }
                     }
                 });
@@ -277,9 +277,9 @@ namespace RentAFriendApp.ViewModels.Friend
                 var chat = await ChatContext.GetOrCreateChat(_token, booking.ClientId);
                 if (chat != null)
                 {
-                    Base.Messenger.Default.SendData(new
+                    Messenger.Default.SendData(new
                     {
-                        ChatId = chat.ChatId,
+                        chat.ChatId,
                         FriendName = booking.ClientName
                     });
                 }
