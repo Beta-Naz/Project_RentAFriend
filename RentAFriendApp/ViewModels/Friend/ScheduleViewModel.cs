@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace RentAFriendApp.ViewModels.Friend
 {
@@ -76,8 +77,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
         // Команды
         public ICommand AddTimeSlotCommand { get; }
-        public ICommand RemoveTimeSlotCommand { get; }
-        public ICommand ToggleAvailabilityCommand { get; }
+
         public ICommand NextDayCommand { get; }
         public ICommand PreviousDayCommand { get; }
         public ICommand TodayCommand { get; }
@@ -94,8 +94,6 @@ namespace RentAFriendApp.ViewModels.Friend
             CalendarDays = new ObservableCollection<CalendarDay>();
 
             AddTimeSlotCommand = new RelayCommandAsync(AddTimeSlotAsync, () => CanAddTimeSlot);
-            RemoveTimeSlotCommand = new RelayCommandAsync<ScheduleSlot>(RemoveTimeSlotAsync);
-            ToggleAvailabilityCommand = new RelayCommandAsync<ScheduleSlot>(ToggleAvailabilityAsync);
             NextDayCommand = new RelayCommandAsync(NextDay);
             PreviousDayCommand = new RelayCommandAsync(PreviousDay);
             TodayCommand = new RelayCommandAsync(Today);
@@ -172,7 +170,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
         public bool HasSlots => ScheduleSlots != null && ScheduleSlots.Any();
 
-        private async Task AddTimeSlotAsync()
+        public async Task AddTimeSlotAsync()
         {
             try
             {
@@ -208,7 +206,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 if (createdSlot != null)
                 {
-                    var newSlot = new ScheduleSlot
+                    var newSlot = new ScheduleSlot(this)
                     {
                         ScheduleID = createdSlot.ScheduleID,
                         StartTime = createdSlot.StartTime,
@@ -238,7 +236,7 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private async Task RemoveTimeSlotAsync(ScheduleSlot? slot)
+        public async Task RemoveTimeSlotAsync(ScheduleSlot? slot)
         {
             if (slot == null) return;
 
@@ -258,7 +256,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     {
                         ScheduleSlots.Remove(slot);
                         await UpdateCalendarDayAsync(SelectedDate, false);
-                        Base.Messenger.Default.SendNotification("Слот удален");
+                        Messenger.Default.SendNotification("Слот удален");
                     }
                 }
                 catch (Exception ex)
@@ -272,32 +270,40 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private async Task ToggleAvailabilityAsync(ScheduleSlot? slot)
+        public async Task ToggleAvailabilityAsync(ScheduleSlot? slot)
         {
-            if (slot != null && !slot.IsBooked)
+            if (slot == null || slot.IsBooked) return;
+
+            try
             {
-                try
+                IsBusy = true;
+                bool newAvailability = !slot.IsAvailable;
+
+                var result = await ScheduleContext.UpdateTimeSlotAvailability(
+                    _token, slot.ScheduleID, newAvailability);
+
+                if (result != null)
                 {
-                    bool newAvailability = !slot.IsAvailable;
+                    slot.IsAvailable = newAvailability;
+                    slot.IconsToggle = slot.IsAvailable ?
+                        new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/open_ico.png", UriKind.Relative)) :
+                        new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/close_ico.png", UriKind.Relative));
 
-                    var result = await ScheduleContext.UpdateTimeSlotAvailability(_token, slot.ScheduleID, newAvailability);
+                    await LoadScheduleForDateAsync();
 
-                    if (result != null)
-                    {
-                        slot.IsAvailable = newAvailability;
-                        await LoadScheduleForDateAsync();
-
-                        Base.Messenger.Default.SendNotification(
-                            $"Слот {slot.TimeRange} теперь {(slot.IsAvailable ? "доступен" : "недоступен")}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SetError($"Ошибка изменения доступности: {ex.Message}");
+                    Messenger.Default.SendNotification(
+                        $"Слот {slot.TimeRange} теперь {(slot.IsAvailable ? "доступен" : "недоступен")}");
                 }
             }
+            catch (Exception ex)
+            {
+                SetError($"Ошибка изменения доступности: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
-
         private async Task NextDay()
         {
             SelectedDate = SelectedDate.AddDays(1);
@@ -372,7 +378,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     {
                         foreach (var slot in schedule.Slots)
                         {
-                            ScheduleSlots.Add(new ScheduleSlot
+                            ScheduleSlots.Add(new ScheduleSlot(this)
                             {
                                 ScheduleID = slot.ScheduleID,
                                 StartTime = slot.StartTime,
@@ -528,8 +534,18 @@ namespace RentAFriendApp.ViewModels.Friend
         public bool HasScheduleSlots => ScheduleSlots.Any();
 
         // Внутренний класс для временных слотов
-        internal class ScheduleSlot : BaseViewModel
+        public class ScheduleSlot : BaseViewModel
         {
+            public ICommand? RemoveTimeSlotCommand { get; }
+            public ICommand? ToggleAvailabilityCommand { get; }
+            public ScheduleViewModel? _scheduleViewModel;
+            public ScheduleSlot(ScheduleViewModel scheduleViewModel)
+            {
+                IconsToggle = new BitmapImage(new Uri("/Resources/Icons/open_ico.png", UriKind.Relative));
+                _scheduleViewModel = scheduleViewModel;
+                RemoveTimeSlotCommand = new RelayCommandAsync(async () => await _scheduleViewModel.RemoveTimeSlotAsync(this), () => true);
+                ToggleAvailabilityCommand = new RelayCommandAsync(async () => await _scheduleViewModel.ToggleAvailabilityAsync(this), () => !IsBooked);
+            }
             public int ScheduleID { get; set; }
             public TimeSpan StartTime { get; set; }
             public TimeSpan EndTime { get; set; }
@@ -537,12 +553,48 @@ namespace RentAFriendApp.ViewModels.Friend
             public bool IsAvailable
             {
                 get => _isAvailable;
-                set => SetProperty(ref _isAvailable, value);
+                set
+                {
+                    if (SetProperty(ref _isAvailable, value))
+                    {
+                        OnPropertyChanged(nameof(Status));
+                        OnPropertyChanged(nameof(StatusColor));
+                        OnPropertyChanged(nameof(StatusIcon));
+                        OnPropertyChanged(nameof(IconsToggle));
+                    }
+                }
             }
-            public bool IsBooked { get; set; }
+            public string ToggleTooltip
+            {
+                get
+                {
+                    if (IsBooked) return "Забронированный слот нельзя изменить";
+                    return IsAvailable ? "Сделать недоступным" : "Сделать доступным";
+                }
+            }
+            private bool _isBooked;
+            public bool IsBooked
+            {
+                get => _isBooked;
+                set
+                {
+                    if (SetProperty(ref _isBooked, value))
+                    {
+                        OnPropertyChanged(nameof(Status));
+                        OnPropertyChanged(nameof(StatusColor));
+                        OnPropertyChanged(nameof(StatusIcon));
+                    }
+                }
+            }
             public DateTime Date { get; set; }
             public string? BookingStatus { get; set; }
             public string? BookingPurpose { get; set; }
+            public BitmapImage? _iconsToggle;
+            public BitmapImage? IconsToggle
+            {
+                get => _iconsToggle;
+                set => SetProperty(ref _iconsToggle, value);
+            }
 
             public Brush StatusColor
             {
@@ -577,43 +629,6 @@ namespace RentAFriendApp.ViewModels.Friend
                     return IsAvailable
                         ? Geometry.Parse("M9,16.2L4.8,12l-1.4,1.4L9,19L21,7l-1.4-1.4L9,16.2z")
                         : Geometry.Parse("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z");
-                }
-            }
-
-            /// <summary>
-            /// Иконка для кнопки переключения доступности
-            /// </summary>
-            public Geometry ToggleIcon
-            {
-                get
-                {
-                    return IsAvailable
-                        ? Geometry.Parse("M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z")
-                        : Geometry.Parse("M9,16.2L4.8,12l-1.4,1.4L9,19L21,7l-1.4-1.4L9,16.2z");
-                }
-            }
-
-            /// <summary>
-            /// Цвет для кнопки переключения
-            /// </summary>
-            public Brush ToggleButtonColor
-            {
-                get
-                {
-                    return IsAvailable
-                        ? new SolidColorBrush(Color.FromRgb(211, 47, 47))  // Красный для "сделать недоступным"
-                        : new SolidColorBrush(Color.FromRgb(76, 175, 80));  // Зеленый для "сделать доступным"
-                }
-            }
-
-            /// <summary>
-            /// Подсказка для кнопки переключения
-            /// </summary>
-            public string ToggleTooltip
-            {
-                get
-                {
-                    return IsAvailable ? "Сделать недоступным" : "Сделать доступным";
                 }
             }
         }

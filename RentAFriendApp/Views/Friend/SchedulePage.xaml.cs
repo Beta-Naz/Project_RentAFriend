@@ -1,21 +1,22 @@
 ﻿using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.ViewModels.Friend;
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace RentAFriendApp.Views.Friend
 {
     public partial class SchedulePage : Page
     {
         private readonly string _token;
-        private ScheduleViewModel _viewModel;
+        private readonly ScheduleViewModel _viewModel;
         private DateTime _currentMonth = DateTime.Today;
+        private string _lastToastMessage = string.Empty;
+        private DateTime _lastToastTime;
+        private StackPanel? _toastPanel;
 
         public SchedulePage(string token)
         {
@@ -27,24 +28,24 @@ namespace RentAFriendApp.Views.Friend
             DataContext = _viewModel;
 
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            Messenger.Default.NotificationReceived += OnNotificationReceived;
 
             _ = _viewModel.InitializeAsync();
 
             StartPageAnimation();
-            SetupDragAndDrop();
-            SubscribeToGlobalEvents();
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             try
             {
+                Messenger.Default.NotificationReceived -= OnNotificationReceived;
+
                 if (_viewModel != null)
                 {
                     _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 }
 
-                UnsubscribeFromGlobalEvents();
                 ClearResources();
             }
             catch (Exception ex)
@@ -53,7 +54,7 @@ namespace RentAFriendApp.Views.Friend
             }
         }
 
-        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             try
             {
@@ -101,8 +102,7 @@ namespace RentAFriendApp.Views.Friend
 
         private void AnimateDateChange()
         {
-            var dateText = this.FindName("DateDisplayText") as TextBlock;
-            if (dateText != null)
+            if (FindName("DateDisplayText") is TextBlock dateText)
             {
                 var scaleAnimation = new DoubleAnimation
                 {
@@ -124,8 +124,7 @@ namespace RentAFriendApp.Views.Friend
                 int delay = 0;
                 foreach (var item in ScheduleSlotsControl.Items)
                 {
-                    var container = ScheduleSlotsControl.ItemContainerGenerator.ContainerFromItem(item) as FrameworkElement;
-                    if (container != null)
+                    if (ScheduleSlotsControl.ItemContainerGenerator.ContainerFromItem(item) is FrameworkElement container)
                     {
                         container.Opacity = 0;
 
@@ -190,9 +189,9 @@ namespace RentAFriendApp.Views.Friend
 
         private void ShowErrorIfNeeded()
         {
-            if (_viewModel != null && _viewModel.HasError)
+            if (_viewModel is { HasError: true })
             {
-                var timer = new System.Windows.Threading.DispatcherTimer
+                var timer = new DispatcherTimer
                 {
                     Interval = TimeSpan.FromSeconds(5)
                 };
@@ -200,130 +199,11 @@ namespace RentAFriendApp.Views.Friend
                 timer.Tick += (s, e) =>
                 {
                     timer.Stop();
-                    DismissError_Click(null, null);
+                    DismissError_Click(this, null!);
                 };
 
                 timer.Start();
             }
-        }
-
-        private void SetupDragAndDrop()
-        {
-            if (ScheduleSlotsControl != null)
-            {
-                ScheduleSlotsControl.PreviewMouseLeftButtonDown += ScheduleSlot_MouseDown;
-                ScheduleSlotsControl.PreviewMouseMove += ScheduleSlot_MouseMove;
-                ScheduleSlotsControl.Drop += ScheduleSlot_Drop;
-                ScheduleSlotsControl.DragEnter += ScheduleSlot_DragEnter;
-                ScheduleSlotsControl.DragLeave += ScheduleSlot_DragLeave;
-            }
-        }
-
-        private void ScheduleSlot_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.OriginalSource is DependencyObject source)
-            {
-                if (FindParent<Button>(source) != null)
-                {
-                    return;
-                }
-
-                var slot = FindParent<Border>(source);
-                if (slot != null && slot.DataContext is ScheduleViewModel.ScheduleSlot)
-                {
-                    DragDrop.DoDragDrop(slot, slot.DataContext, DragDropEffects.Move);
-                    e.Handled = true;
-                }
-            }
-        }
-
-        private void ScheduleSlot_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                if (e.OriginalSource is FrameworkElement source)
-                {
-                    var slot = FindParent<Border>(source);
-                    if (slot != null)
-                    {
-                        var dragData = new DataObject(typeof(ScheduleViewModel.ScheduleSlot), slot.DataContext);
-                        DragDrop.DoDragDrop(slot, dragData, DragDropEffects.Move);
-                    }
-                }
-            }
-        }
-
-        private void ScheduleSlot_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(typeof(ScheduleViewModel.ScheduleSlot)))
-            {
-                if (sender is Border border)
-                {
-                    border.Background = new SolidColorBrush(Color.FromArgb(30, 76, 175, 80));
-                }
-                e.Effects = DragDropEffects.Move;
-            }
-        }
-
-        private void ScheduleSlot_DragLeave(object sender, DragEventArgs e)
-        {
-            if (sender is Border border)
-            {
-                var slot = border.DataContext as ScheduleViewModel.ScheduleSlot;
-                if (slot != null)
-                {
-                    border.Background = slot.IsBooked ?
-                        new SolidColorBrush(Color.FromArgb(255, 255, 245, 245)) :
-                        new SolidColorBrush(Color.FromArgb(255, 240, 249, 240));
-                }
-            }
-        }
-
-        private async void ScheduleSlot_Drop(object sender, DragEventArgs e)
-        {
-            try
-            {
-                if (e.Data.GetData(typeof(ScheduleViewModel.ScheduleSlot)) is ScheduleViewModel.ScheduleSlot draggedSlot &&
-                    sender is Border targetBorder &&
-                    targetBorder.DataContext is ScheduleViewModel.ScheduleSlot targetSlot &&
-                    _viewModel != null)
-                {
-                    await _viewModel.ReorderSlotsAsync(draggedSlot, targetSlot);
-                    AnimateSuccessfulDrop(targetBorder);
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Ошибка при изменении порядка: {ex.Message}");
-            }
-        }
-
-        private void AnimateSuccessfulDrop(FrameworkElement element)
-        {
-            var animation = new DoubleAnimation
-            {
-                From = 1,
-                To = 1.05,
-                Duration = TimeSpan.FromSeconds(0.1),
-                AutoReverse = true,
-                EasingFunction = new ElasticEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            var scaleTransform = new ScaleTransform();
-            element.RenderTransform = scaleTransform;
-            element.RenderTransformOrigin = new Point(0.5, 0.5);
-
-            scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, animation);
-            scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
-        }
-
-        private T FindParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            while (child != null && !(child is T))
-            {
-                child = VisualTreeHelper.GetParent(child);
-            }
-            return child as T;
         }
 
         private void PreviousMonth_Click(object sender, RoutedEventArgs e)
@@ -356,8 +236,7 @@ namespace RentAFriendApp.Views.Friend
 
         private void AnimateMonthChange(bool forward)
         {
-            var monthText = this.FindName("MonthYearText") as TextBlock;
-            if (monthText != null)
+            if (FindName("MonthYearText") is TextBlock monthText)
             {
                 var slideAnimation = new ThicknessAnimation
                 {
@@ -371,12 +250,9 @@ namespace RentAFriendApp.Views.Friend
             }
         }
 
-        private void DismissError_Click(object sender, RoutedEventArgs e)
+        private void DismissError_Click(object? sender, RoutedEventArgs? e)
         {
-            if (_viewModel != null)
-            {
-                _viewModel.ClearErrors();
-            }
+            _viewModel?.ClearErrors();
 
             if (ErrorContainer != null)
             {
@@ -394,10 +270,7 @@ namespace RentAFriendApp.Views.Friend
         {
             Dispatcher.Invoke(() =>
             {
-                if (_viewModel != null)
-                {
-                    _viewModel.SetError(message);
-                }
+                _viewModel?.SetError(message);
 
                 if (ErrorContainer != null)
                 {
@@ -405,16 +278,6 @@ namespace RentAFriendApp.Views.Friend
                     ErrorContainer.Opacity = 1;
                 }
             });
-        }
-
-        private void SubscribeToGlobalEvents()
-        {
-            // Подписка на глобальные события приложения
-        }
-
-        private void UnsubscribeFromGlobalEvents()
-        {
-            // Отписка от глобальных событий
         }
 
         private void ClearResources()
@@ -427,8 +290,7 @@ namespace RentAFriendApp.Views.Friend
         {
             base.OnKeyDown(e);
 
-            if (_viewModel == null || _viewModel.IsBusy)
-                return;
+            if (_viewModel is not { IsBusy: false }) return;
 
             switch (e.Key)
             {
@@ -442,23 +304,31 @@ namespace RentAFriendApp.Views.Friend
                     e.Handled = true;
                     break;
 
-                case Key.T:
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                    {
-                        _viewModel.TodayCommand.Execute(null);
-                        e.Handled = true;
-                    }
+                case Key.T when Keyboard.Modifiers == ModifierKeys.Control:
+                    _viewModel.TodayCommand.Execute(null);
+                    e.Handled = true;
                     break;
 
-                case Key.Add:
-                case Key.OemPlus:
-                    if (Keyboard.Modifiers == ModifierKeys.Control)
-                    {
-                        _viewModel.AddTimeSlotCommand.Execute(null);
-                        e.Handled = true;
-                    }
+                case Key.Add or Key.OemPlus when Keyboard.Modifiers == ModifierKeys.Control:
+                    _viewModel.AddTimeSlotCommand.Execute(null);
+                    e.Handled = true;
                     break;
             }
+        }
+
+        private void OnNotificationReceived(object? sender, string message)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (message == _lastToastMessage && (DateTime.Now - _lastToastTime).TotalSeconds < 1)
+                {
+                    return;
+                }
+
+                _lastToastMessage = message;
+                _lastToastTime = DateTime.Now;
+                ShowToast(message, "#2196F3");
+            });
         }
 
         private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -471,6 +341,65 @@ namespace RentAFriendApp.Views.Friend
             {
                 CalendarDaysControl.Margin = new Thickness(0);
             }
+        }
+
+        private void InitializeToastPanel()
+        {
+            if (Content is Grid grid)
+            {
+                _toastPanel = new StackPanel
+                {
+                    VerticalAlignment = VerticalAlignment.Top,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(20),
+                    FlowDirection = FlowDirection.RightToLeft
+                };
+
+                Panel.SetZIndex(_toastPanel, 1000);
+                grid.Children.Add(_toastPanel);
+            }
+        }
+
+        private void ShowToast(string message, string color)
+        {
+            if (_toastPanel == null)
+            {
+                InitializeToastPanel();
+            }
+
+            var toast = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(15, 10, 15, 10),
+                Margin = new Thickness(0, 0, 0, 10),
+                Opacity = 0,
+                Child = new TextBlock
+                {
+                    Text = message,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Foreground = Brushes.White,
+                    FontSize = 14,
+                    FontWeight = FontWeights.SemiBold,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = 300
+                }
+            };
+
+            _toastPanel.Children.Add(toast);
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.3));
+            toast.BeginAnimation(OpacityProperty, fadeIn);
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(0.3));
+                fadeOut.Completed += (_, _) => _toastPanel.Children.Remove(toast);
+                toast.BeginAnimation(OpacityProperty, fadeOut);
+            };
+            timer.Start();
         }
     }
 }

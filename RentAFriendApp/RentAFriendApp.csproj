@@ -6,20 +6,28 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Resources\Image\RentAFriendLogo.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Images\RentAFriendLogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Image\RentAFriendLogo.png" />
-    <None Remove="Resources\Image\rentiIco.png" />
+    <Compile Remove="Resources\Image\**" />
+    <Compile Remove="Resources\Новая папка\**" />
+    <EmbeddedResource Remove="Resources\Image\**" />
+    <EmbeddedResource Remove="Resources\Новая папка\**" />
+    <None Remove="Resources\Image\**" />
+    <None Remove="Resources\Новая папка\**" />
+    <Page Remove="Resources\Image\**" />
+    <Page Remove="Resources\Новая папка\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\Image\RentAFriendLogo.ico" />
+    <None Remove="Resources\Icons\close_ico.png" />
+    <None Remove="Resources\Icons\delete_ico.png" />
+    <None Remove="Resources\Icons\open_ico.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Image\rentiIco.png" />
+    <Content Include="Resources\Images\RentAFriendLogo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +37,12 @@
   <ItemGroup>
     <Folder Include="ViewModels\Admin\" />
     <Folder Include="Views\Admin\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\close_ico.png" />
+    <Resource Include="Resources\Icons\delete_ico.png" />
+    <Resource Include="Resources\Icons\open_ico.png" />
   </ItemGroup>
 
 </Project>

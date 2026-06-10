@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:RentAFriendApp.Views.Friend"
+      xmlns:localItems="clr-namespace:RentAFriendApp.Views.Friend.Controls"
       xmlns:converters="clr-namespace:RentAFriendApp.Converters"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1200"
@@ -374,86 +375,48 @@
                         </StackPanel>
 
                         <!-- Статистика -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Border Background="#F9FDF9" 
-                            CornerRadius="8"
-                            BorderBrush="#E8F5E8"
-                            BorderThickness="1"
-                            Padding="20,15"
-                            Margin="0,0,10,0"
-                            ToolTip="Всего временных слотов">
-                                <StackPanel>
-                                    <Path Data="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M16.5,16.5h-9v-9h9V16.5z" 
-                                  Fill="#666666" 
-                                  Stretch="Uniform" 
-                                  Width="16" 
-                                  Height="16"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,5"/>
-                                    <TextBlock Text="{Binding TotalSlots}" 
-                                       FontSize="24" 
-                                       FontWeight="Bold"
-                                       Foreground="#333333"
-                                       HorizontalAlignment="Center"/>
-                                    <TextBlock Text="слотов" 
-                                       FontSize="12" 
-                                       Foreground="#666666"
-                                       HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- Всего слотов -->
+                            <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="70">
+                                <TextBlock Text="Всего:" FontSize="12" Foreground="#999999"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalSlots}" 
+                                           HorizontalAlignment="Center"
+                                           FontSize="18" 
+                                           FontWeight="Bold"
+                                           Foreground="#333333"
+                                           Margin="5,0,0,0"/>
+                            </StackPanel>
 
-                            <Border Background="#F0F9F0" 
-                            CornerRadius="8"
-                            BorderBrush="#C8E6C9"
-                            BorderThickness="1"
-                            Padding="20,15"
-                            Margin="0,0,10,0"
-                            ToolTip="Доступных слотов">
-                                <StackPanel>
-                                    <Path Data="M9,16.2L4.8,12l-1.4,1.4L9,19L21,7l-1.4-1.4L9,16.2z" 
-                                  Fill="#4CAF50" 
-                                  Stretch="Uniform" 
-                                  Width="16" 
-                                  Height="16"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,5"/>
-                                    <TextBlock Text="{Binding AvailableSlots}" 
-                                       FontSize="24" 
-                                       FontWeight="Bold"
-                                       Foreground="#4CAF50"
-                                       HorizontalAlignment="Center"/>
-                                    <TextBlock Text="доступно" 
-                                       FontSize="12" 
-                                       Foreground="#666666"
-                                       HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                            <!-- Доступные слоты -->
+                            <StackPanel Orientation="Vertical" Margin="0,0,15,0" Width="80">
+                                <TextBlock Text="Свободно:" 
+                                           FontSize="12" 
+                                           Foreground="#66BB6A"
+                                           HorizontalAlignment="Center"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding AvailableSlots}" 
+                                           FontSize="18" 
+                                           HorizontalAlignment="Center"
+                                           FontWeight="Bold"
+                                           Foreground="#4CAF50"
+                                           Margin="5,0,0,0"/>
+                            </StackPanel>
 
-                            <Border Background="#FFF5F5" 
-                            CornerRadius="8"
-                            BorderBrush="#FFCDD2"
-                            BorderThickness="1"
-                            Padding="20,15"
-                            ToolTip="Забронированных слотов">
-                                <StackPanel>
-                                    <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z" 
-                                  Fill="#D32F2F" 
-                                  Stretch="Uniform" 
-                                  Width="16" 
-                                  Height="16"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,5"/>
-                                    <TextBlock Text="{Binding BookedSlots}" 
-                                       FontSize="24" 
-                                       FontWeight="Bold"
-                                       Foreground="#D32F2F"
-                                       HorizontalAlignment="Center"/>
-                                    <TextBlock Text="занято" 
-                                       FontSize="12" 
-                                       Foreground="#666666"
-                                       HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
+                            <!-- Забронированные слоты -->
+                            <StackPanel Orientation="Vertical" Width="70">
+                                <TextBlock Text="Занято:" 
+                                           HorizontalAlignment="Center"
+                                           FontSize="12" 
+                                           Foreground="#FFA726"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding BookedSlots}" 
+                                           HorizontalAlignment="Center"
+                                           FontSize="18" 
+                                           FontWeight="Bold"
+                                           Foreground="#FF9800"
+                                           Margin="5,0,0,0"/>
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -711,135 +674,11 @@
 
                                 <!-- Слоты времени -->
                                 <ItemsControl x:Name="ScheduleSlotsControl"
-                                          ItemsSource="{Binding ScheduleSlots}"
-                                          Visibility="{Binding HasScheduleSlots, Converter={StaticResource BoolToVisibility}}">
+                                    ItemsSource="{Binding ScheduleSlots}"
+                                    Visibility="{Binding HasScheduleSlots, Converter={StaticResource BoolToVisibility}}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border>
-                                                <Border.Style>
-                                                    <Style TargetType="Border" BasedOn="{StaticResource TimeSlotStyle}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsBooked}" Value="True">
-                                                                <Setter Property="Background" Value="#FFF5F5"/>
-                                                                <Setter Property="BorderBrush" Value="#FFCDD2"/>
-                                                            </DataTrigger>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding IsBooked}" Value="False"/>
-                                                                    <Condition Binding="{Binding IsAvailable}" Value="True"/>
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Background" Value="#F0F9F0"/>
-                                                                <Setter Property="BorderBrush" Value="#C8E6C9"/>
-                                                            </MultiDataTrigger>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding IsBooked}" Value="False"/>
-                                                                    <Condition Binding="{Binding IsAvailable}" Value="False"/>
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Background" Value="#F9F9F9"/>
-                                                                <Setter Property="BorderBrush" Value="#E0E0E0"/>
-                                                                <Setter Property="Opacity" Value="0.7"/>
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <!-- Время и иконка -->
-                                                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                                            <Path Data="{Binding StatusIcon}" 
-                                                              Fill="{Binding StatusColor}" 
-                                                              Stretch="Uniform" 
-                                                              Width="16" 
-                                                              Height="16"
-                                                              Margin="0,0,8,0"/>
-                                                            <TextBlock Text="{Binding StartTime, Converter={StaticResource StringToTimeSpanConverter}, Mode=OneWay}"
-                                                                   FontSize="16"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="#333333"/>
-                                                        </StackPanel>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="до" 
-                                                                   FontSize="13"
-                                                                   Foreground="#999999"
-                                                                   Margin="0,0,5,0"/>
-                                                            <TextBlock Text="{Binding EndTime, Converter={StaticResource StringToTimeSpanConverter}, Mode=OneWay}"
-                                                                   FontSize="14"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="#666666"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-
-                                                    <!-- Информация -->
-                                                    <StackPanel Grid.Column="1">
-                                                        <TextBlock Text="{Binding Status}" 
-                                                               FontSize="14"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="{Binding StatusColor}"/>
-                                                        <TextBlock Text="{Binding DurationDisplay}" 
-                                                               FontSize="13"
-                                                               Foreground="#666666"
-                                                               Margin="0,5,0,0"/>
-                                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                                                            <Path Data="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M16.5,16.5h-9v-9h9V16.5z" 
-                                                              Fill="#999999" 
-                                                              Stretch="Uniform" 
-                                                              Width="12" 
-                                                              Height="12"
-                                                              Margin="0,0,5,0"/>
-                                                            <TextBlock Text="{Binding TimeRange}" 
-                                                                   FontSize="12"
-                                                                   Foreground="#999999"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-
-                                                    <!-- Действия -->
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                        <Button x:Name="ToggleBtn"
-                                                            ToolTip="{Binding ToggleTooltip}"
-                                                            Margin="0,0,10,0"
-                                                            Width="20"
-                                                            Height="20"
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Foreground="{Binding ToggleButtonColor}"
-                                                            FontSize="16"
-                                                            Cursor="Hand"
-                                                            Command="{Binding DataContext.ToggleAvailabilityCommand, 
-                                                                      RelativeSource={RelativeSource AncestorType=Page}}"
-                                                            CommandParameter="{Binding}">
-                                                            <Path Data="{Binding ToggleIcon}" 
-                                                              Fill="{Binding ToggleButtonColor}" 
-                                                              Stretch="Uniform"/>
-                                                        </Button>
-
-                                                        <Button x:Name="DeleteBtn"
-                                                            ToolTip="Удалить слот"
-                                                            Width="20"
-                                                            Height="20"
-                                                            VerticalAlignment="Center"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Foreground="#D32F2F"
-                                                            FontSize="16"
-                                                            Cursor="Hand"
-                                                            Command="{Binding DataContext.RemoveTimeSlotCommand, 
-                                                                      RelativeSource={RelativeSource AncestorType=Page}}"
-                                                            CommandParameter="{Binding}">
-                                                            <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41z" 
-                                                              Fill="#D32F2F" 
-                                                              Stretch="Uniform"/>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
+                                            <localItems:TimeSlotItem />
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

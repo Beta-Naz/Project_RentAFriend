@@ -1,10 +1,7 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
-using RentAFriendApp.Models.ClassesDTO.BookingDTO.Response;
 using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.ViewModels.Friend;
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;

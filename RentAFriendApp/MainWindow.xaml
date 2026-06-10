@@ -68,7 +68,7 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0">
                     <Border Width="32" Height="32" CornerRadius="8" 
                             VerticalAlignment="Center" Margin="0,0,10,0">
-                        <Image Source="/Resources/Image/rentiIco.png"/>
+                        <Image Source="/Resources/Images/rentiIco.png"/>
                     </Border>
                     <TextBlock Text="RentAFriend" 
                                FontSize="20" 

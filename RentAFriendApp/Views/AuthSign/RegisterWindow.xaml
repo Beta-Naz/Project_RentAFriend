@@ -193,7 +193,7 @@
                         <!-- Логотип и название -->
                         <StackPanel Grid.Row="0" Margin="30,40,30,0">
                             <Viewbox Width="40" Height="40" HorizontalAlignment="Left" Margin="0,0,0,10">
-                                <Image Source="/Resources/Image/rentiIco.png"/>
+                                <Image Source="/Resources/Images/rentiIco.png"/>
                             </Viewbox>
                             <TextBlock Text="RentAFriend" 
                                        FontSize="28" 
