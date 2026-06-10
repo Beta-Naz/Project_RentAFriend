@@ -812,5 +812,50 @@ namespace Project_RentAFriend.Controllers
                 _ => false
             };
         }
+        [Route("getAll")]
+        [HttpGet]
+        public async Task<ActionResult> GetAllBookings(
+            [FromHeader(Name = "TOKEN")] string token,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                if (_dbManager?.Bookings == null || _dbManager.Users == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? adminId = JwtToken.GetUserIdFromToken(token);
+                if (adminId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var admin = await _dbManager.Users.FindAsync(adminId);
+                if (admin == null || admin.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                var bookings = await _dbManager.Bookings
+                    .Include(b => b.Client)
+                    .Include(b => b.Schedule)
+                    .OrderByDescending(b => b.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(b => new
+                    {
+                        b.BookingID,
+                        b.ClientID,
+                        ClientName = b.Client.FullName,
+                        b.Status,
+                        b.TotalAmount,
+                        b.PaymentStatus,
+                        b.CreatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(new { message = "Бронирования получены", bookings });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

@@ -31,12 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <None Include="Models\ClassesDTO\UserDTO\UserInfoDTO.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ViewModels\Admin\" />
-    <Folder Include="Views\Admin\" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
   <ItemGroup>

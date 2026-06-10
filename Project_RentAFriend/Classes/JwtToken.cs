@@ -11,6 +11,7 @@ namespace Project_RentAFriend.Classes
     /// </summary>
     public class JwtToken
     {
+        private static DBManager _dbManager = new();
         /// <summary>
         /// Секретный ключ для подписи токенов
         /// static означает, что ключ общий для всех экземпляров класса
@@ -50,7 +51,16 @@ namespace Project_RentAFriend.Classes
             try
             {
                 JwtSecurityTokenHandler TokenHandler = new();
-
+                if(_dbManager.BlacklistedTokens != null)
+                {
+                    foreach(var backToken in _dbManager.BlacklistedTokens)
+                    {
+                        if(backToken.Token == token)
+                        {
+                            return null;
+                        }
+                    }
+                }
                 TokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -67,6 +77,22 @@ namespace Project_RentAFriend.Classes
             {
                 return null;
             }
+        }
+        public static DateTime? GetExpirationDateFromToken(string token)
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                if (handler.ReadToken(token) is JwtSecurityToken jwtToken)
+                {
+                    return jwtToken.ValidTo;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+            return null;
         }
     }
 }

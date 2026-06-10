@@ -367,5 +367,48 @@ namespace Project_RentAFriend.Controllers
                     .SetProperty(m => m.IsRead, true)
                     .SetProperty(m => m.ReadAt, DateTime.UtcNow));
         }
+        [Route("recent")]
+        [HttpGet]
+        public async Task<ActionResult> GetRecentMessages(
+    [FromHeader(Name = "TOKEN")] string token,
+    [FromQuery] int count = 50)
+        {
+            try
+            {
+                if (_dbManager?.Messages == null || _dbManager.Users == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? adminId = JwtToken.GetUserIdFromToken(token);
+                if (adminId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var admin = await _dbManager.Users.FindAsync(adminId);
+                if (admin == null || admin.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                var messages = await _dbManager.Messages
+                    .Include(m => m.Sender)
+                    .Include(m => m.Chat)
+                    .OrderByDescending(m => m.CreatedAt)
+                    .Take(count)
+                    
+                    .Select(m => new
+                    {
+                        m.MessageID,
+                        m.ChatID,
+                        m.SenderID,
+                        SenderName = m.Sender != null ? m.Sender.FullName : "",
+                        m.Content,
+                        m.CreatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(new { message = "Сообщения получены", messages });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

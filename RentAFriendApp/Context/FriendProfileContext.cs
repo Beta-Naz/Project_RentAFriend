@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net;
+using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 
 namespace RentAFriendApp.Context
 {
@@ -142,5 +144,21 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        public static async Task<BoolResult?> VerifyFriendProfile(string token, int profileId, bool isVerified)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var data = new { isVerified };
+            var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            var response = await client.PutAsync($"{_url}/verify/{profileId}", content);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<BoolResult>(result);
+            }
+            return null;
+        }
     }
+
 }

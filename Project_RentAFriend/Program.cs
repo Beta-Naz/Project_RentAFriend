@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Project_RentAFriend.Classes;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,6 @@ app.UseSwaggerUI();
 app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseRouting();
 app.MapControllers();
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<DBManager>();

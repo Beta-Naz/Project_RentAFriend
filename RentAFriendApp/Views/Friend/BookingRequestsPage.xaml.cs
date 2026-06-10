@@ -3,10 +3,7 @@ using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.ViewModels.Friend;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,36 +27,6 @@ namespace RentAFriendApp.Views.Friend
             DataContext = _viewModel;
 
             InitializeEvents();
-            _ = InitializeAsync();
-        }
-
-        private async Task InitializeAsync()
-        {
-            try
-            {
-                ShowLoadingState();
-
-                await Task.Delay(100);
-
-                _viewModel.PropertyChanged += (s, e) =>
-                {
-                    if (e.PropertyName == nameof(FriendBookingsViewModel.Items))
-                    {
-                        UpdateUI();
-                    }
-                };
-
-                if (_viewModel.Items == null || !_viewModel.Items.Any())
-                {
-                    _viewModel.RefreshCommand.Execute(null);
-                }
-
-                ShowContentState();
-            }
-            catch (Exception ex)
-            {
-                ShowErrorState($"Ошибка инициализации: {ex.Message}");
-            }
         }
 
         private void UpdateUI()
@@ -122,13 +89,6 @@ namespace RentAFriendApp.Views.Friend
             Messenger.Default.NotificationReceived += OnNotificationReceived;
         }
 
-        private void ShowLoadingState()
-        {
-            LoadingState.Visibility = Visibility.Visible;
-            BookingsListControl.Visibility = Visibility.Collapsed;
-            EmptyState.Visibility = Visibility.Collapsed;
-        }
-
         private void ShowContentState()
         {
             LoadingState.Visibility = Visibility.Collapsed;
@@ -141,12 +101,6 @@ namespace RentAFriendApp.Views.Friend
             LoadingState.Visibility = Visibility.Collapsed;
             BookingsListControl.Visibility = Visibility.Collapsed;
             EmptyState.Visibility = Visibility.Visible;
-        }
-
-        private void ShowErrorState(string message)
-        {
-            ShowNotification(message, "Error");
-            ShowEmptyState();
         }
 
         private void ShowNotification(string message, string type = "Info")

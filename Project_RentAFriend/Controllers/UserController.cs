@@ -179,5 +179,163 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        [Route("getAll")]
+        [HttpGet]
+        public async Task<ActionResult> GetAllUsers([FromHeader(Name = "TOKEN")] string token)
+        {
+            try
+            {
+                if (_dbManager?.Users == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var user = await _dbManager.Users.FindAsync(userId);
+                if (user == null || user.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                var users = await _dbManager.Users
+                    .Select(u => new
+                    {
+                        u.UserID,
+                        u.FullName,
+                        u.Email,
+                        u.Phone,
+                        u.Role,
+                        u.IsActive,
+                        u.CreatedAt,
+                    })
+                    .ToListAsync();
+
+                return Ok(new { message = "Пользователи получены", users });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+
+        [Route("updateStatus/{userId}")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateUserStatus(
+            [FromHeader(Name = "TOKEN")] string token,
+            int userId,
+            [FromForm] string isActive)
+        {
+            try
+            {
+                if (_dbManager?.Users == null || _dbManager.AuditLogs == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? adminId = JwtToken.GetUserIdFromToken(token);
+                if (adminId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var admin = await _dbManager.Users.FindAsync(adminId);
+                if (admin == null || admin.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                var targetUser = await _dbManager.Users.FindAsync(userId);
+                if (targetUser == null)
+                    return NotFound(new { message = "Пользователь не найден" });
+                if (string.IsNullOrEmpty(isActive))
+                {
+                    return Forbid("Некорректные данные");
+                }
+                targetUser.IsActive = isActive != "false";
+                _dbManager.AuditLogs.Add(new AuditLog
+                {
+                    UserID = adminId,
+                    Action = targetUser.IsActive ? "UNBLOCK_USER" : "BLOCK_USER",
+                    TableName = "Users",
+                    RecordID = userId,
+                    OldValue = (!targetUser.IsActive).ToString(),
+                    NewValue = targetUser.IsActive.ToString(),
+                    IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    UserAgent = Request.Headers.UserAgent.ToString(),
+                    LoggedAt = DateTime.UtcNow
+                });
+
+                await _dbManager.SaveChangesAsync();
+                return Ok(new { result = true, message = "Статус обновлен" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+
+        [Route("delete/{userId}")]
+        [HttpDelete]
+        public async Task<ActionResult> DeleteUser(
+            [FromHeader(Name = "TOKEN")] string token,
+            int userId)
+        {
+            try
+            {
+                if (_dbManager?.Users == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? adminId = JwtToken.GetUserIdFromToken(token);
+                if (adminId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var admin = await _dbManager.Users.FindAsync(adminId);
+                if (admin == null || admin.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                if (adminId == userId)
+                    return BadRequest(new { message = "Нельзя удалить самого себя" });
+
+                var targetUser = await _dbManager.Users.FindAsync(userId);
+                if (targetUser == null)
+                    return NotFound(new { message = "Пользователь не найден" });
+
+                _dbManager.Users.Remove(targetUser);
+                await _dbManager.SaveChangesAsync();
+
+                return Ok(new { result = true, message = "Пользователь удален" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
+        [Route("logout")]
+        [HttpPost]
+        public async Task<ActionResult> Logout([FromHeader(Name = "TOKEN")] string token)
+        {
+            try
+            {
+                if (_dbManager?.BlacklistedTokens == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var expiresAt = JwtToken.GetExpirationDateFromToken(token);
+                if (expiresAt == null)
+                    return BadRequest(new { message = "Не удалось определить срок действия токена" });
+
+                _dbManager.BlacklistedTokens.Add(new BlacklistedToken
+                {
+                    Token = token,
+                    UserID = userId,
+                    ExpiresAt = expiresAt.Value,
+                    BlacklistedAt = DateTime.UtcNow
+                });
+
+                await _dbManager.SaveChangesAsync();
+
+                return Ok(new { message = "Выход выполнен успешно" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

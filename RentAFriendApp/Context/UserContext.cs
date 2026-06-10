@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.UserDTO;
+using RentAFriendApp.Models.ClassesDTO.UserDTO.Response;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 
 namespace RentAFriendApp.Context
 {
@@ -72,6 +74,59 @@ namespace RentAFriendApp.Context
             var content = new StringContent(JsonConvert.SerializeObject(updateData),
                 System.Text.Encoding.UTF8, "application/json");
             var response = await client.PutAsync(_url + "/update", content);
+            return response.StatusCode == HttpStatusCode.OK;
+        }
+        // Получить всех пользователей
+        public static async Task<GetAllUsersResponse?> GetAllUsers(string token)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/getAll");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<GetAllUsersResponse>(result);
+            }
+            return null;
+        }
+
+        // Обновить статус пользователя (блокировка/разблокировка)
+        public static async Task<BoolResult?> UpdateUserStatus(string token, int userId, bool isActive)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var dataForm = new Dictionary<string, string> { ["isActive"] = isActive ? "true" : "false"};
+            var content = new FormUrlEncodedContent(dataForm);
+            var response = await client.PutAsync($"{_url}/updateStatus/{userId}", content);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<BoolResult>(result);
+            }
+            return null;
+        }
+
+        // Удалить пользователя
+        public static async Task<BoolResult?> DeleteUser(string token, int userId)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.DeleteAsync($"{_url}/delete/{userId}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<BoolResult>(result);
+            }
+            return null;
+        }
+        public static async Task<bool> Logout(string token)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.PostAsync($"{_url}/logout", null);
             return response.StatusCode == HttpStatusCode.OK;
         }
     }

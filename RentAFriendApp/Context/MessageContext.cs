@@ -117,5 +117,18 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        public static async Task<LastMessagesResponse?> GetRecentMessages(string token, int count = 50)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/recent?count={count}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<LastMessagesResponse>(result);
+            }
+            return null;
+        }
     }
 }

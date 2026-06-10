@@ -1,4 +1,5 @@
-﻿using RentAFriendApp.Models;
+﻿using RentAFriendApp.Context;
+using RentAFriendApp.Models;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -39,10 +40,10 @@ namespace RentAFriendApp
                     MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
                     Title = "RentAFriend - Друг";
                     break;
-                    //case "Admin":
-                    //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
-                    //    Title = "RentAFriend - Администратор";
-                    //    break;
+                case "Admin":
+                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    Title = "RentAFriend - Администратор";
+                    break;
             }
         }
 
@@ -71,9 +72,7 @@ namespace RentAFriendApp
 
             if (result == MessageBoxResult.Yes)
             {
-                // Очищаем данные пользователя
-
-                ShowLoginWindow();
+                Logout();
             }
         }
 
@@ -94,10 +93,15 @@ namespace RentAFriendApp
                 case "Friend":
                     MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
                     break;
-                    //case "Admin":
-                    //    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
-                    //    break;
+                case "Admin":
+                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    break;
             }
+        }
+        public void Logout()
+        {
+            _ = UserContext.Logout(_currentData.Token);
+            ShowLoginWindow();
         }
     }
 }

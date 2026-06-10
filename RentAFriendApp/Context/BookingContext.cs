@@ -215,5 +215,18 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        public static async Task<AllBookingsResponse?> GetAllBookings(string token, int page = 1, int pageSize = 50)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/getAll?page={page}&pageSize={pageSize}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<AllBookingsResponse>(result);
+            }
+            return null;
+        }
     }
 }

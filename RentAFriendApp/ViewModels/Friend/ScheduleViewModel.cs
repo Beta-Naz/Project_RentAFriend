@@ -406,7 +406,7 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 var schedule = await ScheduleContext.GetScheduleByDate(_profileId, SelectedDate, _token);
 
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ScheduleSlots?.Clear();
                     var now = DateTime.Now;
@@ -434,6 +434,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     OnPropertyChanged(nameof(TotalSlots));
                     OnPropertyChanged(nameof(AvailableSlots));
                     OnPropertyChanged(nameof(BookedSlots));
+                    return Task.CompletedTask;
                 });
             }
             catch (Exception ex)

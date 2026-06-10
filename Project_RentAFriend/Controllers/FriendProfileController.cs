@@ -491,5 +491,39 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        [Route("verify/{profileId}")]
+        [HttpPut]
+        public async Task<ActionResult> VerifyFriendProfile(
+    [FromHeader(Name = "TOKEN")] string token,
+    int profileId,
+    [FromBody] VerifyProfileDTO data)
+        {
+            try
+            {
+                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null)
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+
+                int? adminId = JwtToken.GetUserIdFromToken(token);
+                if (adminId == null)
+                    return Unauthorized(new { message = "Недействительный токен" });
+
+                var admin = await _dbManager.Users.FindAsync(adminId);
+                if (admin == null || admin.Role != "Admin")
+                    return Forbid("Доступ запрещен");
+
+                var profile = await _dbManager.FriendProfiles.FindAsync(profileId);
+                if (profile == null)
+                    return NotFound(new { message = "Профиль не найден" });
+
+                profile.IsVerified = data.IsVerified;
+                await _dbManager.SaveChangesAsync();
+
+                return Ok(new { result = true, message = data.IsVerified ? "Профиль верифицирован" : "Верификация отклонена" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

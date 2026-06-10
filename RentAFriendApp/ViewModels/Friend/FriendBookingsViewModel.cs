@@ -81,15 +81,18 @@ namespace RentAFriendApp.ViewModels.Friend
             MessageClientCommand = new RelayCommandAsync<BookingDetailsDTO>(MessageClient);
             RefreshCommand = new RelayCommandAsync(LoadItemsAsync);
 
-            _ = LoadProfileAsync();
-            _ = LoadItemsAsync();
+            _ = InitializeAsync();
         }
-
+        private async Task InitializeAsync()
+        {
+            await LoadProfileAsync();
+            await LoadItemsAsync();
+        }
         private async Task LoadProfileAsync()
         {
             try
             {
-                var user = UserContext.GetUser(_token).Result;
+                var user = await UserContext.GetUser(_token);
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
                 var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.UserID);
 
@@ -108,7 +111,7 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private async Task LoadItemsAsync()
+        public async Task LoadItemsAsync()
         {
             try
             {
@@ -117,11 +120,15 @@ namespace RentAFriendApp.ViewModels.Friend
 
                 if (_profileId <= 0)
                 {
+                    await LoadProfileAsync();
+                }
+
+                if (_profileId <= 0)
+                {
                     SetError("Профиль не загружен");
                     return;
                 }
 
-                // Получаем бронирования друга через контекст
                 string? statusFilter = SelectedStatus == "Все" ? null : SelectedStatus;
                 var bookings = await BookingContext.GetFriendBookings(_token, _profileId, statusFilter);
 
