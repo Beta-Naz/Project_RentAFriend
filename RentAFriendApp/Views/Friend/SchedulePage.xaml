@@ -14,7 +14,6 @@
 
     <Page.Resources>
         <!-- Конвертеры -->
-        <converters:StringToTimeSpanConverter x:Key="StringToTimeSpanConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibility"/>
         <!-- Стили -->
@@ -337,19 +336,17 @@
                                     ToolTip="Сгенерировать стандартное расписание на неделю"/>
                             </Border>
                             <Border Background="White" 
-                            BorderBrush="#E0E0E0" 
-                            BorderThickness="1"
-                            CornerRadius="6"
-                            Padding="15,10">
+                                BorderBrush="#E0E0E0" 
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="15,10">
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
                                         <TextBlock Text="Начало:" 
                                            Foreground="#666666"
                                            Margin="0,0,5,0"/>
                                         <TextBox x:Name="StartTimeBox"
-                                         Text="{Binding NewStartTime, 
-                                         Converter={StaticResource 
-                                         StringToTimeSpanConverter}, Mode=TwoWay}"
+                                         Text="{Binding NewStartTimeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Width="70"
                                          BorderThickness="0"
                                          Background="Transparent"
@@ -361,9 +358,7 @@
                                            Foreground="#666666"
                                            Margin="0,0,5,0"/>
                                         <TextBox x:Name="EndTimeBox"
-                                         Text="{Binding NewEndTime,
-                                         Converter={StaticResource StringToTimeSpanConverter},
-                                         Mode=TwoWay}"
+                                         Text="{Binding NewEndTimeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Width="70"
                                          BorderThickness="0"
                                          Background="Transparent"
@@ -698,7 +693,7 @@
                                   Width="16" 
                                   Height="16"
                                   Margin="0,0,10,0"/>
-                                <TextBlock Text="Перетащите временные слоты для изменения порядка" 
+                                <TextBlock Text="Длительность встречи не должно превышать восьми часов" 
                                        FontSize="12" 
                                        Foreground="#666666"/>
                             </StackPanel>

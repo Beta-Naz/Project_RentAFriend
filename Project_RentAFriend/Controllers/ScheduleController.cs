@@ -31,8 +31,7 @@ namespace Project_RentAFriend.Controllers
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
-
-                var schedule = await _dbManager.Schedules
+                var schedules = await _dbManager.Schedules
                     .Where(s => s.ProfileID == profileId && s.Date.Date == date.Date)
                     .OrderBy(s => s.StartTime)
                     .Select(s => new ScheduleDTO
@@ -50,7 +49,7 @@ namespace Project_RentAFriend.Controllers
                 {
                     message = "Расписание получено",
                     date = date.Date,
-                    slots = schedule
+                    slots = schedules
                 });
             }
             catch (Exception ex)
@@ -422,8 +421,7 @@ namespace Project_RentAFriend.Controllers
                 {
                     var currentDate = startDate.AddDays(i);
 
-                    // Утренний слот: 9:00-13:00
-                    slotsCreated.Add(new Schedule
+                    var morningSlot = new Schedule
                     {
                         ProfileID = friendProfile.ProfileID,
                         Date = currentDate,
@@ -431,10 +429,9 @@ namespace Project_RentAFriend.Controllers
                         EndTime = new TimeSpan(13, 0, 0),
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
-                    });
+                    };
 
-                    // Дневной слот: 14:00-18:00
-                    slotsCreated.Add(new Schedule
+                    var afternoonSlot = new Schedule
                     {
                         ProfileID = friendProfile.ProfileID,
                         Date = currentDate,
@@ -442,11 +439,31 @@ namespace Project_RentAFriend.Controllers
                         EndTime = new TimeSpan(18, 0, 0),
                         IsAvailable = true,
                         CreatedAt = DateTime.UtcNow
-                    });
-                }
+                    };
 
-                _dbManager.Schedules.AddRange(slotsCreated);
-                await _dbManager.SaveChangesAsync();
+                    bool morningOverlap = await _dbManager.Schedules
+                        .AnyAsync(s => s.ProfileID == friendProfile.ProfileID
+                                       && s.Date.Date == currentDate
+                                       && s.StartTime < morningSlot.EndTime
+                                       && s.EndTime > morningSlot.StartTime);
+
+                    bool afternoonOverlap = await _dbManager.Schedules
+                        .AnyAsync(s => s.ProfileID == friendProfile.ProfileID
+                                       && s.Date.Date == currentDate
+                                       && s.StartTime < afternoonSlot.EndTime
+                                       && s.EndTime > afternoonSlot.StartTime);
+
+                    if (!morningOverlap)
+                        slotsCreated.Add(morningSlot);
+
+                    if (!afternoonOverlap)
+                        slotsCreated.Add(afternoonSlot);
+                }
+                if (slotsCreated.Count > 0)
+                {
+                    _dbManager.Schedules.AddRange(slotsCreated);
+                    await _dbManager.SaveChangesAsync();
+                }
 
                 return Ok(new
                 {

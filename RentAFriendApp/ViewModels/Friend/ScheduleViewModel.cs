@@ -1,9 +1,7 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.ScheduleDTO;
 using RentAFriendApp.ViewModels.Base;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -32,7 +30,45 @@ namespace RentAFriendApp.ViewModels.Friend
                 }
             }
         }
+        private string _newStartTimeText = "09:00";
+        public string NewStartTimeText
+        {
+            get => _newStartTimeText;
+            set
+            {
+                if (SetProperty(ref _newStartTimeText, value))
+                {
+                    if (TimeSpan.TryParse(value, out TimeSpan result))
+                    {
+                        NewStartTime = result;
+                    }
+                    else
+                    {
+                        _newStartTimeText = NewStartTime.ToString(@"hh\:mm");
+                    }
+                }
+            }
+        }
 
+        private string _newEndTimeText = "17:00";
+        public string NewEndTimeText
+        {
+            get => _newEndTimeText;
+            set
+            {
+                if (SetProperty(ref _newEndTimeText, value))
+                {
+                    if (TimeSpan.TryParse(value, out TimeSpan result))
+                    {
+                        NewEndTime = result;
+                    }
+                    else
+                    {
+                        _newEndTimeText = NewEndTime.ToString(@"hh\:mm");
+                    }
+                }
+            }
+        }
         private TimeSpan _newStartTime = new(9, 0, 0);
         public TimeSpan NewStartTime
         {
@@ -41,6 +77,7 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 if (SetProperty(ref _newStartTime, value))
                 {
+                    NewStartTimeText = value.ToString(@"hh\:mm");
                     OnPropertyChanged(nameof(DurationDisplay));
                     OnPropertyChanged(nameof(CanAddTimeSlot));
                 }
@@ -55,6 +92,7 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 if (SetProperty(ref _newEndTime, value))
                 {
+                    NewEndTimeText = value.ToString(@"hh\:mm");
                     OnPropertyChanged(nameof(DurationDisplay));
                     OnPropertyChanged(nameof(CanAddTimeSlot));
                 }
@@ -84,7 +122,7 @@ namespace RentAFriendApp.ViewModels.Friend
         public ICommand GenerateWeekScheduleCommand { get; }
         public ICommand SelectDateCommand { get; }
         public ICommand RefreshCommand { get; }
-
+        
         public ScheduleViewModel(string token)
         {
             _token = token;
@@ -164,12 +202,12 @@ namespace RentAFriendApp.ViewModels.Friend
                 return !IsBusy &&
                        NewEndTime > NewStartTime &&
                        (NewEndTime - NewStartTime).TotalHours <= 8 &&
-                       (NewEndTime - NewStartTime).TotalHours >= 0.5;
+                       (NewEndTime - NewStartTime).TotalHours >= 0.5 && SelectedDate >= DateTime.Today;
             }
         }
 
         public bool HasSlots => ScheduleSlots != null && ScheduleSlots.Any();
-
+        
         public async Task AddTimeSlotAsync()
         {
             try
@@ -285,9 +323,7 @@ namespace RentAFriendApp.ViewModels.Friend
                 if (result != null)
                 {
                     slot.IsAvailable = newAvailability;
-                    slot.IconsToggle = slot.IsAvailable ?
-                        new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/open_ico.png", UriKind.Relative)) :
-                        new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/close_ico.png", UriKind.Relative));
+                    slot.UpdateToggleIcon();
 
                     await LoadScheduleForDateAsync();
 
@@ -351,7 +387,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     await LoadScheduleForDateAsync();
                     await LoadCalendarDataAsync();
 
-                    Messenger.Default.SendNotification($"Расписание на неделю создано ({result.SlotsCount} слотов)");
+                    Messenger.Default.SendNotification($"Расписание на неделю: создано {result.SlotsCount} слотов");
                 }
             }
             catch (Exception ex)
@@ -370,14 +406,17 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 var schedule = await ScheduleContext.GetScheduleByDate(_profileId, SelectedDate, _token);
 
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     ScheduleSlots?.Clear();
-
+                    var now = DateTime.Now;
                     if (schedule?.Slots != null)
                     {
                         foreach (var slot in schedule.Slots)
                         {
+                            var slotEnd = SelectedDate.Date + slot.EndTime;
+                            if (slotEnd < now && !slot.IsBooked)
+                                continue;
                             ScheduleSlots?.Add(new ScheduleSlot(this)
                             {
                                 ScheduleID = slot.ScheduleID,
@@ -557,10 +596,17 @@ namespace RentAFriendApp.ViewModels.Friend
             public ScheduleViewModel? _scheduleViewModel;
             public ScheduleSlot(ScheduleViewModel scheduleViewModel)
             {
-                IconsToggle = new BitmapImage(new Uri("/Resources/Icons/open_ico.png", UriKind.Relative));
                 _scheduleViewModel = scheduleViewModel;
                 RemoveTimeSlotCommand = new RelayCommandAsync(async () => await _scheduleViewModel.RemoveTimeSlotAsync(this), () => true);
                 ToggleAvailabilityCommand = new RelayCommandAsync(async () => await _scheduleViewModel.ToggleAvailabilityAsync(this), () => !IsBooked);
+                UpdateToggleIcon();
+            }
+            public void UpdateToggleIcon()
+            {
+                IconsToggle = IsAvailable
+                    ? new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/open_ico.png", UriKind.Relative))
+                    : new BitmapImage(new Uri("/RentAFriendApp;component/Resources/Icons/close_ico.png", UriKind.Relative));
+                OnPropertyChanged(nameof(IconsToggle));
             }
             public int ScheduleID { get; set; }
             public TimeSpan StartTime { get; set; }
@@ -576,7 +622,8 @@ namespace RentAFriendApp.ViewModels.Friend
                         OnPropertyChanged(nameof(Status));
                         OnPropertyChanged(nameof(StatusColor));
                         OnPropertyChanged(nameof(StatusIcon));
-                        OnPropertyChanged(nameof(IconsToggle));
+                        OnPropertyChanged(nameof(ToggleTooltip));
+                        UpdateToggleIcon();
                     }
                 }
             }
@@ -602,6 +649,7 @@ namespace RentAFriendApp.ViewModels.Friend
                     }
                 }
             }
+            
             public DateTime Date { get; set; }
             public string? BookingStatus { get; set; }
             public string? BookingPurpose { get; set; }

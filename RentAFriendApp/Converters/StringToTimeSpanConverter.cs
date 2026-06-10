@@ -9,23 +9,20 @@ namespace RentAFriendApp.Converters
         {
             if (value is TimeSpan timeSpan)
                 return timeSpan.ToString(@"hh\:mm");
-            return "00:00";
+            return "09:00";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string str)
+            if (value is string str && !string.IsNullOrWhiteSpace(str))
             {
-                try
+                if (TimeSpan.TryParseExact(str, new[] { @"hh\:mm", @"h\:mm", @"hh\:m", @"h\:m" },
+                    CultureInfo.InvariantCulture, out TimeSpan result))
                 {
-                    return TimeSpan.Parse(str);
-                }
-                catch
-                {
-                    return TimeSpan.Zero;
+                    return result;
                 }
             }
-            return TimeSpan.Zero;
+            return Binding.DoNothing;
         }
     }
 }
