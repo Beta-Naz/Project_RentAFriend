@@ -1,4 +1,6 @@
-﻿namespace RentAFriendApp.Models.ClassesDTO.BookingDTO
+﻿using System.Windows.Media;
+
+namespace RentAFriendApp.Models.ClassesDTO.BookingDTO
 {
     public class BookingDetailsDTO
     {
@@ -31,5 +33,41 @@
         public bool HasReview { get; set; }
         public int? ReviewRating { get; set; }
         public string? ReviewComment { get; set; }
+        
+        /// <summary>
+        /// Для работы.
+        /// </summary>
+        
+        public string ClientInitials => string.IsNullOrWhiteSpace(ClientName)
+        ? "??"
+        : string.Concat(ClientName.Split(' ').Take(2).Select(s => s[0])).ToUpper();
+
+        public DateTime Date => ScheduleDate;
+        public string TimeRange => $"{StartTime:hh\\:mm} - {EndTime:hh\\:mm}";
+
+        public string StatusDisplay => Status switch
+        {
+            "Pending" => "Ожидает",
+            "Confirmed" => "Подтверждено",
+            "Completed" => "Завершено",
+            "Cancelled" => "Отменено",
+            "Rejected" => "Отклонено",
+            _ => Status
+        };
+
+        public string PaymentStatusDisplay => PaymentStatus switch
+        {
+            "Paid" => "Оплачено",
+            "Unpaid" => "Не оплачено",
+            "Refunded" => "Возвращено",
+            _ => PaymentStatus
+        };
+
+        public Brush PaymentStatusBrush => PaymentStatus switch
+        {
+            "Paid" => new SolidColorBrush(Color.FromRgb(76, 175, 80)),
+            "Unpaid" => new SolidColorBrush(Color.FromRgb(255, 152, 0)),
+            _ => new SolidColorBrush(Color.FromRgb(158, 158, 158))
+        };
     }
 }

@@ -50,7 +50,7 @@ namespace Project_RentAFriend.Classes
                 
                 //Один пользователь = один профиль
                 entity.HasIndex(e => e.UserID)
-                    .IsUnique(); // Уникальный ключ!
+                    .IsUnique();
                 
                 entity.HasOne(e => e.User)
                     .WithOne()  // Один-к-одному
@@ -69,7 +69,6 @@ namespace Project_RentAFriend.Classes
             {
                 entity.HasKey(e => e.ScheduleID);
 
-                // ✅ ДОБАВИТЬ ЭТУ СВЯЗЬ
                 entity.HasOne(e => e.FriendProfile)
                     .WithMany(fp => fp.Schedules)
                     .HasForeignKey(e => e.ProfileID)
@@ -145,8 +144,6 @@ namespace Project_RentAFriend.Classes
                     .WithMany()
                     .HasForeignKey(e => e.FriendID)
                     .OnDelete(DeleteBehavior.Restrict);
-                
-                // 🔧 Автообновление LastMessageAt (через триггер или в коде)
             });
             
             // ========== 6. Message ==========
@@ -157,7 +154,7 @@ namespace Project_RentAFriend.Classes
                 entity.HasOne(e => e.Chat)
                     .WithMany(c => c.Messages)
                     .HasForeignKey(e => e.ChatID)
-                    .OnDelete(DeleteBehavior.Cascade); // Удалили чат -> удалили сообщения
+                    .OnDelete(DeleteBehavior.Cascade);
                 
                 entity.HasOne(e => e.Sender)
                     .WithMany()
@@ -184,7 +181,6 @@ namespace Project_RentAFriend.Classes
             {
                 entity.HasKey(e => e.ReviewID);
                 
-                // Один отзыв на одно бронирование
                 entity.HasIndex(e => e.BookingID)
                     .IsUnique();
                 

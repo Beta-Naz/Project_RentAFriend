@@ -64,11 +64,15 @@ namespace Project_RentAFriend.Controllers
                 {
                     return Unauthorized(new { message = "Недействительный токен" });
                 }
-                User? user = await _dbManager.Users
+                User? user = await _dbManager.Users.IgnoreQueryFilters()
                     .FirstOrDefaultAsync(x => x.UserID == userId);
                 if (user == null)
                 {
                     return Unauthorized(new { message = "Пользователь не найден" });
+                }
+                if (user.IsActive == false)
+                {
+                    return Unauthorized(new { message = "Пользователь заблокирован, обратитесь к администратору" });
                 }
                 return Ok(UserLoginDTO.Convert(user));
             }
@@ -196,6 +200,7 @@ namespace Project_RentAFriend.Controllers
                 if (user == null || user.Role != "Admin")
                     return Forbid("Доступ запрещен");
                 var users = await _dbManager.Users
+                    .IgnoreQueryFilters()
                     .Select(u => new 
                     {
                         u.UserID,

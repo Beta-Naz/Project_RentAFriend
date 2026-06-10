@@ -1,8 +1,10 @@
 ﻿// AdminDashboardPage.xaml.cs
 using RentAFriendApp.ViewModels.Admin;
 using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace RentAFriendApp.Views.Admin

@@ -207,14 +207,14 @@ namespace RentAFriendApp.ViewModels.Admin
             AuditLogs = new ObservableCollection<AuditLogDTO>();
 
             LoadDataCommand = new RelayCommandAsync(LoadAllDataAsync);
-            BlockUserCommand = new RelayCommandAsync<UserLoginDTO>(BlockUserAsync, CanModifyUser);
-            UnblockUserCommand = new RelayCommandAsync<UserLoginDTO>(UnblockUserAsync, CanModifyUser);
-            DeleteUserCommand = new RelayCommandAsync<UserLoginDTO>(DeleteUserAsync, CanModifyUser);
+            BlockUserCommand = new RelayCommandAsync<UserInfoItem>(BlockUserAsync, CanModifyUser);
+            UnblockUserCommand = new RelayCommandAsync<UserInfoItem>(UnblockUserAsync, CanModifyUser);
+            DeleteUserCommand = new RelayCommandAsync<UserInfoItem>(DeleteUserAsync, CanModifyUser);
             VerifyFriendCommand = new RelayCommandAsync<FPInfoDTO>(VerifyFriendAsync);
             RejectFriendCommand = new RelayCommandAsync<FPInfoDTO>(RejectFriendAsync);
             ExportDataCommand = new RelayCommandAsync(ExportDataAsync);
             SendNotificationCommand = new RelayCommandAsync<AdminNotificationDTO>(SendNotificationAsync);
-            ForceLogoutCommand = new RelayCommandAsync<UserLoginDTO>(ForceLogoutAsync);
+            ForceLogoutCommand = new RelayCommandAsync<UserInfoItem>(ForceLogoutAsync);
             ClearSearchCommand = new RelayCommandAsync(ClearSearchAsync);
             ApplyDateFilterCommand = new RelayCommandAsync(ApplyDateFilterAsync);
             DeleteAllLogCommand = new RelayCommandAsync(DeleteAllLogAsync);
@@ -391,12 +391,12 @@ namespace RentAFriendApp.ViewModels.Admin
             PendingVerifications = FriendProfiles?.Count(fp => !fp.IsVerified) ?? 0;
         }
 
-        private bool CanModifyUser(UserLoginDTO? user)
+        private bool CanModifyUser(UserInfoItem? user)
         {
             return user != null && user.UserID != _adminUserId;
         }
 
-        private async Task BlockUserAsync(UserLoginDTO? user)
+        private async Task BlockUserAsync(UserInfoItem? user)
         {
             if (user == null) return;
 
@@ -404,9 +404,10 @@ namespace RentAFriendApp.ViewModels.Admin
                 "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 var result = await UserContext.UpdateUserStatus(_token, user.UserID, false);
-                if (result != null)
+                if (result?.Result == true)
                 {
-                    await LoadAllDataAsync();
+                    user.IsActive = false;
+                    CalculateStatistics();
                     Messenger.Default.SendNotification($"Пользователь {user.FullName} заблокирован");
                 }
                 else
@@ -416,14 +417,15 @@ namespace RentAFriendApp.ViewModels.Admin
             }
         }
 
-        private async Task UnblockUserAsync(UserLoginDTO? user)
+        private async Task UnblockUserAsync(UserInfoItem? user)
         {
             if (user == null) return;
 
             var result = await UserContext.UpdateUserStatus(_token, user.UserID, true);
-            if (result != null)
+            if (result?.Result == true)
             {
-                await LoadAllDataAsync();
+                user.IsActive = true;
+                CalculateStatistics();
                 Messenger.Default.SendNotification($"Пользователь {user.FullName} разблокирован");
             }
             else
@@ -432,7 +434,7 @@ namespace RentAFriendApp.ViewModels.Admin
             }
         }
 
-        private async Task DeleteUserAsync(UserLoginDTO? user)
+        private async Task DeleteUserAsync(UserInfoItem? user)
         {
             if (user == null) return;
 
@@ -549,7 +551,7 @@ namespace RentAFriendApp.ViewModels.Admin
             }
         }
 
-        private async Task ForceLogoutAsync(UserLoginDTO? user)
+        private async Task ForceLogoutAsync(UserInfoItem? user)
         {
             if (user == null) return;
 
