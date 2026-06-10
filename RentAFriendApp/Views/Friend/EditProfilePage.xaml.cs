@@ -55,14 +55,6 @@ namespace RentAFriendApp.Views.Friend
         {
             // Анимация успешного сохранения
             ShowSuccessAnimation();
-
-            // Можно добавить навигацию назад или другие действия
-            Dispatcher.Invoke(() =>
-            {
-                // Показываем сообщение
-                MessageBox.Show("Профиль успешно сохранен!", "Успех",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            });
         }
 
         private void OnProfileCanceled(object sender, EventArgs e)

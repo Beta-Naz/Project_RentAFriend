@@ -242,7 +242,9 @@ namespace Project_RentAFriend.Controllers
                 if (admin == null || admin.Role != "Admin")
                     return Forbid("Доступ запрещен");
 
-                var targetUser = await _dbManager.Users.FindAsync(userId);
+                var targetUser = await _dbManager.Users
+                            .IgnoreQueryFilters()
+                            .FirstOrDefaultAsync(u => u.UserID == userId);
                 if (targetUser == null)
                     return NotFound(new { message = "Пользователь не найден" });
                 if (string.IsNullOrEmpty(isActive))
@@ -294,7 +296,9 @@ namespace Project_RentAFriend.Controllers
                 if (adminId == userId)
                     return BadRequest(new { message = "Нельзя удалить самого себя" });
 
-                var targetUser = await _dbManager.Users.FindAsync(userId);
+                var targetUser = await _dbManager.Users
+                             .IgnoreQueryFilters()
+                             .FirstOrDefaultAsync(u => u.UserID == userId);
                 if (targetUser == null)
                     return NotFound(new { message = "Пользователь не найден" });
 

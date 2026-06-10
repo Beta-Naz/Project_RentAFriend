@@ -15,34 +15,34 @@ namespace Project_RentAFriend.Controllers
         {
             _dbManager = new DBManager();
         }
+
         [Route("create")]
         [HttpPost]
         public async Task<ActionResult> Create([FromHeader(Name = "TOKEN")] string token, [FromBody] FPMainInfoDTO infoDTO)
         {
             try
             {
-                if (_dbManager == null || _dbManager.Users == null || _dbManager.FriendProfiles == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
+
                 int? userId = JwtToken.GetUserIdFromToken(token);
-                if(userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                if (userId == null)
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
+
                 var user = await _dbManager.Users.FirstOrDefaultAsync(u => u.UserID == userId);
                 if (user == null)
-                {
-                    return NotFound(new { message = "Пользователь не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Пользователь не найден" });
+
                 if (user.Role != "Friend")
-                {
-                    return Conflict(new { message = "только друг может создать профиль" });
-                }
+                    return BadRequest(new { ok = false, message = "Только друг может создать профиль" });
+
                 if (infoDTO == null)
-                {
-                    return Conflict(new { message = "Нету данных для профиля" });
-                }
+                    return BadRequest(new { ok = false, message = "Нет данных для профиля" });
+
+                bool profileExists = await _dbManager.FriendProfiles.AnyAsync(fp => fp.UserID == user.UserID);
+                if (profileExists)
+                    return Conflict(new { ok = false, message = "У вас уже есть профиль друга" });
+
                 FriendProfile newFriendProfile = new()
                 {
                     Bio = infoDTO.Bio,
@@ -55,60 +55,52 @@ namespace Project_RentAFriend.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UserID = user.UserID
                 };
+
                 _dbManager.FriendProfiles.Add(newFriendProfile);
                 await _dbManager.SaveChangesAsync();
-                FPInfoDTO dataInfo = FPInfoDTO.Convert(newFriendProfile);
-                return Ok(new 
-                { 
-                    message = "Профиль успешно создан",
-                    dataInfo
-                });
+
+                var createdProfile = await _dbManager.FriendProfiles
+                    .Include(fp => fp.User)
+                    .FirstAsync(fp => fp.ProfileID == newFriendProfile.ProfileID);
+
+                var dataInfo = FPInfoDTO.Convert(createdProfile);
+
+                return Ok(new { ok = true, message = "Профиль успешно создан", profile = dataInfo });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
+
         [Route("update")]
         [HttpPut]
         public async Task<ActionResult> Update([FromHeader(Name = "TOKEN")] string token, [FromBody] FPMainInfoDTO infoDTO)
         {
             try
             {
-                if (_dbManager == null || _dbManager.Users == null || _dbManager.FriendProfiles == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
                 var user = await _dbManager.Users.FirstOrDefaultAsync(u => u.UserID == userId);
                 if (user == null)
-                {
-                    return NotFound(new { message = "Пользователь не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Пользователь не найден" });
 
                 if (user.Role != "Friend")
-                {
-                    return BadRequest(new { message = "Только друзья могут обновлять профиль" });
-                }
+                    return BadRequest(new { ok = false, message = "Только друзья могут обновлять профиль" });
 
                 var friendProfile = await _dbManager.FriendProfiles
                     .FirstOrDefaultAsync(fp => fp.UserID == userId);
 
                 if (friendProfile == null)
-                {
-                    return NotFound(new { message = "Профиль друга не найден. Сначала создайте профиль." });
-                }
+                    return NotFound(new { ok = false, message = "Профиль друга не найден. Сначала создайте профиль." });
 
                 if (infoDTO == null)
-                {
-                    return BadRequest(new { message = "Нет данных для обновления профиля" });
-                }
+                    return BadRequest(new { ok = false, message = "Нет данных для обновления профиля" });
 
                 if (infoDTO.Bio != null)
                     friendProfile.Bio = infoDTO.Bio;
@@ -119,9 +111,8 @@ namespace Project_RentAFriend.Controllers
                 if (infoDTO.HourlyRate.HasValue)
                 {
                     if (infoDTO.HourlyRate <= 0)
-                    {
-                        return BadRequest(new { message = "Почасовая ставка должна быть больше 0" });
-                    }
+                        return BadRequest(new { ok = false, message = "Почасовая ставка должна быть больше 0" });
+
                     friendProfile.HourlyRate = infoDTO.HourlyRate;
                 }
 
@@ -131,47 +122,44 @@ namespace Project_RentAFriend.Controllers
                 if (infoDTO.Age.HasValue)
                 {
                     if (infoDTO.Age < 18 || infoDTO.Age > 99)
-                    {
-                        return BadRequest(new { message = "Возраст должен быть от 18 до 99 лет" });
-                    }
+                        return BadRequest(new { ok = false, message = "Возраст должен быть от 18 до 99 лет" });
+
                     friendProfile.Age = infoDTO.Age;
                 }
 
                 friendProfile.UpdatedAt = DateTime.UtcNow;
                 await _dbManager.SaveChangesAsync();
 
-                return Ok(new
-                {
-                    message = "Профиль успешно обновлен"
-                });
+                var updatedProfile = await _dbManager.FriendProfiles
+                    .Include(fp => fp.User)
+                    .FirstAsync(fp => fp.ProfileID == friendProfile.ProfileID);
+
+                var profileDTO = FPInfoDTO.Convert(updatedProfile);
+
+                return Ok(new { ok = true, message = "Профиль успешно обновлен", profile = profileDTO });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
+
         [Route("getAll")]
         [HttpGet]
         public async Task<ActionResult> GetAll([FromHeader(Name = "TOKEN")] string token)
         {
             try
             {
-                if (_dbManager == null || _dbManager.Users == null || _dbManager.FriendProfiles == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
                 var user = await _dbManager.Users.FirstOrDefaultAsync(u => u.UserID == userId);
                 if (user == null)
-                {
-                    return NotFound(new { message = "Пользователь не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Пользователь не найден" });
 
                 var profiles = await _dbManager.FriendProfiles
                     .Include(fp => fp.User)
@@ -180,78 +168,59 @@ namespace Project_RentAFriend.Controllers
                     .ThenByDescending(fp => fp.CreatedAt)
                     .ToListAsync();
 
-                if (profiles == null || profiles.Count == 0)
-                {
-                    return Ok(new { message = "Профили не найдены", profiles = new List<FPInfoDTO>() });
-                }
-
                 var profilesDTO = profiles.Select(p => FPInfoDTO.Convert(p)).ToList();
 
                 return Ok(new
                 {
-                    message = "Профили успешно получены",
+                    ok = true,
+                    message = profilesDTO.Any() ? "Профили успешно получены" : "Профили не найдены",
                     count = profilesDTO.Count,
-                    profiles
+                    profiles = profilesDTO
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
+
         [Route("myProfile")]
         [HttpGet]
         public async Task<ActionResult> GetMyProfile([FromHeader(Name = "TOKEN")] string token)
         {
             try
             {
-                if (_dbManager == null || _dbManager.Users == null || _dbManager.FriendProfiles == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
                 var user = await _dbManager.Users.FirstOrDefaultAsync(u => u.UserID == userId);
                 if (user == null)
-                {
-                    return NotFound(new { message = "Пользователь не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Пользователь не найден" });
 
                 if (user.Role != "Friend")
-                {
-                    return BadRequest(new { message = "Только друзья имеют профиль" });
-                }
+                    return BadRequest(new { ok = false, message = "Только друзья имеют профиль" });
 
                 var friendProfile = await _dbManager.FriendProfiles
                     .Include(fp => fp.User)
                     .FirstOrDefaultAsync(fp => fp.UserID == userId);
 
                 if (friendProfile == null)
-                {
-                    return NotFound(new { message = "Профиль не найден. Создайте профиль сначала." });
-                }
+                    return NotFound(new { ok = false, message = "Профиль не найден. Создайте профиль сначала." });
 
                 var profileDTO = FPInfoDTO.Convert(friendProfile);
 
-                return Ok(new
-                {
-                    message = "Профиль успешно получен",
-                    profile = profileDTO
-                });
+                return Ok(new { ok = true, message = "Профиль успешно получен", profile = profileDTO });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
-        /// <summary>
-        /// Получить профиль друга по ID
-        /// </summary>
+
         [Route("profile/{profileId}")]
         [HttpGet]
         public async Task<ActionResult> GetFriendProfileById(
@@ -260,50 +229,33 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.FriendProfiles == null || _dbManager.Users == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
-                // Проверяем токен
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
-                // Получаем профиль
                 var friendProfile = await _dbManager.FriendProfiles
                     .Include(fp => fp.User)
                     .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
 
                 if (friendProfile == null)
-                {
-                    return NotFound(new { message = "Профиль не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Профиль не найден" });
 
-                // Проверяем, что пользователь активен
                 if (friendProfile.User == null || !friendProfile.User.IsActive)
-                {
-                    return NotFound(new { message = "Профиль недоступен" });
-                }
+                    return NotFound(new { ok = false, message = "Профиль недоступен" });
 
                 var profileDTO = FPInfoDTO.Convert(friendProfile);
 
-                return Ok(new
-                {
-                    message = "Профиль успешно получен",
-                    profile = profileDTO
-                });
+                return Ok(new { ok = true, message = "Профиль успешно получен", profile = profileDTO });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
-        /// <summary>
-        /// Получить статистику профиля друга
-        /// </summary>
+
         [Route("stats/{profileId}")]
         [HttpGet]
         public async Task<ActionResult> GetFriendProfileStats(
@@ -312,28 +264,19 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.FriendProfiles == null || _dbManager.Bookings == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.FriendProfiles == null || _dbManager.Bookings == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
-                // Проверяем токен
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
-                // Проверяем существование профиля
                 var profile = await _dbManager.FriendProfiles
                     .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
 
                 if (profile == null)
-                {
-                    return NotFound(new { message = "Профиль не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Профиль не найден" });
 
-                // Статистика бронирований
                 var totalBookings = await _dbManager.Bookings
                     .CountAsync(b => b.FriendProfileID == profileId);
 
@@ -360,21 +303,14 @@ namespace Project_RentAFriend.Controllers
                     ReviewCount = reviewCount
                 };
 
-                return Ok(new
-                {
-                    message = "Статистика получена",
-                    statistics = stats
-                });
+                return Ok(new { ok = true, message = "Статистика получена", statistics = stats });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Получить ближайшие встречи друга
-        /// </summary>
         [Route("upcomingMeetings/{profileId}")]
         [HttpGet]
         public async Task<ActionResult> GetUpcomingMeetings(
@@ -384,28 +320,19 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.Bookings == null || _dbManager.Schedules == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
-                // Проверяем токен
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
-                // Проверяем существование профиля
                 var profile = await _dbManager.FriendProfiles
                     .FirstOrDefaultAsync(fp => fp.ProfileID == profileId);
 
                 if (profile == null)
-                {
-                    return NotFound(new { message = "Профиль не найден" });
-                }
+                    return NotFound(new { ok = false, message = "Профиль не найден" });
 
-                // Получаем ближайшие встречи
                 var meetings = await _dbManager.Bookings
                     .Include(b => b.Client)
                     .Include(b => b.Schedule)
@@ -447,35 +374,30 @@ namespace Project_RentAFriend.Controllers
 
                 return Ok(new
                 {
-                    message = "Ближайшие встречи получены",
+                    ok = true,
+                    message = meetingsList.Any() ? "Ближайшие встречи получены" : "Нет ближайших встреч",
                     count = meetingsList.Count,
                     meetings = meetingsList
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
-        /// <summary>
-        /// Получить доступные города для фильтрации
-        /// </summary>
+
         [Route("cities")]
         [HttpGet]
         public async Task<ActionResult> GetAvailableCities([FromHeader(Name = "TOKEN")] string token)
         {
             try
             {
-                if (_dbManager == null || _dbManager.FriendProfiles == null)
-                {
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
-                }
+                if (_dbManager?.FriendProfiles == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
-                    return Unauthorized(new { message = "Недействительный токен" });
-                }
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
                 var cities = await _dbManager.FriendProfiles
                     .Where(fp => fp.City != null && fp.City != "" && fp.IsVerified)
@@ -484,45 +406,46 @@ namespace Project_RentAFriend.Controllers
                     .OrderBy(c => c)
                     .ToListAsync();
 
-                return Ok(cities);
+                return Ok(new { ok = true, message = "Города получены", count = cities.Count, cities = cities });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
+
         [Route("verify/{profileId}")]
         [HttpPut]
         public async Task<ActionResult> VerifyFriendProfile(
-    [FromHeader(Name = "TOKEN")] string token,
-    int profileId,
-    [FromBody] VerifyProfileDTO data)
+            [FromHeader(Name = "TOKEN")] string token,
+            int profileId,
+            [FromBody] VerifyProfileDTO data)
         {
             try
             {
                 if (_dbManager?.FriendProfiles == null || _dbManager.Users == null)
-                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                    return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? adminId = JwtToken.GetUserIdFromToken(token);
                 if (adminId == null)
-                    return Unauthorized(new { message = "Недействительный токен" });
+                    return Unauthorized(new { ok = false, message = "Недействительный токен" });
 
                 var admin = await _dbManager.Users.FindAsync(adminId);
                 if (admin == null || admin.Role != "Admin")
-                    return Forbid("Доступ запрещен");
+                    return Unauthorized(new { ok = false, message = "Доступ запрещен. Требуются права администратора." });
 
                 var profile = await _dbManager.FriendProfiles.FindAsync(profileId);
                 if (profile == null)
-                    return NotFound(new { message = "Профиль не найден" });
+                    return NotFound(new { ok = false, message = "Профиль не найден" });
 
                 profile.IsVerified = data.IsVerified;
                 await _dbManager.SaveChangesAsync();
 
-                return Ok(new { result = true, message = data.IsVerified ? "Профиль верифицирован" : "Верификация отклонена" });
+                return Ok(new { ok = true, message = data.IsVerified ? "Профиль верифицирован" : "Верификация отклонена" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+                return StatusCode(500, new { ok = false, message = "Ошибка сервера", error = ex.Message });
             }
         }
     }

@@ -18,6 +18,7 @@ namespace RentAFriendApp.ViewModels.Admin
         private readonly string _token;
         private int _adminUserId;
 
+        private ObservableCollection<UserInfoItem> _allUsersFull;
         private ObservableCollection<UserInfoItem> _allUsers;
         public ObservableCollection<UserInfoItem> AllUsers
         {
@@ -200,6 +201,7 @@ namespace RentAFriendApp.ViewModels.Admin
             _token = token;
             Title = "Административная панель";
 
+            _allUsersFull = new ObservableCollection<UserInfoItem>();
             AllUsers = new ObservableCollection<UserInfoItem>();
             FriendProfiles = new ObservableCollection<FPInfoDTO>();
             AllBookings = new ObservableCollection<BookingDetailsDTO>();
@@ -269,15 +271,16 @@ namespace RentAFriendApp.ViewModels.Admin
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    AllUsers.Clear();
+                    _allUsersFull.Clear();
                     if (usersResponse?.Users != null)
                     {
                         foreach (var user in usersResponse.Users)
                         {
-                            AllUsers.Add(user);
+                            _allUsersFull.Add(user);
                         }
                     }
                 });
+                FilterUsers();
             }
             catch (Exception ex)
             {
@@ -496,7 +499,17 @@ namespace RentAFriendApp.ViewModels.Admin
 
         private void FilterUsers()
         {
-            OnPropertyChanged(nameof(AllUsers));
+            var filtered = _allUsersFull.Where(u =>
+                (SelectedRoleFilter == "Все" || u.Role == SelectedRoleFilter) &&
+                (SelectedStatusFilter == "Все" ||
+                 (SelectedStatusFilter == "Активен" && u.IsActive) ||
+                 (SelectedStatusFilter == "Заблокирован" && !u.IsActive)) &&
+                (string.IsNullOrEmpty(UserSearchText) ||
+                 u.FullName.Contains(UserSearchText) ||
+                 u.Email.Contains(UserSearchText))
+            ).ToList();
+
+            AllUsers = new ObservableCollection<UserInfoItem>(filtered);
         }
 
         private async Task ClearSearchAsync()

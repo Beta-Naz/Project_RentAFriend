@@ -495,7 +495,7 @@ namespace RentAFriendApp.ViewModels.Friend
                 var getProfile = await FriendProfileContext.GetMyProfile(_token);
                 if (getProfile != null)
                 {
-                    if (getProfile.Profile != null)
+                    if (getProfile.Ok)
                     {
                         var profile = await FriendProfileContext.UpdateProfile(_token, profileUpdate);
                         message = profile?.Message ?? message;

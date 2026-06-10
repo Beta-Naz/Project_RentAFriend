@@ -11,7 +11,6 @@ namespace Project_RentAFriend.Classes
     /// </summary>
     public class JwtToken
     {
-        private static DBManager _dbManager = new();
         /// <summary>
         /// Секретный ключ для подписи токенов
         /// static означает, что ключ общий для всех экземпляров класса
@@ -50,10 +49,11 @@ namespace Project_RentAFriend.Classes
         {
             try
             {
+                using var dbManager = new DBManager();
                 JwtSecurityTokenHandler TokenHandler = new();
-                if(_dbManager.BlacklistedTokens != null)
+                if(dbManager.BlacklistedTokens != null)
                 {
-                    foreach(var backToken in _dbManager.BlacklistedTokens)
+                    foreach(var backToken in dbManager.BlacklistedTokens)
                     {
                         if(backToken.Token == token)
                         {

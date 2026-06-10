@@ -41,9 +41,12 @@ namespace RentAFriendApp.Context
             var content = new StringContent(JsonConvert.SerializeObject(infoDTO),
                 System.Text.Encoding.UTF8, "application/json");
             var response = await client.PutAsync($"{_url}/update", content);
-
-            string result = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<UpdateProfileResponse>(result);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<UpdateProfileResponse>(result);
+            }
+            return null;
         }
 
         /// <summary>
@@ -55,12 +58,8 @@ namespace RentAFriendApp.Context
             client.DefaultRequestHeaders.Add("TOKEN", token);
             var response = await client.GetAsync($"{_url}/getAll");
 
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<GetAllProfilesResponse>(result);
-            }
-            return null;
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<GetAllProfilesResponse>(result);
         }
 
         /// <summary>
@@ -71,13 +70,8 @@ namespace RentAFriendApp.Context
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
             var response = await client.GetAsync($"{_url}/myProfile");
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<GetMyProfileResponse>(result);
-            }
-            return null;
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<GetMyProfileResponse>(result);
         }
         /// <summary>
         /// Получить профиль друга по ID

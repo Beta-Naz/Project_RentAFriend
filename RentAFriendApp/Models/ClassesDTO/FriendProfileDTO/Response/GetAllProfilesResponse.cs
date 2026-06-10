@@ -2,6 +2,7 @@
 {
     public class GetAllProfilesResponse
     {
+        public bool Ok { get; set; } = false;
         public string Message { get; set; } = string.Empty;
         public int Count { get; set; }
         public List<FPInfoDTO> Profiles { get; set; } = [];
