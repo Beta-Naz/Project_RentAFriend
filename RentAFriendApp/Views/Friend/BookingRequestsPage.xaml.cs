@@ -1,18 +1,25 @@
-﻿using RentAFriendApp.Context;
+﻿using Microsoft.Win32;
+using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.ViewModels.Friend;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace RentAFriendApp.Views.Friend
 {
     public partial class BookingRequestsPage : Page
     {
         private readonly string _token;
-        private FriendBookingsViewModel _viewModel;
+        private readonly FriendBookingsViewModel _viewModel;
 
         public BookingRequestsPage(string token)
         {
@@ -26,13 +33,13 @@ namespace RentAFriendApp.Views.Friend
             _ = InitializeAsync();
         }
 
-        private async System.Threading.Tasks.Task InitializeAsync()
+        private async Task InitializeAsync()
         {
             try
             {
                 ShowLoadingState();
 
-                await System.Threading.Tasks.Task.Delay(100);
+                await Task.Delay(100);
 
                 _viewModel.PropertyChanged += (s, e) =>
                 {
@@ -105,6 +112,8 @@ namespace RentAFriendApp.Views.Friend
                 System.Diagnostics.Debug.WriteLine($"Ошибка подсчета клиентов: {ex.Message}");
                 TotalClientsText.Text = "0";
             }
+
+            await Task.CompletedTask;
         }
 
         private void InitializeEvents()
@@ -113,7 +122,6 @@ namespace RentAFriendApp.Views.Friend
             Messenger.Default.NotificationReceived += OnNotificationReceived;
         }
 
-        // ========== МЕТОДЫ ОТОБРАЖЕНИЯ СОСТОЯНИЙ ==========
         private void ShowLoadingState()
         {
             LoadingState.Visibility = Visibility.Visible;
@@ -147,30 +155,24 @@ namespace RentAFriendApp.Views.Friend
             {
                 var notification = new Border
                 {
-                    Background = type == "Error" ?
-                        new SolidColorBrush(Colors.Red) :
-                        new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")),
+                    Background = type == "Error"
+                        ? new SolidColorBrush(Colors.Red)
+                        : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")),
                     CornerRadius = new CornerRadius(8),
                     Padding = new Thickness(12),
-                    Margin = new Thickness(0, 0, 0, 8)
+                    Margin = new Thickness(0, 0, 0, 8),
+                    Child = new TextBlock
+                    {
+                        Text = message,
+                        Foreground = Brushes.White,
+                        TextWrapping = TextWrapping.Wrap
+                    }
                 };
-
-                var stackPanel = new StackPanel();
-                var textBlock = new TextBlock
-                {
-                    Text = message,
-                    Foreground = Brushes.White,
-                    TextWrapping = TextWrapping.Wrap
-                };
-
-                stackPanel.Children.Add(textBlock);
-                notification.Child = stackPanel;
 
                 NotificationPanel.Child = notification;
                 NotificationPanel.Visibility = Visibility.Visible;
 
-                var timer = new System.Windows.Threading.DispatcherTimer();
-                timer.Interval = TimeSpan.FromSeconds(3);
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
                 timer.Tick += (s, e) =>
                 {
                     NotificationPanel.Visibility = Visibility.Collapsed;
@@ -180,8 +182,7 @@ namespace RentAFriendApp.Views.Friend
             });
         }
 
-        // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
-        private void OnDataReceived(object sender, object data)
+        private void OnDataReceived(object? sender, object data)
         {
             if (data is string message && message == "BookingUpdated")
             {
@@ -193,7 +194,7 @@ namespace RentAFriendApp.Views.Friend
             }
         }
 
-        private void OnNotificationReceived(object sender, string message)
+        private void OnNotificationReceived(object? sender, string message)
         {
             Dispatcher.Invoke(() =>
             {
@@ -211,6 +212,7 @@ namespace RentAFriendApp.Views.Friend
             Messenger.Default.DataReceived -= OnDataReceived;
             Messenger.Default.NotificationReceived -= OnNotificationReceived;
         }
+
         private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -239,11 +241,13 @@ namespace RentAFriendApp.Views.Friend
             {
                 ShowNotification($"Ошибка обновления: {ex.Message}", "Error");
             }
+
+            await Task.CompletedTask;
         }
 
         private void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag != null)
+            if (sender is Button { Tag: not null } button)
             {
                 _viewModel.FilterByStatusCommand.Execute(button.Tag.ToString());
 
@@ -271,13 +275,9 @@ namespace RentAFriendApp.Views.Friend
             }
         }
 
-        // Обработчики действий с бронированиями
         private void AcceptBooking_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var booking = button?.DataContext as BookingDetailsDTO;
-
-            if (booking != null)
+            if (sender is Button { DataContext: BookingDetailsDTO booking })
             {
                 _viewModel.AcceptBookingCommand.Execute(booking);
             }
@@ -285,10 +285,7 @@ namespace RentAFriendApp.Views.Friend
 
         private void RejectBooking_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var booking = button?.DataContext as BookingDetailsDTO;
-
-            if (booking != null)
+            if (sender is Button { DataContext: BookingDetailsDTO booking })
             {
                 var result = MessageBox.Show(
                     "Вы уверены, что хотите отклонить этот запрос?",
@@ -305,10 +302,7 @@ namespace RentAFriendApp.Views.Friend
 
         private void CompleteBooking_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var booking = button?.DataContext as BookingDetailsDTO;
-
-            if (booking != null)
+            if (sender is Button { DataContext: BookingDetailsDTO booking })
             {
                 _viewModel.CompleteBookingCommand.Execute(booking);
             }
@@ -316,16 +310,13 @@ namespace RentAFriendApp.Views.Friend
 
         private async void ViewDetails_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var booking = button?.DataContext as BookingDetailsDTO;
-
-            if (booking != null)
+            if (sender is Button { DataContext: BookingDetailsDTO booking })
             {
                 var details = await BookingContext.GetBookingDetails(_token, booking.BookingID);
 
                 if (details?.Booking != null)
                 {
-                    var message = $@"
+                    var message = $"""
 ID бронирования: #{details.Booking.BookingID}
 Статус: {GetStatusDisplay(details.Booking.Status)}
 Сумма: {details.Booking.TotalAmount:N0} ₽
@@ -338,7 +329,7 @@ ID бронирования: #{details.Booking.BookingID}
 
 Встреча:
   Дата: {details.Booking.ScheduleDate:dd.MM.yyyy}
-  Время: {details.Booking.StartTime:hh\\:mm} - {details.Booking.EndTime:hh\\:mm}
+  Время: {details.Booking.StartTime:hh\:mm} - {details.Booking.EndTime:hh\:mm}
   Место: {(string.IsNullOrEmpty(details.Booking.MeetingLocation) ? "Не указано" : details.Booking.MeetingLocation)}
 
 Цель: {(string.IsNullOrEmpty(details.Booking.Purpose) ? "Не указана" : details.Booking.Purpose)}
@@ -347,7 +338,8 @@ ID бронирования: #{details.Booking.BookingID}
 {(string.IsNullOrEmpty(details.Booking.SpecialRequests) ? "Нет" : details.Booking.SpecialRequests)}
 
 Создано: {details.Booking.CreatedAt:dd.MM.yyyy HH:mm}
-Обновлено: {details.Booking.UpdatedAt:dd.MM.yyyy HH:mm}";
+Обновлено: {details.Booking.UpdatedAt:dd.MM.yyyy HH:mm}
+""";
 
                     MessageBox.Show(message.Trim(), "Детали бронирования",
                         MessageBoxButton.OK, MessageBoxImage.Information);
@@ -361,16 +353,13 @@ ID бронирования: #{details.Booking.BookingID}
 
         private void MessageClient_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var booking = button?.DataContext as BookingDetailsDTO;
-
-            if (booking != null)
+            if (sender is Button { DataContext: BookingDetailsDTO booking })
             {
                 _viewModel.MessageClientCommand.Execute(booking);
             }
         }
 
-        private string GetStatusDisplay(string status)
+        private static string GetStatusDisplay(string status)
         {
             return status switch
             {
@@ -383,7 +372,7 @@ ID бронирования: #{details.Booking.BookingID}
             };
         }
 
-        private string GetPaymentStatusDisplay(string paymentStatus)
+        private static string GetPaymentStatusDisplay(string paymentStatus)
         {
             return paymentStatus switch
             {
@@ -402,7 +391,7 @@ ID бронирования: #{details.Booking.BookingID}
                 return;
             }
 
-            var dialog = new Microsoft.Win32.SaveFileDialog
+            var dialog = new SaveFileDialog
             {
                 Filter = "CSV файлы (*.csv)|*.csv",
                 DefaultExt = ".csv",
@@ -413,7 +402,7 @@ ID бронирования: #{details.Booking.BookingID}
             {
                 try
                 {
-                    ExportToCsv(dialog.FileName, _viewModel.Items.ToList());
+                    ExportToCsv(dialog.FileName, [.. _viewModel.Items]);
                     ShowNotification("Данные экспортированы", "Success");
                 }
                 catch (Exception ex)
@@ -423,25 +412,23 @@ ID бронирования: #{details.Booking.BookingID}
             }
         }
 
-        private void ExportToCsv(string filePath, List<BookingDetailsDTO> bookings)
+        private static void ExportToCsv(string filePath, List<BookingDetailsDTO> bookings)
         {
-            using (var writer = new System.IO.StreamWriter(filePath, false, System.Text.Encoding.UTF8))
-            {
-                writer.WriteLine("ID;Клиент;Email;Телефон;Статус;Дата;Время;Сумма;Оплата;Создано");
+            using var writer = new StreamWriter(filePath, false, Encoding.UTF8);
+            writer.WriteLine("ID;Клиент;Email;Телефон;Статус;Дата;Время;Сумма;Оплата;Создано");
 
-                foreach (var booking in bookings)
-                {
-                    writer.WriteLine($"{booking.BookingID};" +
-                                   $"{booking.ClientName};" +
-                                   $"{booking.ClientEmail};" +
-                                   $"{booking.ClientPhone};" +
-                                   $"{GetStatusDisplay(booking.Status)};" +
-                                   $"{booking.ScheduleDate:dd.MM.yyyy};" +
-                                   $"{booking.StartTime:hh\\:mm}-{booking.EndTime:hh\\:mm};" +
-                                   $"{booking.TotalAmount:N0};" +
-                                   $"{GetPaymentStatusDisplay(booking.PaymentStatus)};" +
-                                   $"{booking.CreatedAt:dd.MM.yyyy HH:mm}");
-                }
+            foreach (var booking in bookings)
+            {
+                writer.WriteLine($"{booking.BookingID};" +
+                               $"{booking.ClientName};" +
+                               $"{booking.ClientEmail};" +
+                               $"{booking.ClientPhone};" +
+                               $"{GetStatusDisplay(booking.Status)};" +
+                               $"{booking.ScheduleDate:dd.MM.yyyy};" +
+                               $"{booking.StartTime:hh\\:mm}-{booking.EndTime:hh\\:mm};" +
+                               $"{booking.TotalAmount:N0};" +
+                               $"{GetPaymentStatusDisplay(booking.PaymentStatus)};" +
+                               $"{booking.CreatedAt:dd.MM.yyyy HH:mm}");
             }
         }
 
@@ -459,12 +446,10 @@ ID бронирования: #{details.Booking.BookingID}
 
         private void TodayOnlyCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-
         }
 
         private void PaidOnlyCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-
         }
     }
 }
