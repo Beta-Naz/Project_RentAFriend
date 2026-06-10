@@ -5,6 +5,7 @@
         public int UserId { get; set; }
         public int ProfileID { get; set; }
         public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string? Bio { get; set; }
         public int? Age { get; set; }
         public string? City { get; set; }
@@ -18,7 +19,8 @@
             {
                 UserId = profile.UserID,
                 ProfileID = profile.ProfileID,
-                FullName = profile.User?.FullName ?? string.Empty,
+                FullName = profile.User.FullName,
+                Email = profile.User.Email,
                 Bio = profile.Bio,
                 Age = profile.Age,
                 City = profile.City,

@@ -195,9 +195,8 @@ namespace Project_RentAFriend.Controllers
                 var user = await _dbManager.Users.FindAsync(userId);
                 if (user == null || user.Role != "Admin")
                     return Forbid("Доступ запрещен");
-
                 var users = await _dbManager.Users
-                    .Select(u => new
+                    .Select(u => new 
                     {
                         u.UserID,
                         u.FullName,
@@ -206,6 +205,7 @@ namespace Project_RentAFriend.Controllers
                         u.Role,
                         u.IsActive,
                         u.CreatedAt,
+                        u.UpdatedAt
                     })
                     .ToListAsync();
 

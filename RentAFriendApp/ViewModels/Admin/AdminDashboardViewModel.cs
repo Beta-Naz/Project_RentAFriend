@@ -1,4 +1,5 @@
 ﻿using RentAFriendApp.Context;
+using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.AuditLogDTO;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
@@ -17,8 +18,8 @@ namespace RentAFriendApp.ViewModels.Admin
         private readonly string _token;
         private int _adminUserId;
 
-        private ObservableCollection<UserInfoDTO> _allUsers;
-        public ObservableCollection<UserInfoDTO> AllUsers
+        private ObservableCollection<UserInfoItem> _allUsers;
+        public ObservableCollection<UserInfoItem> AllUsers
         {
             get => _allUsers;
             set => SetProperty(ref _allUsers, value);
@@ -199,7 +200,7 @@ namespace RentAFriendApp.ViewModels.Admin
             _token = token;
             Title = "Административная панель";
 
-            AllUsers = new ObservableCollection<UserInfoDTO>();
+            AllUsers = new ObservableCollection<UserInfoItem>();
             FriendProfiles = new ObservableCollection<FPInfoDTO>();
             AllBookings = new ObservableCollection<BookingDetailsDTO>();
             RecentMessages = new ObservableCollection<LastMessageItem>();

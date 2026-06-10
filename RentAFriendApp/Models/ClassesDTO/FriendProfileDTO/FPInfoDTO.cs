@@ -4,7 +4,8 @@
     {
         public int UserID { get; set; }
         public int ProfileID { get; set; }
-        public string FullName { get; set; } = string.Empty;
+        public string? FullName { get; set; }
+        public string? Email { get; set; }
         public string? Bio { get; set; }
         public int? Age { get; set; }
         public string? City { get; set; }
