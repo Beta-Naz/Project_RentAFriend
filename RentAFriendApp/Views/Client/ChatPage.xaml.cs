@@ -1,15 +1,12 @@
-﻿using RentAFriendApp.Context;
-using RentAFriendApp.Models.ClassesDTO.ChatDTO;
-using RentAFriendApp.Models.ClassesDTO.ChatDTO.Response;
-using RentAFriendApp.Models.ClassesDTO.MessageDTO;
-using RentAFriendApp.ViewModels.Client;
-using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using RentAFriendApp.Context;
+using RentAFriendApp.Models.ClassesDTO.ChatDTO;
+using RentAFriendApp.Models.ClassesDTO.MessageDTO;
+using RentAFriendApp.ViewModels.Client;
 
 namespace RentAFriendApp.Views.Client
 {
@@ -38,10 +35,14 @@ namespace RentAFriendApp.Views.Client
         {
             if (e.PropertyName == nameof(ChatViewModel.Messages))
             {
-                noMessages.Visibility = _viewModel.Messages.Any()
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
+                bool hasMessages = _viewModel.Messages != null && _viewModel.Messages.Any();
+                noMessages.Visibility = hasMessages ? Visibility.Collapsed : Visibility.Visible;
+
                 ScrollToLastMessage();
+            }
+
+            if (e.PropertyName == nameof(ChatViewModel.FilteredChats))
+            {
             }
         }
 
@@ -49,6 +50,8 @@ namespace RentAFriendApp.Views.Client
         {
             if (_isInitialized) return;
             _isInitialized = true;
+
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
             if (_targetFriendId > 0)
             {
@@ -113,9 +116,11 @@ namespace RentAFriendApp.Views.Client
         // ——————— Поиск ———————
         private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (!_isActive || SearchTextBox.Text != "Поиск чатов...") return;
-            SearchTextBox.Text = string.Empty;
-            SearchTextBox.Foreground = Brushes.Black;
+            if (SearchTextBox.Text == "Поиск чатов...")
+            {
+                SearchTextBox.Text = string.Empty;
+                SearchTextBox.Foreground = Brushes.Black;
+            }
         }
 
         private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
@@ -124,15 +129,22 @@ namespace RentAFriendApp.Views.Client
             {
                 SearchTextBox.Text = "Поиск чатов...";
                 SearchTextBox.Foreground = new SolidColorBrush(Color.FromRgb(153, 153, 153));
+                _viewModel.SearchQuery = string.Empty;
             }
         }
+
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (!_isActive) return;
-            _viewModel.SearchQuery = SearchTextBox.Text == "Поиск чатов..."
-                ? string.Empty
-                : SearchTextBox.Text;
+            if (SearchTextBox.Text == "Поиск чатов...")
+            {
+                _viewModel.SearchQuery = string.Empty;
+            }
+            else
+            {
+                _viewModel.SearchQuery = SearchTextBox.Text;
+            }
         }
 
         private void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -350,7 +362,7 @@ namespace RentAFriendApp.Views.Client
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 MessagesScrollViewer.ScrollToEnd();
-            }), DispatcherPriority.Background);
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         // ——————— Звонки ———————
@@ -379,14 +391,18 @@ namespace RentAFriendApp.Views.Client
         {
             if (ChatList.SelectedItem is ChatListDTO selectedChat)
             {
-                _viewModel.SelectChatCommand.Execute(selectedChat);
-                ChatPanel.Visibility = Visibility.Visible;
+                if (_viewModel.SelectedChat?.ChatID != selectedChat.ChatID)
+                {
+                    _viewModel.SelectChatCommand.Execute(selectedChat);
+                    ChatPanel.Visibility = Visibility.Visible;
+                }
             }
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
             _isActive = false;
+            _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
     }
 }

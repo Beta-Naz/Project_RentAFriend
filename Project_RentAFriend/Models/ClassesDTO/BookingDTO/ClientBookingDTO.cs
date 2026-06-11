@@ -9,6 +9,7 @@
         public string PaymentStatus { get; set; } = string.Empty;
         public string? MeetingLocation { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int FriendId { get; set; }
         public string FriendName { get; set; } = string.Empty;
         public string FriendCity { get; set; } = string.Empty;
         public DateTime ScheduleDate { get; set; }
@@ -29,6 +30,7 @@
                 CreatedAt = booking.CreatedAt,
                 FriendName = booking.FriendProfile?.User?.FullName ?? "Unknown",
                 FriendCity = booking.FriendProfile?.City ?? "Unknown",
+                FriendId = booking.FriendProfile?.ProfileID ?? -1,
                 ScheduleDate = booking.Schedule?.Date ?? DateTime.MinValue,
                 StartTime = booking.Schedule?.StartTime ?? TimeSpan.Zero,
                 EndTime = booking.Schedule?.EndTime ?? TimeSpan.Zero,

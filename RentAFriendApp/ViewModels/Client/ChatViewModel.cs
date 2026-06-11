@@ -1,13 +1,10 @@
-﻿using RentAFriendApp.Context;
-using RentAFriendApp.Models.ClassesDTO.ChatDTO;
-using RentAFriendApp.Models.ClassesDTO.ChatDTO.Response;
-using RentAFriendApp.Models.ClassesDTO.MessageDTO;
-using RentAFriendApp.Models.ClassesDTO.MessageDTO.Response;
-using RentAFriendApp.ViewModels.Base;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using RentAFriendApp.Context;
+using RentAFriendApp.Models.ClassesDTO.ChatDTO;
+using RentAFriendApp.Models.ClassesDTO.MessageDTO;
+using RentAFriendApp.ViewModels.Base;
 
 namespace RentAFriendApp.ViewModels.Client
 {
@@ -103,23 +100,23 @@ namespace RentAFriendApp.ViewModels.Client
 
                 var chatsResponse = await ChatContext.GetMyChats(_token, page: 1, pageSize: 50);
 
+                // Работаем с коллекцией в UI потоке безопасно
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    var newAllChats = new ObservableCollection<ChatListDTO>();
+                    AllChats.Clear();
 
                     if (chatsResponse?.Chats != null)
                     {
                         foreach (var chat in chatsResponse.Chats)
                         {
-                            newAllChats.Add(chat);
+                            AllChats.Add(chat);
                         }
                     }
 
-                    AllChats = newAllChats;
-                    FilterChats();
+                    FilterChats(); // Обновляем отфильтрованный список
 
-                    // Если есть чаты, выбираем первый
-                    if (FilteredChats.Count > 0)
+                    // Автовыбор только если ничего не выбрано и есть чаты
+                    if (SelectedChat == null && FilteredChats.Count > 0)
                     {
                         SelectedChat = FilteredChats[0];
                     }
@@ -139,40 +136,17 @@ namespace RentAFriendApp.ViewModels.Client
         {
             if (chat == null) return;
 
-            try
+            if (SelectedChat?.ChatID == chat.ChatID) return;
+
+            SelectedChat = chat;
+
+            if (chat.UnreadCount > 0)
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    SelectedChat = chat;
-                });
-
-                await LoadMessagesAsync(chat.ChatID);
-
-                if (chat.UnreadCount > 0)
-                {
-                    await MessageContext.MarkMessagesAsRead(_token, chat.ChatID);
-
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        chat.UnreadCount = 0;
-
-                        var updatedChats = AllChats.ToList();
-                        var index = updatedChats.FindIndex(c => c.ChatID == chat.ChatID);
-                        if (index >= 0)
-                        {
-                            updatedChats[index] = chat;
-                            AllChats = new ObservableCollection<ChatListDTO>(updatedChats);
-                            FilterChats();
-                        }
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Критический баг! Код ошибки: {ex.Message}",
-                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                chat.UnreadCount = 0;
+                _ = MessageContext.MarkMessagesAsRead(_token, chat.ChatID);
             }
         }
+
 
         private async Task LoadMessagesAsync(int chatId)
         {
@@ -184,17 +158,14 @@ namespace RentAFriendApp.ViewModels.Client
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    var newMessages = new ObservableCollection<MessageDTO>();
-
+                    Messages.Clear();
                     if (messagesResponse?.Messages != null)
                     {
                         foreach (var msg in messagesResponse.Messages)
                         {
-                            newMessages.Add(msg);
+                            Messages.Add(msg);
                         }
                     }
-
-                    Messages = newMessages;
                 });
             }
             catch (Exception ex)
@@ -211,6 +182,8 @@ namespace RentAFriendApp.ViewModels.Client
         {
             if (!CanSendMessage || SelectedChat == null) return;
 
+            string contentToSend = MessageText; // Сохраняем текст до очистки
+
             try
             {
                 IsBusy = true;
@@ -219,7 +192,7 @@ namespace RentAFriendApp.ViewModels.Client
                 var sendRequest = new SendMessageDTO
                 {
                     ChatID = SelectedChat.ChatID,
-                    Content = MessageText,
+                    Content = contentToSend,
                     MessageType = "Text"
                 };
 
@@ -227,50 +200,41 @@ namespace RentAFriendApp.ViewModels.Client
 
                 if (result != null)
                 {
-                    await Application.Current.Dispatcher.InvokeAsync(async () =>
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        // Создаем новое сообщение для отображения
-                        var newMessage = new MessageDTO
+                        MessageText = string.Empty;
+
+                        var localMsg = new MessageDTO
                         {
                             MessageID = result.MessageId,
-                            SenderID = 0, // Заполнится при перезагрузке
-                            Content = MessageText,
+                            SenderID = 0,
+                            Content = contentToSend,
                             MessageType = "Text",
                             IsRead = false,
-                            IsEdited = false,
                             CreatedAt = result.SentAt
                         };
+                        Messages.Add(localMsg);
 
-                        var newMessages = new ObservableCollection<MessageDTO>(Messages);
-                        newMessages.Add(newMessage);
-                        Messages = newMessages;
 
-                        // Обновляем информацию о чате
-                        var chat = AllChats.FirstOrDefault(c => c.ChatID == SelectedChat.ChatID);
-                        if (chat != null)
+                        var chatInList = AllChats.FirstOrDefault(c => c.ChatID == SelectedChat.ChatID);
+                        if (chatInList != null)
                         {
-                            chat.LastMessage = MessageText.Length > 30
-                                ? MessageText.Substring(0, 30) + "..."
-                                : MessageText;
-                            chat.LastMessageAt = result.SentAt;
+                            chatInList.LastMessage = contentToSend.Length > 30
+                                ? contentToSend.Substring(0, 30) + "..."
+                                : contentToSend;
+                            chatInList.LastMessageAt = result.SentAt;
 
-                            // Обновляем список чатов
-                            var updatedChats = AllChats.ToList();
-                            var index = updatedChats.FindIndex(c => c.ChatID == chat.ChatID);
-                            if (index >= 0)
+
+                            AllChats.Remove(chatInList);
+                            AllChats.Insert(0, chatInList);
+
+                            if (!string.IsNullOrWhiteSpace(SearchQuery))
                             {
-                                updatedChats[index] = chat;
-                                AllChats = new ObservableCollection<ChatListDTO>(updatedChats);
                                 FilterChats();
                             }
                         }
-
-                        // Очищаем поле ввода
-                        MessageText = string.Empty;
-
-                        // Перезагружаем сообщения для обновления статуса
-                        await LoadMessagesAsync(SelectedChat.ChatID);
                     });
+
                 }
                 else
                 {
@@ -289,31 +253,26 @@ namespace RentAFriendApp.ViewModels.Client
 
         private void FilterChats()
         {
-            _ = FilterChatsAsync();
+            var query = SearchQuery?.ToLower().Trim();
+
+            var filtered = string.IsNullOrWhiteSpace(query)
+                ? AllChats.ToList()
+                : AllChats.Where(c =>
+                    (c.InterlocutorName != null && c.InterlocutorName.ToLower().Contains(query)) ||
+                    (c.LastMessage != null && c.LastMessage.ToLower().Contains(query))
+                  ).ToList();
+
+            FilteredChats.Clear();
+            foreach (var chat in filtered)
+            {
+                FilteredChats.Add(chat);
+            }
         }
 
-        private async Task FilterChatsAsync()
+        private Task FilterChatsAsync()
         {
-            await Task.Run(() =>
-            {
-                var filtered = AllChats.AsEnumerable();
-
-                if (!string.IsNullOrWhiteSpace(SearchQuery))
-                {
-                    var query = SearchQuery.ToLower();
-                    filtered = filtered.Where(c =>
-                        c.InterlocutorName?.ToLower().Contains(query) == true ||
-                        (c.LastMessage?.ToLower().Contains(query) == true)
-                    );
-                }
-
-                var filteredList = filtered.ToList();
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    FilteredChats = new ObservableCollection<ChatListDTO>(filteredList);
-                });
-            });
+            FilterChats();
+            return Task.CompletedTask;
         }
     }
 }

@@ -2,8 +2,10 @@
 using RentAFriendApp.Models.ClassesDTO.BookingDTO.Response;
 using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace RentAFriendApp.ViewModels.Client
 {
@@ -135,7 +137,7 @@ namespace RentAFriendApp.ViewModels.Client
                             Bookings.Add(new BookingDisplayModel
                             {
                                 BookingID = booking.BookingID,
-                                FriendProfileID = 0, // Не приходит в DTO, нужно добавить
+                                FriendProfileID = booking.FriendId,
                                 FriendName = booking.FriendName,
                                 FriendCity = booking.FriendCity,
                                 Purpose = booking.Purpose,
@@ -147,9 +149,9 @@ namespace RentAFriendApp.ViewModels.Client
                                 StartTime = booking.StartTime,
                                 EndTime = booking.EndTime,
                                 CreatedAt = booking.CreatedAt,
-                                SpecialRequests = null, // Не приходит в DTO
+                                SpecialRequests = null,
                                 HasReview = booking.HasReview,
-                                HasChat = false // Нужно отдельно проверять
+                                HasChat = false
                             });
                         }
                     }
@@ -205,9 +207,10 @@ namespace RentAFriendApp.ViewModels.Client
 
         private async Task ApplyFiltersAsync()
         {
+            var snapshot = Bookings.ToList();
             await Task.Run(() =>
             {
-                var filtered = Bookings.AsEnumerable();
+                var filtered = snapshot.AsEnumerable();
 
                 // Фильтр по статусу
                 if (CurrentFilter != "All")
@@ -229,14 +232,10 @@ namespace RentAFriendApp.ViewModels.Client
                 // Сортировка по дате (новые сверху)
                 var sorted = filtered.OrderByDescending(b => b.Date).ToList();
 
-                // Обновляем UI
+                var newCollection = new ObservableCollection<BookingDisplayModel>(sorted);
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    FilteredBookings.Clear();
-                    foreach (var booking in sorted)
-                    {
-                        FilteredBookings.Add(booking);
-                    }
+                    FilteredBookings = newCollection;
                 });
             });
         }
@@ -421,5 +420,80 @@ namespace RentAFriendApp.ViewModels.Client
         public string TotalAmountDisplay => $"{TotalAmount:N0} ₽";
         public string DateDisplay => Date.ToString("dd.MM.yyyy");
         public string TimeDisplay => $"{StartTime:hh\\:mm}";
+        public string FriendInitials
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(FriendName))
+                    return "??";
+
+                var parts = FriendName.Split(' ');
+                if (parts.Length >= 2)
+                    return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+
+                return FriendName.Length >= 2
+                    ? FriendName.Substring(0, 2).ToUpper()
+                    : FriendName.ToUpper();
+            }
+        }
+
+        public DateTime StartDateTime => Date.Add(StartTime);
+        public DateTime EndDateTime => Date.Add(EndTime);
+
+        public bool CanBeCancelled => Status == "Pending" || Status == "Confirmed";
+        public bool CanChat => (Status == "Confirmed" || Status == "Completed") && !HasChat;
+        public bool CanReview => Status == "Completed" && !HasReview;
+        public bool CanPay => PaymentStatus == "Unpaid" && Status != "Cancelled" && Status != "Rejected";
+        public Brush StatusForegroundColor
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case "Pending": return new SolidColorBrush(Color.FromRgb(255, 152, 0)); // Orange
+                    case "Confirmed": return new SolidColorBrush(Color.FromRgb(76, 175, 80)); // Green
+                    case "Completed": return new SolidColorBrush(Color.FromRgb(33, 150, 243)); // Blue
+                    case "Cancelled": return new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
+                    case "Rejected": return new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
+                    default: return Brushes.Gray;
+                }
+            }
+        }
+
+        public Brush StatusBackgroundColor
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case "Pending": return new SolidColorBrush(Color.FromRgb(255, 248, 225));
+                    case "Confirmed": return new SolidColorBrush(Color.FromRgb(232, 245, 233));
+                    case "Completed": return new SolidColorBrush(Color.FromRgb(227, 242, 253));
+                    case "Cancelled": return new SolidColorBrush(Color.FromRgb(253, 237, 237));
+                    case "Rejected": return new SolidColorBrush(Color.FromRgb(253, 237, 237));
+                    default: return Brushes.LightGray;
+                }
+            }
+        }
+
+        public Brush PaymentStatusColor
+        {
+            get
+            {
+                switch (PaymentStatus)
+                {
+                    case "Paid": return new SolidColorBrush(Color.FromRgb(76, 175, 80));
+                    case "Unpaid": return new SolidColorBrush(Color.FromRgb(244, 67, 54));
+                    case "Refunded": return new SolidColorBrush(Color.FromRgb(33, 150, 243));
+                    default: return Brushes.Gray;
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

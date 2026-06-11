@@ -734,8 +734,7 @@
                                     <TextBlock Text="Всего потрачено"
                                                FontSize="12"
                                                Foreground="#666666"/>
-                                    <TextBlock x:Name="TotalSpentText"
-                                               Text="0 ₽"
+                                    <TextBlock Text="{Binding TotalSpent, StringFormat='{}{0:N0} ₽'}"
                                                FontSize="24"
                                                FontWeight="Bold"
                                                Foreground="#333333"/>
@@ -771,8 +770,7 @@
                                                FontSize="24"
                                                FontWeight="Bold"
                                                Foreground="#333333"/>
-                                    <TextBlock
-                                               Text=" ₽"                                              FontSize="24"
+                                    <TextBlock Text=" ₽"   FontSize="24"
                                                FontWeight="Bold"
                                                Foreground="#333333"/>
                                     </StackPanel>
@@ -904,7 +902,7 @@
 
                             <!-- Список бронирований -->
                             <ItemsControl x:Name="BookingsItemsControl"
-                                            ItemsSource="{Binding Bookings}"
+                                            ItemsSource="{Binding FilteredBookings}"
                                             ItemTemplate="{StaticResource BookingTemplate}"
                                             Visibility="Collapsed">
                                 <ItemsControl.ItemsPanel>

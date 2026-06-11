@@ -66,7 +66,6 @@ namespace RentAFriendApp.Views.Client
                 if (updatedFriend?.Profile != null)
                 {
                     _currentFriend = updatedFriend.Profile;
-                    MessageBox.Show(updatedFriend.Message);
                 }
             }
             catch (Exception ex)

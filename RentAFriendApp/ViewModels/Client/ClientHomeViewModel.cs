@@ -12,7 +12,6 @@ namespace RentAFriendApp.ViewModels.Client
     {
         private Random _random = new Random();
         private readonly string _token;
-        private int _currentUserId;
 
         // Детальная статистика
         private UserStatisticsDTO _userStatistics = new UserStatisticsDTO();
@@ -22,7 +21,13 @@ namespace RentAFriendApp.ViewModels.Client
         public int TotalBookings
         {
             get => _totalBookings;
-            set => SetProperty(ref _totalBookings, value);
+            set
+            {
+                if(SetProperty(ref _totalBookings, value))
+                {
+                    OnPropertyChanged(nameof(BookingsTrend));
+                }
+            }
         }
 
         private int _activeBookings;
@@ -161,26 +166,23 @@ namespace RentAFriendApp.ViewModels.Client
             OpenChatCommand = new RelayCommandAsync<int>(OpenChatWithFriend);
 
             // Загрузка данных при инициализации
-            Task.Run(async () => await LoadDataAsync());
+            LoadDataAsync();
         }
 
         private async Task LoadDataAsync()
         {
             try
             {
+                IsBusy = true;
+                ClearErrors();
                 UserLoginDTO? user = await UserContext.GetUser(_token);
                 if(user == null)
                 {
                     return;
                 }
-                _currentUserId = user.UserID;
                 _userStatistics.UserID = user.UserID;
 
-                IsBusy = true;
-                ClearErrors();
-
-                // Загрузка пользовательской информации
-                await LoadUserInfoAsync();
+                UpdateUserInfo(user);
 
                 // Загрузка детальной статистики
                 await LoadUserStatisticsAsync();
@@ -203,32 +205,19 @@ namespace RentAFriendApp.ViewModels.Client
                 IsBusy = false;
             }
         }
-
-        private async Task LoadUserInfoAsync()
+        private void UpdateUserInfo(UserLoginDTO user)
         {
-            try
-            {
-                var result = await UserContext.GetUser(_token);
-                if (result != null)
-                {
-                    UserFullName = result.FullName;
-                    UserFirstName = result.FullName.Split(' ').FirstOrDefault() ?? result.FullName;
+            UserFullName = user.FullName;
+            UserFirstName = user.FullName.Split(' ').FirstOrDefault() ?? user.FullName;
 
-                    // Определяем статус пользователя
-                    if (CompletedCount >= 10)
-                        UserStatus = "Постоянный клиент";
-                    else if (CompletedCount >= 5)
-                        UserStatus = "Активный клиент";
-                    else
-                    {
-                        var monthsActive = (DateTime.UtcNow - UserCreatedAt).TotalDays / 30;
-                        UserStatus = monthsActive >= 6 ? "Начинающий" : "Новый клиент";
-                    }
-                }
-            }
-            catch (Exception ex)
+            if (CompletedCount >= 10)
+                UserStatus = "Постоянный клиент";
+            else if (CompletedCount >= 5)
+                UserStatus = "Активный клиент";
+            else
             {
-                SetError($"Ошибка загрузки информации пользователя: {ex.Message}");
+                var monthsActive = (DateTime.UtcNow - UserCreatedAt).TotalDays / 30;
+                UserStatus = monthsActive >= 6 ? "Начинающий" : "Новый клиент";
             }
         }
 
@@ -284,14 +273,16 @@ namespace RentAFriendApp.ViewModels.Client
         {
             try
             {
-                UpcomingBookings.Clear();
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => UpcomingBookings.Clear());
 
                 var upcoming = await BookingContext.GetUpcomingBookings(_token, top: 5);
                 if (upcoming != null && upcoming.Bookings != null)
                 {
                     foreach (var booking in upcoming.Bookings)
                     {
-                        UpcomingBookings.Add(booking);
+                        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                            UpcomingBookings.Add(booking)
+                        );
                     }
                 }
             }
@@ -301,21 +292,28 @@ namespace RentAFriendApp.ViewModels.Client
             }
         }
 
+
         public async Task LoadRecommendedFriendsAsync()
         {
             try
             {
-                RecommendedFriends.Clear();
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => RecommendedFriends.Clear());
 
                 var profiles = await FriendProfileContext.GetAllProfiles(_token);
-                List<FPInfoDTO>? listProfiles = profiles?.Profiles.OrderBy(p => p.AverageRating).ToList();
-                if (listProfiles != null && listProfiles.Count != 0)
+                if (profiles?.Profiles != null && profiles.Profiles.Any())
                 {
-                    for (int i = 0, j = 0 ; i < listProfiles.Count && j < 10; i++, j++)
+                    var topProfiles = profiles.Profiles
+                        .OrderByDescending(p => p.AverageRating)
+                        .Take(10)
+                        .ToList();
+
+                    foreach (var profile in topProfiles)
                     {
-                        if(listProfiles[i] != null)
+                        if (profile != null)
                         {
-                            RecommendedFriends.Add(listProfiles[i]);
+                            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                                RecommendedFriends.Add(profile)
+                            );
                         }
                     }
                 }

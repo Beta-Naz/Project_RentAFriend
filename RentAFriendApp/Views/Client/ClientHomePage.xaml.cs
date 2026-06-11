@@ -1,4 +1,5 @@
-﻿using RentAFriendApp.ViewModels.Client;
+﻿using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
+using RentAFriendApp.ViewModels.Client;
 using RentAFriendApp.Views.Client;
 using System.Windows;
 using System.Windows.Controls;
@@ -46,7 +47,7 @@ namespace RentAFriendApp.Views.Client
         private void RefreshTimer_Tick(object sender, EventArgs e)
         {
             // Обновляем данные через ViewModel
-            _viewModel.RefreshCommand.Execute(null);
+            _viewModel?.RefreshCommand.Execute(null);
         }
 
         // ============= ОБРАБОТЧИКИ СОБЫТИЙ =============
@@ -242,24 +243,24 @@ namespace RentAFriendApp.Views.Client
 
         private void FriendCard_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is Border card && card.Tag is int UserID)
-            {
-                if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2)
-                {
-                    OpenFriendProfile(UserID);
-                }
-                else if (e.ChangedButton == MouseButton.Left && e.ClickCount == 1)
-                {
-                    // Снимаем выделение с предыдущей карточки
-                    if (_selectedFriendCard != null)
-                    {
-                        _selectedFriendCard.Background = Brushes.White;
-                    }
+            if (sender is not Border card) return;
 
-                    // Выделяем текущую карточку
-                    card.Background = new SolidColorBrush(Color.FromArgb(30, 76, 175, 80));
-                    _selectedFriendCard = card;
-                }
+            if (card.DataContext is not FPInfoDTO friend)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FriendCard] DataContext не является FPInfoDTO: {card.DataContext?.GetType().Name}");
+                return;
+            }
+            if (e.ChangedButton == MouseButton.Left && e.ClickCount == 1)
+            {
+                if (_selectedFriendCard != null)
+                    _selectedFriendCard.Background = Brushes.White;
+
+                card.Background = new SolidColorBrush(Color.FromArgb(30, 76, 175, 80));
+                _selectedFriendCard = card;
+            }
+            else if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2)
+            {
+                OpenFriendProfile(friend.ProfileID);
             }
         }
 
@@ -291,14 +292,28 @@ namespace RentAFriendApp.Views.Client
 
         private void OpenFriendProfile(int profileId)
         {
-            var friendDetailsPage = new FriendDetailsPage(_currentToken, profileId);
-            MainWindow.Instanse?.MainFrame.Navigate(friendDetailsPage);
-        }
+            if (profileId <= 0)
+            {
+                MessageBox.Show("Некорректный ID профиля.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-        private void OpenChatWithFriend(int friendUserId)
-        {
-            var chatPage = new ChatPage(_currentToken, friendUserId);
-            MainWindow.Instanse?.MainFrame.Navigate(chatPage);
+            try
+            {
+                var friendDetailsPage = new FriendDetailsPage(_currentToken, profileId);
+                MainWindow.Instanse?.MainFrame.Navigate(friendDetailsPage);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Не удалось открыть профиль друга (ID={profileId}):\n{ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                System.Diagnostics.Debug.WriteLine($"[OpenFriendProfile] Error: {ex}");
+            }
         }
 
         private void AllMeetingsButton_Click(object sender, RoutedEventArgs e)

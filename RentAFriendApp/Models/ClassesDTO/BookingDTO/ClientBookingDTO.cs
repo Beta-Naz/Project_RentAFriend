@@ -9,6 +9,7 @@
         public string PaymentStatus { get; set; } = string.Empty;
         public string? MeetingLocation { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int FriendId { get; set; }
         public string FriendName { get; set; } = string.Empty;
         public string FriendCity { get; set; } = string.Empty;
         public DateTime ScheduleDate { get; set; }

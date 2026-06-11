@@ -126,7 +126,7 @@
                                FontWeight="SemiBold"
                                Foreground="#333333"/>
                     <TextBlock x:Name="UserNameText" 
-                               Text="Иван"
+                               Text="{Binding UserFirstName}"
                                FontSize="24"
                                FontWeight="Bold"
                                Foreground="#4CAF50"/>
@@ -397,12 +397,14 @@
                                                        Foreground="#666666"/>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock x:Name="TotalBookingsText"
-                                                           Text="0"
-                                                           FontSize="28"
-                                                           FontWeight="Bold"
-                                                           Foreground="#333333"/>
+                                                             Text="{Binding TotalBookings}" 
+                                                             FontSize="28"
+                                                             FontWeight="Bold"
+                                                             Foreground="#333333"/>
+
+                                                <!-- Тренд встреч -->
                                                 <TextBlock x:Name="BookingsTrendText"
-                                                           Text=""
+                                                           Text="{Binding BookingsTrend}" 
                                                            FontSize="11"
                                                            FontWeight="SemiBold"
                                                            Foreground="#4CAF50"
@@ -455,18 +457,15 @@
                                                        FontSize="12"
                                                        Foreground="#666666"/>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock x:Name="TotalSpentText"
-                                                           Text="0 ₽"
-                                                           FontSize="28"
-                                                           FontWeight="Bold"
-                                                           Foreground="#333333"/>
-                                                <TextBlock x:Name="SpentTrendText"
-                                                           Text=""
-                                                           FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#4CAF50"
-                                                           Margin="8,0,0,0"
-                                                           VerticalAlignment="Bottom"/>
+                                                <TextBlock Text="{Binding TotalSpent, StringFormat={}{0:N0} ₽}"
+                                                FontSize="28"
+                                                FontWeight="Bold"
+                                                Foreground="#333333"/>
+                                                <TextBlock Text="{Binding SpentTrend}"
+                                                FontSize="11"
+                                                FontWeight="SemiBold"
+                                                Foreground="#4CAF50"
+                                                VerticalAlignment="Bottom"/> 
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
@@ -515,17 +514,18 @@
                                                        Foreground="#666666"/>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock x:Name="TotalHoursText"
-                                                           Text="0 ч"
-                                                           FontSize="28"
-                                                           FontWeight="Bold"
-                                                           Foreground="#333333"/>
-                                                <TextBlock x:Name="HoursTrendText"
-                                                           Text=""
-                                                           FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#4CAF50"
-                                                           Margin="8,0,0,0"
-                                                           VerticalAlignment="Bottom"/>
+                                                        Text="{Binding TotalHours, StringFormat={}{0} ч}" 
+                                                        FontSize="28"
+                                                        FontWeight="Bold"
+                                                        Foreground="#333333"/>
+                                                        <!-- Тренд часов -->
+                                                        <TextBlock x:Name="HoursTrendText"
+                                                        Text="{Binding HoursTrend}" 
+                                                        FontSize="11"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="#4CAF50"
+                                                        Margin="8,0,0,0"
+                                                        VerticalAlignment="Bottom"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
@@ -615,13 +615,12 @@
 
                                 <!-- Список встреч -->
                                 <ItemsControl ItemsSource="{Binding UpcomingBookings}"
-              x:Name="MeetingsPanel">
+                                    x:Name="MeetingsPanel">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Style="{StaticResource BookingCardStyle}"
-                                                      MouseDown="BookingCard_MouseDown"
-                                                      Tag="{Binding BookingID}"
-                                                      ToolTip="Двойной клик для просмотра деталей">
+                                                    MouseDown="BookingCard_MouseDown"
+                                                    Tag="{Binding BookingID}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="70"/>
@@ -630,33 +629,40 @@
                                                         <ColumnDefinition Width="120"/>
                                                         <ColumnDefinition Width="40"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Tag.ScheduleDate, StringFormat=dd.MM}"
-                                                             VerticalAlignment="Center"/>
+
+                                                    <!-- ИСПРАВЛЕНО: Прямая привязка к свойствам модели -->
+                                                    <TextBlock Text="{Binding ScheduleDate, StringFormat=dd.MM}"
+                                                    VerticalAlignment="Center"/>
+
                                                     <StackPanel Grid.Column="1">
-                                                        <TextBlock Text="{Binding Tag.ClientName}" FontWeight="Bold"/>
+                                                        <!-- Предположим, что в UpcomingBookingItem есть FriendName -->
+                                                        <TextBlock Text="{Binding FriendName}" FontWeight="Bold"/>
                                                         <TextBlock Text="{Binding Purpose}" Foreground="#666666" FontSize="12"/>
                                                     </StackPanel>
+
                                                     <TextBlock Grid.Column="2"
-                                                             HorizontalAlignment="Center"
-                                                             VerticalAlignment="Center">
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center">
                                                         <TextBlock.Text>
                                                             <MultiBinding StringFormat="{}{0:HH:mm} – {1:HH:mm}">
-                                                                <Binding Path="Tag.StartTime" />
-                                                                <Binding Path="Tag.EndTime" />
+                                                                <Binding Path="StartTime" />
+                                                                <Binding Path="EndTime" />
                                                             </MultiBinding>
                                                         </TextBlock.Text>
                                                     </TextBlock>
+
                                                     <TextBlock Grid.Column="3"
-                                                              Text="{Binding Status}"
-                                                              HorizontalAlignment="Right"
-                                                              VerticalAlignment="Center"
-                                                              Foreground="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                                                    Text="{Binding Status}"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+
                                                     <Button Grid.Column="4"
-                                                              Content="…"
-                                                              Background="Transparent"
-                                                              BorderThickness="0"
-                                                              Click="BookingMenuButton_Click"
-                                                              Tag="{Binding BookingID}"/>
+                                                    Content="…"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="BookingMenuButton_Click"
+                                                    Tag="{Binding BookingID}"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -760,35 +766,38 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Style="{StaticResource FriendCardStyle}"
-                                                   Margin="0,0,0,16"
-                                                   MouseDown="FriendCard_MouseDown"
-                                                   Tag="{Binding UserID}"
-                                                   ToolTip="Двойной клик для просмотра профиля">
+            Margin="0,0,0,16"
+            MouseDown="FriendCard_MouseDown"
+            ToolTip="Двойной клик для просмотра профиля">
+                                                <!-- Убираем Tag={Binding UserID}, будем брать из DataContext -->
                                                 <Grid Margin="12">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition/>
                                                     </Grid.ColumnDefinitions>
-                                                    <!-- Аватарка (или инициалы) -->
+
                                                     <Border Width="60" Height="60" CornerRadius="30"
-                                                         Background="#E8F5E8"
-                                                         VerticalAlignment="Top">
+                    Background="#E8F5E8"
+                    VerticalAlignment="Top">
                                                         <TextBlock Text="{Binding User.FullName, Converter={StaticResource InitialsConverter}}"
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center"
-                                                         FontSize="16" FontWeight="Bold" Foreground="#4CAF50"/>
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="16" FontWeight="Bold" Foreground="#4CAF50"/>
                                                     </Border>
+
                                                     <StackPanel Grid.Column="1" Margin="12,0,0,0">
                                                         <TextBlock Text="{Binding User.FullName}" FontWeight="SemiBold" FontSize="14"/>
                                                         <TextBlock Text="{Binding City}" FontSize="12" Foreground="#666666"/>
                                                         <TextBlock>
-                                                         <Run Text="⭐"/>
-                                                         <Run Text="{Binding AverageRating, StringFormat={}{0:F1}}"/>
-                                                         <Run Text=" • "/>
-                                                         <Run Text="{Binding HourlyRate, StringFormat={}{0} ₽/ч}"/>
+                    <Run Text="⭐"/>
+                    <Run Text="{Binding AverageRating, StringFormat={}{0:F1}}"/>
+                    <Run Text=" • "/>
+                    <Run Text="{Binding HourlyRate, StringFormat={}{0:N0} ₽/ч}"/>
                                                         </TextBlock>
                                                         <TextBlock Text="{Binding Bio}"
-                                                        FontSize="12" Foreground="#666666" Margin="0,4,0,0"/>
+                           FontSize="12" Foreground="#666666" Margin="0,4,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           MaxHeight="40"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>

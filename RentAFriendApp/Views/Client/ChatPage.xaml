@@ -208,8 +208,11 @@
                                     Grid.Column="2"
                                     Style="{StaticResource IconButtonStyle}"
                                     Click="ClearSearchButton_Click"
-                                    Visibility="{Binding SearchQuery, Converter={StaticResource NullToVisibilityConverter}}"
                                     ToolTip="Очистить поиск">
+                                <Button.Visibility>
+                                    <Binding ElementName="SearchTextBox" Path="Text" Converter="{StaticResource NullToVisibilityConverter}">
+                                    </Binding>
+                                </Button.Visibility>
                                 <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
                                       Fill="#999999"
                                       Width="23"
@@ -389,75 +392,76 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" 
                               Padding="20"
                               x:Name="MessagesScrollViewer">
-                    <Grid>
 
-                    <!-- Пока нет сообщений -->
+                    <Grid>
+                        <!-- Пока нет сообщений -->
                         <StackPanel VerticalAlignment="Center" 
-                                HorizontalAlignment="Center"
-                                x:Name="noMessages">
+                                    HorizontalAlignment="Center"
+                                    x:Name="noMessages"
+                                    Visibility="Collapsed">
                             <Path Data="{StaticResource NewChatIcon}"
-                              Fill="#E0E0E0"
-                              Width="64"
-                              Height="64"
-                              Margin="0,0,0,16"/>
+                                  Fill="#E0E0E0"
+                                  Width="64"
+                                  Height="64"
+                                  Margin="0,0,0,16"/>
                             <TextBlock Text="Начните диалог"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#999999"
-                                   TextAlignment="Center"/>
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="#999999"
+                                       TextAlignment="Center"/>
                             <TextBlock Text="Отправьте первое сообщение"
-                                   FontSize="14"
-                                   Foreground="#999999"
-                                   Margin="0,8,0,0"
-                                   TextAlignment="Center"/>
+                                       FontSize="14"
+                                       Foreground="#999999"
+                                       Margin="0,8,0,0"
+                                       TextAlignment="Center"/>
                         </StackPanel>
+
                         <!-- Список сообщений -->
                         <ItemsControl x:Name="MessagesList"
-                                  ItemsSource="{Binding Messages}">
+                                      ItemsSource="{Binding Messages}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Margin="0,0,0,12">
-                                        <Border>
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="White"/>
-                                                    <Setter Property="CornerRadius" Value="18,18,18,4"/>
-                                                    <Setter Property="Padding" Value="16"/>
-                                                    <Setter Property="MaxWidth" Value="400"/>
-                                                    <Setter Property="Margin" Value="0,0,0,12"/>
-                                                    <Setter Property="HorizontalAlignment" Value="Left"/>
-                                                    <Setter Property="Effect">
-                                                        <Setter.Value>
-                                                            <DropShadowEffect BlurRadius="8" Opacity="0.06" ShadowDepth="1"/>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsOutgoing}" Value="True">
-                                                            <Setter Property="Background" Value="#E8F5E8"/>
-                                                            <Setter Property="CornerRadius" Value="18,18,4,18"/>
-                                                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Text}"
+                                    <Border Margin="0,0,0,12">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="White"/>
+                                                <Setter Property="CornerRadius" Value="18,18,18,4"/>
+                                                <Setter Property="Padding" Value="16"/>
+                                                <Setter Property="MaxWidth" Value="400"/>
+                                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect BlurRadius="8" Opacity="0.06" ShadowDepth="1"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOutgoing}" Value="True">
+                                                        <Setter Property="Background" Value="#E8F5E8"/>
+                                                        <Setter Property="CornerRadius" Value="18,18,4,18"/>
+                                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Text}"
                                                        FontSize="14"
                                                        Foreground="#333333"
                                                        TextWrapping="Wrap"/>
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding TimeDisplay}"
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding TimeDisplay}"
                                                            FontSize="11"
                                                            Foreground="#999999"/>
-                                                    <Path Data="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8L10,17Z"
-                                                      Width="24"
-                                                      Height="24"
+                                                <!-- Галочка прочтения -->
+                                                <Path Data="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8L10,17Z"
+                                                      Width="16"
+                                                      Height="16"
                                                       Fill="#4CAF50"
+                                                      Margin="4,0,0,0"
                                                       Visibility="{Binding IsRead, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                                </StackPanel>
                                             </StackPanel>
-                                        </Border>
-                                    </StackPanel>
+                                        </StackPanel>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                             <ItemsControl.ItemsPanel>
