@@ -6,9 +6,9 @@ namespace Project_RentAFriend.Classes
     {
         public static readonly string ConnectionString =
             "server=localhost;" +
-            "database=rendafrienddb;" +
+            "database=rentafrienddb;" +
             "uid=root;" +
-            "pwd=;";
+            "pwd=1234;";
         public static readonly MySqlServerVersion CurrentVersion = new(new Version(8, 0, 11));
     }
 }

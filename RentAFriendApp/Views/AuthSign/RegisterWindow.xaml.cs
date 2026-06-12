@@ -291,19 +291,13 @@ namespace RentAFriendApp.Views.AuthSign
 
         // Валидация email
         private bool ValidateEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return false;
-            }
+        {            if (string.IsNullOrWhiteSpace(email)) return false;
 
-            // Регулярное выражение для проверки email
-            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            bool isValid = Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$";
 
+            bool isValid = Regex.IsMatch(email, pattern);
             if (!isValid)
             {
-                // Подсветка ошибки
                 EmailTextBox.BorderBrush = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Colors.Red);
             }
@@ -314,6 +308,7 @@ namespace RentAFriendApp.Views.AuthSign
 
             return isValid;
         }
+
         
         // Валидация телефона
         private bool ValidatePhone(string phone)

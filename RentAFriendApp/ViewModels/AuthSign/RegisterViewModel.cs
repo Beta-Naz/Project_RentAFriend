@@ -1,6 +1,7 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.UserDTO;
 using RentAFriendApp.ViewModels.Base;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
@@ -234,20 +235,15 @@ namespace RentAFriendApp.ViewModels.AuthSign
                 RoleDescription = "Выберите роль для продолжения регистрации";
             }
         }
-
-        private static bool IsValidEmail(string email)
+        private bool IsValidEmail(string email)
         {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+            if (string.IsNullOrWhiteSpace(email)) return false;
 
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$";
+
+            bool isValid = Regex.IsMatch(email, pattern);
+            return isValid;
+        }
         public bool IsClientRoleSelected
         {
             get => SelectedRole == "Client";
