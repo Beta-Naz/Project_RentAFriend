@@ -83,18 +83,27 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Users == null)
+                using var dbManager = new DBManager();
+                if (dbManager == null || dbManager.Users == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных", statusCode = 500 });
                 }
-
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
                 {
                     return StatusCode(401, new { message = "Недействительный токен", statusCode = 401 });
                 }
-
-                User? user = await _dbManager.Users.IgnoreQueryFilters()
+                if (dbManager.BlacklistedTokens != null)
+                {
+                    foreach (var backToken in dbManager.BlacklistedTokens)
+                    {
+                        if (backToken.Token == token)
+                        {
+                            return StatusCode(401, new { message = "Недействительный токен", statusCode = 401 });
+                        }
+                    }
+                }
+                User? user = await dbManager.Users.IgnoreQueryFilters()
                     .FirstOrDefaultAsync(x => x.UserID == userId);
 
                 if (user == null)

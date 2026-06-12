@@ -94,7 +94,7 @@ namespace RentAFriendApp.ViewModels.Friend
             {
                 var user = await UserContext.GetUser(_token);
                 var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.UserID);
+                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.Data?.UserID);
 
                 if (profile != null)
                 {

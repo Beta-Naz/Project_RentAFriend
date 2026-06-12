@@ -1,9 +1,16 @@
-﻿namespace RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response
+﻿using Newtonsoft.Json;
+
+namespace RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response
 {
     public class GetMyProfileResponse
     {
-        public string Message { get; set; } = string.Empty;
-        public bool Ok { get; set; } = false;
+        [JsonProperty("profile")]
         public FPInfoDTO Profile { get; set; } = new();
+
+        [JsonProperty("ok")]
+        public bool Ok { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; } = string.Empty;
     }
 }

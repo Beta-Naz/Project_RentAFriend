@@ -175,8 +175,9 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 IsBusy = true;
                 ClearErrors();
-                UserLoginDTO? user = await UserContext.GetUser(_token);
-                if(user == null)
+                var getUser = await UserContext.GetUser(_token);
+                UserLoginDTO? user = getUser?.Data;
+                if (user == null)
                 {
                     return;
                 }

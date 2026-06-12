@@ -148,7 +148,7 @@ namespace RentAFriendApp.Context
                 BoolResult? boolResult = JsonConvert.DeserializeObject<BoolResult>(result);
                 if(boolResult != null)
                 {
-                    return boolResult.Result;
+                    return boolResult.Ok;
                 }
             }
             return null;

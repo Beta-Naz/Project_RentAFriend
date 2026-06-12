@@ -31,7 +31,7 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
-        public static async Task<UserLoginDTO?> GetUser(string token)
+        public static async Task<GetUserResponse?> GetUser(string token)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
@@ -40,7 +40,7 @@ namespace RentAFriendApp.Context
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<UserLoginDTO>(result);
+                return JsonConvert.DeserializeObject<GetUserResponse>(result);
             }
             return null;
         }
@@ -63,7 +63,7 @@ namespace RentAFriendApp.Context
             {
                 string result = await response.Content.ReadAsStringAsync();
                 var data = JsonConvert.DeserializeObject<BoolResult>(result);
-                return data?.Result ?? false;
+                return data?.Ok ?? false;
             }
             return false;
         }

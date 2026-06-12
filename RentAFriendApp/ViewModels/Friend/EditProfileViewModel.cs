@@ -360,7 +360,8 @@ namespace RentAFriendApp.ViewModels.Friend
                 ClearErrors();
 
                 // Получаем данные пользователя
-                var user = await UserContext.GetUser(_token);
+                var getUser = await UserContext.GetUser(_token);
+                var user = getUser?.Data;
                 if (user == null)
                 {
                     SetError("Пользователь не найден");
@@ -371,9 +372,8 @@ namespace RentAFriendApp.ViewModels.Friend
                 Phone = user.Phone ?? string.Empty;
                 Email = user.Email;
 
-                // Получаем профиль друга
-                var profiles = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profiles?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
+                var myProfileResponse = await FriendProfileContext.GetMyProfile(_token);
+                var profile = myProfileResponse?.Profile;
 
                 if (profile != null)
                 {

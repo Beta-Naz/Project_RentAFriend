@@ -1,7 +1,13 @@
-﻿namespace RentAFriendApp.Models
+﻿using Newtonsoft.Json;
+
+namespace RentAFriendApp.Models
 {
     public class BoolResult
     {
-        public bool Result { get; set; }
+        [JsonProperty("ok")]
+        public bool Ok { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; } = string.Empty;
     }
 }

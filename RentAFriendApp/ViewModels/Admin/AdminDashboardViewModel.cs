@@ -17,7 +17,6 @@ namespace RentAFriendApp.ViewModels.Admin
         private readonly string _token;
         private int _adminUserId;
 
-        // ===== КОЛЛЕКЦИИ =====
         private ObservableCollection<UserInfoItem> _allUsersFull = new();
         private ObservableCollection<UserInfoItem> _allUsers = new();
         public ObservableCollection<UserInfoItem> AllUsers
@@ -76,7 +75,6 @@ namespace RentAFriendApp.ViewModels.Admin
         private int _onlineUsers = 0;
         public int OnlineUsers { get => _onlineUsers; set { _onlineUsers = value; OnPropertyChanged(); } }
 
-        // ===== ФИЛЬТРЫ =====
         private string _userSearchText = "";
         public string UserSearchText
         {
@@ -196,7 +194,7 @@ namespace RentAFriendApp.ViewModels.Admin
             try
             {
                 var user = await UserContext.GetUser(_token);
-                _adminUserId = user?.UserID ?? -1;
+                _adminUserId = user?.Data?.UserID ?? -1;
                 await LoadAllDataAsync();
             }
             catch (Exception ex)
@@ -347,7 +345,7 @@ namespace RentAFriendApp.ViewModels.Admin
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
 
             var result = await UserContext.UpdateUserStatus(_token, user.UserID, false);
-            if (result?.Result == true)
+            if (result?.Ok == true)
             {
                 user.IsActive = false;
                 CalculateStatistics();
@@ -359,7 +357,7 @@ namespace RentAFriendApp.ViewModels.Admin
         {
             if (user == null) return;
             var result = await UserContext.UpdateUserStatus(_token, user.UserID, true);
-            if (result?.Result == true)
+            if (result?.Ok == true)
             {
                 user.IsActive = true;
                 CalculateStatistics();
@@ -464,14 +462,48 @@ namespace RentAFriendApp.ViewModels.Admin
         {
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "Excel (*.xlsx)|*.xlsx|CSV (*.csv)|*.csv",
-                FileName = $"RentAFriend_Export_{DateTime.Now:yyyyMMdd_HHmmss}"
+                Filter = "Excel (*.xlsx)|*.xlsx",
+                FileName = $"RentAFriend_Export_{DateTime.Now:yyyyMMdd_HHmmss}",
+                DefaultExt = ".xlsx"
             };
 
-            if (dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() != true) return;
+
+            try
             {
-                await Task.Delay(500); // имитация
-                MessageBox.Show($"Данные экспортированы в {dialog.FileName}", "Экспорт", MessageBoxButton.OK, MessageBoxImage.Information);
+                IsBusy = true;
+                var exportService = new Services.ExcelExportService(_token);
+
+                bool success = false;
+
+                switch (SelectedTabIndex)
+                {
+                    case 0:
+                        success = await exportService.ExportUsersAsync(dialog.FileName, _allUsersFull.ToList());
+                        break;
+                    case 4: 
+                        success = await exportService.ExportLogsAsync(dialog.FileName);
+                        break;
+                    default:
+                        success = await exportService.ExportStatisticsAsync(dialog.FileName);
+                        break;
+                }
+
+                if (success)
+                    MessageBox.Show($"Данные экспортированы в:\n{dialog.FileName}", "Экспорт успешен",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                else
+                    MessageBox.Show("Не удалось экспортировать данные", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка экспорта: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

@@ -161,24 +161,22 @@ namespace RentAFriendApp.ViewModels.Friend
         {
             try
             {
-                // Получаем профиль друга
-                var user = await UserContext.GetUser(_token);
-                var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                if (profilesResponse == null || user == null)
+                var profilesResponse = await FriendProfileContext.GetMyProfile(_token);
+                if (profilesResponse == null)
                 {
                     return;
                 }
-                _currentProfile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user.UserID);
+                _currentProfile = profilesResponse.Profile;
 
                 if (_currentProfile != null)
                 {
-                    // Получаем информацию о пользователе
-                    var userInfo = await UserContext.GetUser(_token);
-                    if (userInfo != null)
+                    var getUser = await UserContext.GetUser(_token);
+                    var user = getUser?.Data;
+                    if (user != null)
                     {
-                        UserFullName = userInfo.FullName;
-                        CurrentUserInitials = GetInitials(userInfo.FullName);
-                        WelcomeMessage = $"Добро пожаловать, {userInfo.FullName}!";
+                        UserFullName = user.FullName;
+                        CurrentUserInitials = GetInitials(user.FullName);
+                        WelcomeMessage = $"Добро пожаловать, {user.FullName}!";
                     }
                 }
             }

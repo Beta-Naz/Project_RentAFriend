@@ -49,18 +49,7 @@ namespace Project_RentAFriend.Classes
         {
             try
             {
-                using var dbManager = new DBManager();
                 JwtSecurityTokenHandler TokenHandler = new();
-                if(dbManager.BlacklistedTokens != null)
-                {
-                    foreach(var backToken in dbManager.BlacklistedTokens)
-                    {
-                        if(backToken.Token == token)
-                        {
-                            return null;
-                        }
-                    }
-                }
                 TokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
