@@ -27,7 +27,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Bookings == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Bookings == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -87,8 +87,10 @@ namespace Project_RentAFriend.Controllers
                 };
 
                 _dbManager.Reviews.Add(review);
+                var createLog = new AuditLog(userId, "CREATE_REVIEW", "Reviews", review.ReviewID, null, $"Создан отзыв: BookingID={reviewData.BookingID}, Rating={reviewData.Rating}, Comment={reviewData.Comment?.Length ?? 0} символов",
+   HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(createLog);
                 await _dbManager.SaveChangesAsync();
-
                 // Обновляем средний рейтинг друга
                 await UpdateFriendAverageRating(booking.FriendProfileID);
 
@@ -313,7 +315,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -344,7 +346,9 @@ namespace Project_RentAFriend.Controllers
                 {
                     return BadRequest(new { message = "Отзыв уже одобрен" });
                 }
-
+                var approveLog = new AuditLog(userId, "APPROVE_REVIEW", "Reviews", reviewId, $"IsApproved={review.IsApproved}", "IsApproved=true",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(approveLog);
                 review.IsApproved = true;
                 review.ModeratorComment = approveData.ModeratorComment;
                 await _dbManager.SaveChangesAsync();
@@ -427,6 +431,9 @@ namespace Project_RentAFriend.Controllers
                 }
 
                 review.ModeratorComment = rejectData.ModeratorComment;
+                var rejectLog = new AuditLog(userId, "REJECT_REVIEW", "Reviews", reviewId, $"Review content: Rating={review.Rating}, Comment={review.Comment}", $"Отклонен по причине: {rejectData.ModeratorComment}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(rejectLog);
                 _dbManager.Reviews.Remove(review);
                 await _dbManager.SaveChangesAsync();
 
@@ -454,7 +461,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -485,10 +492,12 @@ namespace Project_RentAFriend.Controllers
                 }
 
                 var friendProfileID = review.Booking?.FriendProfileID;
+                var deleteLog = new AuditLog(userId, "DELETE_REVIEW", "Reviews", reviewId, $"Rating={review.Rating}, Comment={review.Comment}, IsApproved={review.IsApproved}", "Отзыв удален",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(deleteLog);
                 _dbManager.Reviews.Remove(review);
                 await _dbManager.SaveChangesAsync();
 
-                // Обновляем средний рейтинг друга если отзыв был одобрен
                 if (friendProfileID.HasValue && review.IsApproved)
                 {
                     await UpdateFriendAverageRating(friendProfileID.Value);

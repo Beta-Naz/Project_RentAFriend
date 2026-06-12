@@ -22,7 +22,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null || _dbManager.AuditLogs == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
@@ -57,6 +57,9 @@ namespace Project_RentAFriend.Controllers
                 };
 
                 _dbManager.FriendProfiles.Add(newFriendProfile);
+                var createLog = new AuditLog(userId, "CREATE_FRIEND_PROFILE", "FriendProfiles", newFriendProfile.ProfileID, null, $"Создан профиль друга: City={infoDTO.City}, Age={infoDTO.Age}, HourlyRate={infoDTO.HourlyRate}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(createLog);
                 await _dbManager.SaveChangesAsync();
 
                 var createdProfile = await _dbManager.FriendProfiles
@@ -79,7 +82,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null)
+                if (_dbManager?.Users == null || _dbManager.FriendProfiles == null || _dbManager.AuditLogs == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
@@ -101,6 +104,12 @@ namespace Project_RentAFriend.Controllers
 
                 if (infoDTO == null)
                     return BadRequest(new { ok = false, message = "Нет данных для обновления профиля" });
+
+                string oldBio = friendProfile.Bio ?? "";
+                string oldHobbies = friendProfile.Hobbies ?? "";
+                decimal? oldRate = friendProfile.HourlyRate;
+                string oldCity = friendProfile.City ?? "";
+                int? oldAge = friendProfile.Age;
 
                 if (infoDTO.Bio != null)
                     friendProfile.Bio = infoDTO.Bio;
@@ -128,6 +137,11 @@ namespace Project_RentAFriend.Controllers
                 }
 
                 friendProfile.UpdatedAt = DateTime.UtcNow;
+                var updateLog = new AuditLog(userId, "UPDATE_FRIEND_PROFILE", "FriendProfiles", friendProfile.ProfileID,
+    $"Bio={oldBio}, Hobbies={oldHobbies}, HourlyRate={oldRate}, City={oldCity}, Age={oldAge}",
+    $"Bio={friendProfile.Bio}, Hobbies={friendProfile.Hobbies}, HourlyRate={friendProfile.HourlyRate}, City={friendProfile.City}, Age={friendProfile.Age}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(updateLog);
                 await _dbManager.SaveChangesAsync();
 
                 var updatedProfile = await _dbManager.FriendProfiles
@@ -264,7 +278,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.FriendProfiles == null || _dbManager.Bookings == null)
+                if (_dbManager?.FriendProfiles == null || _dbManager.Bookings == null || _dbManager.Reviews == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
@@ -320,7 +334,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.Bookings == null || _dbManager.Schedules == null)
+                if (_dbManager?.Bookings == null || _dbManager.Schedules == null || _dbManager.FriendProfiles == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? userId = JwtToken.GetUserIdFromToken(token);
@@ -423,7 +437,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null)
+                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? adminId = JwtToken.GetUserIdFromToken(token);
@@ -437,7 +451,10 @@ namespace Project_RentAFriend.Controllers
                 var profile = await _dbManager.FriendProfiles.FindAsync(profileId);
                 if (profile == null)
                     return NotFound(new { ok = false, message = "Профиль не найден" });
-
+                var verifyLog = new AuditLog(adminId, data.IsVerified ? "VERIFY_FRIEND_PROFILE" : "REJECT_FRIEND_VERIFICATION", "FriendProfiles", profileId,
+    $"IsVerified={profile.IsVerified}", $"IsVerified={data.IsVerified}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(verifyLog);
                 profile.IsVerified = data.IsVerified;
                 await _dbManager.SaveChangesAsync();
 

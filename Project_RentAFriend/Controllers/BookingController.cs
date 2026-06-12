@@ -27,7 +27,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -89,8 +89,10 @@ namespace Project_RentAFriend.Controllers
 
                 _dbManager.Bookings.Add(booking);
                 await _dbManager.SaveChangesAsync();
+                var createLog = new AuditLog(userId, "CREATE_BOOKING", "Bookings", booking.BookingID, null, $"Создано бронирование: ProfileID={bookingData.ScheduleID}, Purpose={bookingData.Purpose}, Amount={totalAmount}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(createLog);
 
-                // Занять слот
                 schedule.IsAvailable = false;
                 schedule.BookingID = booking.BookingID;
                 await _dbManager.SaveChangesAsync();
@@ -256,7 +258,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Schedules == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -305,6 +307,9 @@ namespace Project_RentAFriend.Controllers
                     booking.Schedule.BookingID = null;
                 }
 
+                var cancelLog = new AuditLog(userId, "CANCEL_BOOKING", "Bookings", bookingId, $"Status={booking.Status}", "Status=Cancelled",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(cancelLog);
                 await _dbManager.SaveChangesAsync();
 
                 // Создаем уведомление для друга
@@ -352,7 +357,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -387,6 +392,9 @@ namespace Project_RentAFriend.Controllers
                 booking.PaymentStatus = "Paid";
                 booking.PaymentDate = DateTime.UtcNow;
                 booking.UpdatedAt = DateTime.UtcNow;
+                var payLog = new AuditLog(userId, "PAY_BOOKING", "Bookings", bookingId, $"PaymentStatus={booking.PaymentStatus}", "PaymentStatus=Paid",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(payLog);
                 await _dbManager.SaveChangesAsync();
 
                 return Ok(new
@@ -595,7 +603,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -634,6 +642,9 @@ namespace Project_RentAFriend.Controllers
                 }
                 booking.Status = newStatus;
                 booking.UpdatedAt = DateTime.UtcNow;
+                var updateStatusLog = new AuditLog(userId, $"UPDATE_BOOKING_STATUS_TO_{newStatus.ToUpper()}", "Bookings", bookingId, $"Status={booking.Status}", $"Status={newStatus}",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(updateStatusLog);
                 await _dbManager.SaveChangesAsync();
 
                 return Ok(new
@@ -660,7 +671,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.Users == null || _dbManager.AuditLogs == null || _dbManager.Schedules == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -699,7 +710,9 @@ namespace Project_RentAFriend.Controllers
                     schedule.IsAvailable = true;
                     schedule.BookingID = null;
                 }
-                
+                var rejectLog = new AuditLog(userId, "REJECT_BOOKING", "Bookings", bookingId, $"Status={booking.Status}", "Status=Rejected",
+    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(rejectLog);
                 await _dbManager.SaveChangesAsync();
 
                 return Ok(new
@@ -727,7 +740,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Bookings == null)
+                if (_dbManager == null || _dbManager.Bookings == null || _dbManager.FriendProfiles == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }

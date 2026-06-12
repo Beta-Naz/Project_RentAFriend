@@ -26,5 +26,21 @@ namespace Project_RentAFriend.Models
         public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
         [ForeignKey(nameof(UserID))]
         public virtual User? User { get; set; }
+        public AuditLog(int? userID, string action, string tableName, int recordID, string? oldValue, string? newValue, string? iPAddress, string? userAgent, DateTime loggedAt)
+        {
+            UserID = userID;
+            Action = action;
+            TableName = tableName;
+            RecordID = recordID;
+            OldValue = oldValue;
+            NewValue = newValue;
+            IPAddress = iPAddress;
+            UserAgent = userAgent;
+            LoggedAt = loggedAt;
+        }
+        public AuditLog()
+        {
+
+        }
     }
 }
