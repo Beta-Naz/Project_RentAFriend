@@ -393,6 +393,9 @@ namespace RentAFriendApp.ViewModels.Friend
                 OnPropertyChanged(nameof(HasChanges));
                 OnPropertyChanged(nameof(Initials));
                 OnPropertyChanged(nameof(SaveButtonText));
+                OnPropertyChanged(nameof(VerificationStatus));
+                OnPropertyChanged(nameof(VerificationStatusColor));
+                OnPropertyChanged(nameof(VerificationIcon));
                 DataLoaded?.Invoke(this, new DataLoadEventArgs { Success = true });
                 
                 CommandManager.InvalidateRequerySuggested();

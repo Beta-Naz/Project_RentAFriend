@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="RentAFriendApp.Views.Controls.FriendCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:convertes="clr-namespace:RentAFriendApp.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="320" d:DesignWidth="280">
+
+    <UserControl.Resources>
+        <convertes:InitialsConverter x:Key="InitialsConverter"/>
+    </UserControl.Resources>
+
+    <Border x:Name="RootBorder"
+            Background="White" 
+            CornerRadius="12" 
+            Padding="16"
+            Cursor="Hand"
+            MouseDown="Card_MouseDown"
+            MouseEnter="Card_MouseEnter"
+            MouseLeave="Card_MouseLeave">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="12" Opacity="0.06" ShadowDepth="1"/>
+        </Border.Effect>
+
+        <StackPanel>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Width="56" Height="56" CornerRadius="28"
+                        Background="#E8F5E8">
+                    <TextBlock x:Name="InitialsText"
+                               Text="??"
+                               FontSize="20" FontWeight="Bold"
+                               Foreground="#4CAF50"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="NameText"
+                               Text="Имя Фамилия"
+                               FontSize="15" FontWeight="Bold"
+                               Foreground="#333333"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="CityText"
+                               Text="📍 Город"
+                               FontSize="11"
+                               Foreground="#757575"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Рейтинг -->
+            <TextBlock x:Name="RatingText"
+                       Text="⭐ 0.0"
+                       FontSize="12"
+                       Foreground="#FF9800"
+                       Margin="0,0,0,6"
+                       Visibility="Collapsed"/>
+
+            <!-- Био -->
+            <TextBlock x:Name="BioText"
+                       Text="Описание"
+                       FontSize="11"
+                       Foreground="#757575"
+                       TextWrapping="Wrap"
+                       MaxHeight="40"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,0,0,8"/>
+
+            <!-- Хобби -->
+            <WrapPanel x:Name="HobbiesPanel" Margin="0,0,0,8"/>
+
+            <!-- Цена -->
+            <TextBlock x:Name="PriceText"
+                       Text="0 ₽/час"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="#4CAF50"/>
+        </StackPanel>
+    </Border>
+</UserControl>
