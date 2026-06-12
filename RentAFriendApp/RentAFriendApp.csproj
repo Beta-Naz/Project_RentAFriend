@@ -23,6 +23,7 @@
   <ItemGroup>
     <None Remove="Resources\Icons\close_ico.png" />
     <None Remove="Resources\Icons\delete_ico.png" />
+    <None Remove="Resources\Icons\exit.png" />
     <None Remove="Resources\Icons\open_ico.png" />
     <None Remove="Resources\Images\rentiIco.png" />
   </ItemGroup>
@@ -42,6 +43,7 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\close_ico.png" />
     <Resource Include="Resources\Icons\delete_ico.png" />
+    <Resource Include="Resources\Icons\exit.png" />
     <Resource Include="Resources\Icons\open_ico.png" />
     <Resource Include="Resources\Images\rentiIco.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -54,7 +54,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="MainGrid">
         <!-- Верхняя шапка -->
         <Border Height="60" Background="White" VerticalAlignment="Top">
             <Grid>
@@ -96,31 +96,84 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Кнопка выхода -->
-                <Button Grid.Column="2" 
-                        Content="Выйти" 
-                        Width="80"
-                        Height="32"
-                        Background="Transparent"
-                        BorderBrush="#FF5252"
-                        BorderThickness="1"
-                        Foreground="#FF5252"
-                        FontWeight="SemiBold"
-                        Margin="0,0,20,0"
-                        Cursor="Hand"
-                        Click="BtnLogout_Click">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,16,0">
+                    <Grid Cursor="Hand" MouseDown="BtnNotifications_Click" Margin="0,0,16,0">
+                        <Border Width="36" Height="36" Background="#F5F5F5" CornerRadius="18"
+                            VerticalAlignment="Center">
+                            <TextBlock Text="🔔" FontSize="18" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="NotificationBadge" 
+                            Width="18" Height="18" 
+                            Background="#FF5252" CornerRadius="9"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0,-2,-2,0"
+                            Visibility="Collapsed">
+                            <TextBlock x:Name="BadgeCount" Text="0"
+                            FontSize="10" FontWeight="Bold" Foreground="White"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                    <Border Width="36" Height="36" Background="#F5F5F5" CornerRadius="18"
+                            Cursor="Hand" MouseDown="BtnBurger_Click"
+                            VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Border Width="16" Height="2" Background="#666666" CornerRadius="1" Margin="0,0,0,3"/>
+                            <Border Width="16" Height="2" Background="#666666" CornerRadius="1" Margin="0,0,0,3"/>
+                            <Border Width="16" Height="2" Background="#666666" CornerRadius="1"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <Popup x:Name="BurgerMenuPopup" 
+                    PlacementTarget="{Binding ElementName=MainGrid}"
+                    Placement="Right"
+                    HorizontalOffset="-230" 
+                    VerticalOffset="60"
+                    Height="Auto"
+                    StaysOpen="False"
+                    AllowsTransparency="True">
+                    <Border Background="White" CornerRadius="12" Width="220"
+                        BorderBrush="#E0E0E0" BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect ShadowDepth="4" BlurRadius="16" Opacity="0.12"/>
+                        </Border.Effect>
+                        <StackPanel Margin="4">
+                            <Button x:Name="BtnMenuNotifications" 
+                            Content="🔔  Уведомления" 
+                            Style="{StaticResource NavButtonStyle}"
+                            Height="44"
+                            FontSize="14"
+                            Click="BtnMenuNotifications_Click"/>
+                            <Border Height="1" Background="#F0F0F0" Margin="8,4"/>
+                            <Button Height="44"
+        Style="{StaticResource NavButtonStyle}"
+        Foreground="#FF5252"
+        Click="BtnMenuLogout_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="/Resources/Icons/exit.png" 
+               Width="16" Height="16" 
+               Margin="0,0,8,0"
+               VerticalAlignment="Center"/>
+                                    <TextBlock Text="Выйти" 
+                   FontSize="14" 
+                   VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                        </StackPanel>
+                    </Border>
+                </Popup>
+                <Popup x:Name="NotificationPopup" 
+                        PlacementTarget="{Binding ElementName=MainGrid}"
+                        Placement="Right"
+                        HorizontalOffset="-390" VerticalOffset="60"
+                        StaysOpen="False"
+                        AllowsTransparency="True"
+                        Width="380"/>
             </Grid>
         </Border>
 
-        <!-- Основная область -->
         <Grid Margin="0,60,0,0">
-            <!-- Основная область контента -->
             <Border Background="White" Margin="10">
                 <Frame x:Name="MainFrame" 
                        NavigationUIVisibility="Hidden"

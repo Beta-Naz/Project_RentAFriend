@@ -399,7 +399,7 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }

@@ -5,18 +5,25 @@ using System.Windows.Controls;
 
 namespace RentAFriendApp
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
+        private Views.Controls.NotificationPanel? _notificationPanelControl;
+        private bool _isNotificationPanelOpen = false;
         public static MainWindow? Instanse { get; private set; }
         private Auth _currentData;
+
         public MainWindow(Auth authData)
         {
             InitializeComponent();
             Instanse = this;
-            _currentData = authData;
+            _currentData = authData; // ← сначала присваиваем!
+
+            // Теперь создаём панель уведомлений
+            var notifPanel = new Views.Controls.NotificationPanel(_currentData?.Token ?? "");
+            notifPanel.OnCloseRequested += NotificationPanel_CloseRequested;
+            notifPanel.OnUnreadCountChanged += NotificationPanel_UnreadCountChanged;
+            _notificationPanelControl = notifPanel; // ← правильное имя поля
+
             if (authData != null)
             {
                 SetupNavigationByRole();
@@ -41,39 +48,25 @@ namespace RentAFriendApp
                     Title = "RentAFriend - Друг";
                     break;
                 case "Admin":
-                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token));
                     Title = "RentAFriend - Администратор";
                     break;
             }
+            _ = UpdateBadgeAsync();
         }
 
         private void UpdateUserInfo()
         {
             CurrentUserName.Text = _currentData.FullName;
 
-            string? roleDisplay = null;
-            switch (_currentData.Role)
+            string roleDisplay = _currentData.Role switch
             {
-                case "Client": roleDisplay = "Клиент"; break;
-                case "Friend": roleDisplay = "Друг"; break;
-                case "Admin": roleDisplay = "Администратор"; break;
-            }
-            if (string.IsNullOrEmpty(roleDisplay))
-            {
-                roleDisplay = "Пользователь";
-            }
+                "Client" => "Клиент",
+                "Friend" => "Друг",
+                "Admin" => "Администратор",
+                _ => "Пользователь"
+            };
             CurrentUserRole.Text = roleDisplay;
-        }
-
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Вы уверены, что хотите выйти?", "Выход",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                Logout();
-            }
         }
 
         private void ShowLoginWindow()
@@ -83,6 +76,13 @@ namespace RentAFriendApp
             this.Close();
         }
 
+        public void Logout()
+        {
+            _ = UserContext.Logout(_currentData.Token);
+            ShowLoginWindow();
+        }
+
+        // Клик по аватарке
         private void Profile_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             switch (_currentData.Role)
@@ -94,14 +94,103 @@ namespace RentAFriendApp
                     MainFrame.Navigate(new Views.Friend.FriendHomePage(_currentData.Token));
                     break;
                 case "Admin":
-                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token)); ;
+                    MainFrame.Navigate(new Views.Admin.AdminDashboardPage(_currentData.Token));
                     break;
             }
         }
-        public void Logout()
+
+        // ========== Бургер-меню ==========
+
+        private void BtnBurger_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            _ = UserContext.Logout(_currentData.Token);
-            ShowLoginWindow();
+            BurgerMenuPopup.IsOpen = !BurgerMenuPopup.IsOpen;
+        }
+
+        // Клик по колокольчику — сразу открывает панель уведомлений
+        private void BtnNotifications_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (NotificationPopup.Child == null && _notificationPanelControl != null)
+            {
+                NotificationPopup.Child = _notificationPanelControl;
+            }
+
+            NotificationPopup.IsOpen = !NotificationPopup.IsOpen;
+            _isNotificationPanelOpen = NotificationPopup.IsOpen;
+
+            if (_isNotificationPanelOpen)
+            {
+                _ = UpdateBadgeAsync();
+            }
+        }
+
+        // Из бургер-меню: "Уведомления"
+        private void BtnMenuNotifications_Click(object sender, RoutedEventArgs e)
+        {
+            BurgerMenuPopup.IsOpen = false;
+
+            if (NotificationPopup.Child == null && _notificationPanelControl != null)
+            {
+                NotificationPopup.Child = _notificationPanelControl;
+            }
+
+            NotificationPopup.IsOpen = !NotificationPopup.IsOpen;
+            _isNotificationPanelOpen = NotificationPopup.IsOpen;
+
+            if (_isNotificationPanelOpen)
+            {
+                _ = UpdateBadgeAsync();
+            }
+        }
+
+        // Из бургер-меню: "Выйти"
+        private void BtnMenuLogout_Click(object sender, RoutedEventArgs e)
+        {
+            BurgerMenuPopup.IsOpen = false;
+            var result = MessageBox.Show("Вы уверены, что хотите выйти?", "Выход",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Logout();
+            }
+        }
+
+        // Закрытие панели уведомлений
+        private void NotificationPanel_CloseRequested()
+        {
+            NotificationPopup.IsOpen = false;
+            _isNotificationPanelOpen = false;
+            _ = UpdateBadgeAsync();
+        }
+
+        // Обновление бейджа с количеством
+        private void NotificationPanel_UnreadCountChanged(int count)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (count > 0)
+                {
+                    NotificationBadge.Visibility = Visibility.Visible;
+                    BadgeCount.Text = count > 99 ? "99+" : count.ToString();
+                }
+                else
+                {
+                    NotificationBadge.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        private async Task UpdateBadgeAsync()
+        {
+            try
+            {
+                var response = await NotificationContext.GetUnreadCount(_currentData.Token);
+                if (response != null)
+                {
+                    NotificationPanel_UnreadCountChanged(response.UnreadCount);
+                }
+            }
+            catch { }
         }
     }
 }
