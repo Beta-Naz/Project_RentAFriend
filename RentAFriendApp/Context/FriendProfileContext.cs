@@ -141,11 +141,11 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
-        public static async Task<BoolResult?> VerifyFriendProfile(string token, int profileId, bool isVerified)
+        public static async Task<BoolResult?> VerifyFriendProfile(string token, int profileId, bool isVerified, string verificationNotes = "")
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
-            var data = new { isVerified };
+            var data = new { isVerified, verificationNotes };
             var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
             var response = await client.PutAsync($"{_url}/verify/{profileId}", content);
 

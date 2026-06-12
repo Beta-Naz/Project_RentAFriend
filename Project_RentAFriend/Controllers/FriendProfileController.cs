@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Project_RentAFriend.Classes;
 using Project_RentAFriend.Models;
 using Project_RentAFriend.Models.ClassesDTO.FriendProfileDTO;
+using Project_RentAFriend.Models.ClassesDTO.NotificationDTO;
 
 namespace Project_RentAFriend.Controllers
 {
@@ -437,7 +438,8 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
+                if (_dbManager?.FriendProfiles == null || _dbManager.Users == null ||
+                    _dbManager.AuditLogs == null || _dbManager.Notifications == null)
                     return StatusCode(500, new { ok = false, message = "Ошибка базы данных" });
 
                 int? adminId = JwtToken.GetUserIdFromToken(token);
@@ -446,19 +448,53 @@ namespace Project_RentAFriend.Controllers
 
                 var admin = await _dbManager.Users.FindAsync(adminId);
                 if (admin == null || admin.Role != "Admin")
-                    return Unauthorized(new { ok = false, message = "Доступ запрещен. Требуются права администратора." });
+                    return Unauthorized(new { ok = false, message = "Требуются права администратора" });
 
-                var profile = await _dbManager.FriendProfiles.FindAsync(profileId);
+                var profile = await _dbManager.FriendProfiles
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.ProfileID == profileId);
+
                 if (profile == null)
                     return NotFound(new { ok = false, message = "Профиль не найден" });
-                var verifyLog = new AuditLog(adminId, data.IsVerified ? "VERIFY_FRIEND_PROFILE" : "REJECT_FRIEND_VERIFICATION", "FriendProfiles", profileId,
-    $"IsVerified={profile.IsVerified}", $"IsVerified={data.IsVerified}",
-    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
-                _dbManager.AuditLogs.Add(verifyLog);
+
+                if (profile.User == null)
+                    return StatusCode(500, new { ok = false, message = "Ошибка: пользователь профиля не найден" });
+                if (string.IsNullOrWhiteSpace(data.VerificationNotes))
+                {
+                    data.VerificationNotes = data.IsVerified ? "Профиль был верифицирован" : "Верификация был отклонен по некоторым причинам";
+                }
                 profile.IsVerified = data.IsVerified;
+                profile.VerificationNotes = data.VerificationNotes;
+
+                _dbManager.AuditLogs.Add(new AuditLog(
+                    adminId,
+                    data.IsVerified ? "VERIFY_FRIEND_PROFILE" : "REJECT_FRIEND_VERIFICATION",
+                    "FriendProfiles",
+                    profileId,
+                    $"IsVerified={!data.IsVerified}",
+                    $"IsVerified={data.IsVerified}",
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Request.Headers.UserAgent.ToString(),
+                    DateTime.UtcNow
+                ));
+
+                _dbManager.Notifications.Add(new Notification
+                {
+                    UserID = profile.UserID,
+                    Title = data.IsVerified ? "✓ Профиль верифицирован" : "❌ Верификация отклонен",
+                    Message = profile.VerificationNotes,
+                    Type = "Verification",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+
                 await _dbManager.SaveChangesAsync();
 
-                return Ok(new { ok = true, message = data.IsVerified ? "Профиль верифицирован" : "Верификация отклонена" });
+                return Ok(new
+                {
+                    ok = true,
+                    message = data.IsVerified ? "Профиль верифицирован" : "Верификация отклонена"
+                });
             }
             catch (Exception ex)
             {

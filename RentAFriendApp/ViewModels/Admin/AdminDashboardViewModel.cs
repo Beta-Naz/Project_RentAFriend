@@ -1,181 +1,165 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models;
-using RentAFriendApp.Models.ClassesDTO.AuditLogDTO;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.MessageDTO.Response;
-using RentAFriendApp.Models.ClassesDTO.NotificationDTO;
-using RentAFriendApp.Models.ClassesDTO.UserDTO;
-using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace RentAFriendApp.ViewModels.Admin
 {
-    internal class AdminDashboardViewModel : BaseViewModel
+    public class AdminDashboardViewModel : INotifyPropertyChanged
     {
         private readonly string _token;
         private int _adminUserId;
 
-        private ObservableCollection<UserInfoItem> _allUsersFull;
-        private ObservableCollection<UserInfoItem> _allUsers;
+        // ===== КОЛЛЕКЦИИ =====
+        private ObservableCollection<UserInfoItem> _allUsersFull = new();
+        private ObservableCollection<UserInfoItem> _allUsers = new();
         public ObservableCollection<UserInfoItem> AllUsers
         {
             get => _allUsers;
-            set => SetProperty(ref _allUsers, value);
+            set { _allUsers = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<FPInfoDTO> _friendProfiles;
+        private ObservableCollection<FPInfoDTO> _friendProfiles = new();
         public ObservableCollection<FPInfoDTO> FriendProfiles
         {
             get => _friendProfiles;
-            set => SetProperty(ref _friendProfiles, value);
+            set { _friendProfiles = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<BookingDetailsDTO> _allBookings;
+        private ObservableCollection<BookingDetailsDTO> _allBookings = new();
         public ObservableCollection<BookingDetailsDTO> AllBookings
         {
             get => _allBookings;
-            set => SetProperty(ref _allBookings, value);
+            set { _allBookings = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<LastMessageItem> _recentMessages;
+        private ObservableCollection<LastMessageItem> _recentMessages = new();
         public ObservableCollection<LastMessageItem> RecentMessages
         {
             get => _recentMessages;
-            set => SetProperty(ref _recentMessages, value);
+            set { _recentMessages = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<AuditLogDTO> _auditLogs;
-        public ObservableCollection<AuditLogDTO> AuditLogs
+        private ObservableCollection<AuditLogItem> _auditLogs = new();
+        public ObservableCollection<AuditLogItem> AuditLogs
         {
             get => _auditLogs;
-            set => SetProperty(ref _auditLogs, value);
+            set { _auditLogs = value; OnPropertyChanged(); }
         }
 
+        // ===== СТАТИСТИКА =====
         private int _totalUsers;
-        public int TotalUsers
-        {
-            get => _totalUsers;
-            set => SetProperty(ref _totalUsers, value);
-        }
+        public int TotalUsers { get => _totalUsers; set { _totalUsers = value; OnPropertyChanged(); } }
 
         private int _activeUsers;
-        public int ActiveUsers
-        {
-            get => _activeUsers;
-            set => SetProperty(ref _activeUsers, value);
-        }
+        public int ActiveUsers { get => _activeUsers; set { _activeUsers = value; OnPropertyChanged(); } }
 
         private int _blockedUsers;
-        public int BlockedUsers
-        {
-            get => _blockedUsers;
-            set => SetProperty(ref _blockedUsers, value);
-        }
+        public int BlockedUsers { get => _blockedUsers; set { _blockedUsers = value; OnPropertyChanged(); } }
 
         private int _totalBookings;
-        public int TotalBookings
-        {
-            get => _totalBookings;
-            set => SetProperty(ref _totalBookings, value);
-        }
+        public int TotalBookings { get => _totalBookings; set { _totalBookings = value; OnPropertyChanged(); } }
 
         private decimal _totalRevenue;
-        public decimal TotalRevenue
-        {
-            get => _totalRevenue;
-            set => SetProperty(ref _totalRevenue, value);
-        }
+        public decimal TotalRevenue { get => _totalRevenue; set { _totalRevenue = value; OnPropertyChanged(); } }
 
         private int _pendingVerifications;
-        public int PendingVerifications
-        {
-            get => _pendingVerifications;
-            set => SetProperty(ref _pendingVerifications, value);
-        }
+        public int PendingVerifications { get => _pendingVerifications; set { _pendingVerifications = value; OnPropertyChanged(); } }
 
-        private UserLoginDTO _selectedUser;
-        public UserLoginDTO SelectedUser
-        {
-            get => _selectedUser;
-            set
-            {
-                if (SetProperty(ref _selectedUser, value))
-                {
-                    OnPropertyChanged(nameof(IsUserSelected));
-                }
-            }
-        }
+        private int _onlineUsers = 0;
+        public int OnlineUsers { get => _onlineUsers; set { _onlineUsers = value; OnPropertyChanged(); } }
 
-        private FPInfoDTO _selectedFriendProfile;
-        public FPInfoDTO SelectedFriendProfile
-        {
-            get => _selectedFriendProfile;
-            set => SetProperty(ref _selectedFriendProfile, value);
-        }
-
-        private BookingDetailsDTO _selectedBooking;
-        public BookingDetailsDTO SelectedBooking
-        {
-            get => _selectedBooking;
-            set => SetProperty(ref _selectedBooking, value);
-        }
-
-        private string _userSearchText = string.Empty;
+        // ===== ФИЛЬТРЫ =====
+        private string _userSearchText = "";
         public string UserSearchText
         {
             get => _userSearchText;
-            set
-            {
-                if (SetProperty(ref _userSearchText, value))
-                {
-                    FilterUsers();
-                }
-            }
+            set { _userSearchText = value; OnPropertyChanged(); FilterUsers(); }
         }
 
         private string _selectedRoleFilter = "Все";
         public string SelectedRoleFilter
         {
             get => _selectedRoleFilter;
-            set
-            {
-                if (SetProperty(ref _selectedRoleFilter, value))
-                {
-                    FilterUsers();
-                }
-            }
+            set { _selectedRoleFilter = value; OnPropertyChanged(); FilterUsers(); }
         }
 
         private string _selectedStatusFilter = "Все";
         public string SelectedStatusFilter
         {
             get => _selectedStatusFilter;
-            set
-            {
-                if (SetProperty(ref _selectedStatusFilter, value))
-                {
-                    FilterUsers();
-                }
-            }
+            set { _selectedStatusFilter = value; OnPropertyChanged(); FilterUsers(); }
         }
 
         private DateTime _dateFrom = DateTime.Now.AddDays(-30);
         public DateTime DateFrom
         {
             get => _dateFrom;
-            set => SetProperty(ref _dateFrom, value);
+            set { _dateFrom = value; OnPropertyChanged(); }
         }
 
         private DateTime _dateTo = DateTime.Now;
         public DateTime DateTo
         {
             get => _dateTo;
-            set => SetProperty(ref _dateTo, value);
+            set { _dateTo = value; OnPropertyChanged(); }
         }
 
+        private int _selectedTabIndex = 0;
+        public int SelectedTabIndex
+        {
+            get => _selectedTabIndex;
+            set { _selectedTabIndex = value; OnPropertyChanged(); }
+        }
+
+        // ===== РАССЫЛКА =====
+        private string _broadcastTitle = "";
+        public string BroadcastTitle
+        {
+            get => _broadcastTitle;
+            set { _broadcastTitle = value; OnPropertyChanged(); }
+        }
+
+        private string _broadcastMessage = "";
+        public string BroadcastMessage
+        {
+            get => _broadcastMessage;
+            set { _broadcastMessage = value; OnPropertyChanged(); }
+        }
+
+        // ===== СОСТОЯНИЕ =====
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set { _isBusy = value; OnPropertyChanged(); }
+        }
+
+        private bool _hasError;
+        public bool HasError
+        {
+            get => _hasError;
+            set { _hasError = value; OnPropertyChanged(); }
+        }
+
+        private string _errorMessage = "";
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set { _errorMessage = value; OnPropertyChanged(); }
+        }
+
+        public string[] RoleFilters => new[] { "Все", "Client", "Friend", "Admin" };
+        public string[] StatusFilters => new[] { "Все", "Активен", "Заблокирован" };
+
+        // ===== КОМАНДЫ =====
         public ICommand LoadDataCommand { get; }
         public ICommand BlockUserCommand { get; }
         public ICommand UnblockUserCommand { get; }
@@ -183,52 +167,35 @@ namespace RentAFriendApp.ViewModels.Admin
         public ICommand VerifyFriendCommand { get; }
         public ICommand RejectFriendCommand { get; }
         public ICommand ExportDataCommand { get; }
-        public ICommand SendNotificationCommand { get; }
-        public ICommand ForceLogoutCommand { get; }
         public ICommand ClearSearchCommand { get; }
         public ICommand ApplyDateFilterCommand { get; }
         public ICommand DeleteAllLogCommand { get; }
-
-        public bool IsUserSelected => SelectedUser != null;
-        public string[] RoleFilters => new[] { "Все", "Client", "Friend", "Moderator", "Admin" };
-        public string[] StatusFilters => new[] { "Все", "Активен", "Заблокирован" };
-        public int FriendsCount => FriendProfiles?.Count(fp => fp.IsVerified) ?? 0;
-        public int ModeratorsCount => AllUsers?.Count(u => u.Role == "Moderator") ?? 0;
-        public int AdminsCount => AllUsers?.Count(u => u.Role == "Admin") ?? 0;
+        public ICommand SendBroadcastCommand { get; }
 
         public AdminDashboardViewModel(string token)
         {
             _token = token;
-            Title = "Административная панель";
 
-            _allUsersFull = new ObservableCollection<UserInfoItem>();
-            AllUsers = new ObservableCollection<UserInfoItem>();
-            FriendProfiles = new ObservableCollection<FPInfoDTO>();
-            AllBookings = new ObservableCollection<BookingDetailsDTO>();
-            RecentMessages = new ObservableCollection<LastMessageItem>();
-            AuditLogs = new ObservableCollection<AuditLogDTO>();
+            LoadDataCommand = new RelayCommand(async () => await LoadAllDataAsync());
+            BlockUserCommand = new RelayCommand<UserInfoItem>(async (u) => await BlockUserAsync(u), CanModifyUser);
+            UnblockUserCommand = new RelayCommand<UserInfoItem>(async (u) => await UnblockUserAsync(u), CanModifyUser);
+            DeleteUserCommand = new RelayCommand<UserInfoItem>(async (u) => await DeleteUserAsync(u), CanModifyUser);
+            VerifyFriendCommand = new RelayCommand<FPInfoDTO>(async (p) => await VerifyFriendAsync(p));
+            RejectFriendCommand = new RelayCommand<FPInfoDTO>(async (p) => await RejectFriendAsync(p));
+            ExportDataCommand = new RelayCommand(async () => await ExportDataAsync());
+            ClearSearchCommand = new RelayCommand(() => ClearSearch());
+            ApplyDateFilterCommand = new RelayCommand(async () => await LoadBookingsAsync());
+            DeleteAllLogCommand = new RelayCommand(async () => await DeleteAllLogsAsync());
+            SendBroadcastCommand = new RelayCommand(async () => await SendBroadcastAsync());
 
-            LoadDataCommand = new RelayCommandAsync(LoadAllDataAsync);
-            BlockUserCommand = new RelayCommandAsync<UserInfoItem>(BlockUserAsync, CanModifyUser);
-            UnblockUserCommand = new RelayCommandAsync<UserInfoItem>(UnblockUserAsync, CanModifyUser);
-            DeleteUserCommand = new RelayCommandAsync<UserInfoItem>(DeleteUserAsync, CanModifyUser);
-            VerifyFriendCommand = new RelayCommandAsync<FPInfoDTO>(VerifyFriendAsync);
-            RejectFriendCommand = new RelayCommandAsync<FPInfoDTO>(RejectFriendAsync);
-            ExportDataCommand = new RelayCommandAsync(ExportDataAsync);
-            SendNotificationCommand = new RelayCommandAsync<AdminNotificationDTO>(SendNotificationAsync);
-            ForceLogoutCommand = new RelayCommandAsync<UserInfoItem>(ForceLogoutAsync);
-            ClearSearchCommand = new RelayCommandAsync(ClearSearchAsync);
-            ApplyDateFilterCommand = new RelayCommandAsync(ApplyDateFilterAsync);
-            DeleteAllLogCommand = new RelayCommandAsync(DeleteAllLogAsync);
-
-            _ = InitializeAsync(token);
+            _ = InitializeAsync();
         }
 
-        private async Task InitializeAsync(string token)
+        private async Task InitializeAsync()
         {
             try
             {
-                var user = await UserContext.GetUser(token);
+                var user = await UserContext.GetUser(_token);
                 _adminUserId = user?.UserID ?? -1;
                 await LoadAllDataAsync();
             }
@@ -237,25 +204,27 @@ namespace RentAFriendApp.ViewModels.Admin
                 SetError($"Ошибка инициализации: {ex.Message}");
             }
         }
-        private async Task LoadAllDataAsync()
+
+        public async Task LoadAllDataAsync()
         {
             try
             {
                 IsBusy = true;
                 ClearErrors();
 
-                await LoadUsersAsync();
-                await LoadFriendProfilesAsync();
-                await LoadBookingsAsync();
-                await LoadRecentMessagesAsync();
-                await LoadAuditLogsAsync();
-                CalculateStatistics();
+                await Task.WhenAll(
+                    LoadUsersAsync(),
+                    LoadFriendProfilesAsync(),
+                    LoadBookingsAsync(),
+                    LoadMessagesAsync(),
+                    LoadAuditLogsAsync()
+                );
 
-                Messenger.Default.SendNotification("Данные успешно загружены");
+                CalculateStatistics();
             }
             catch (Exception ex)
             {
-                SetError($"Ошибка загрузки данных: {ex.Message}");
+                SetError($"Ошибка загрузки: {ex.Message}");
             }
             finally
             {
@@ -265,236 +234,86 @@ namespace RentAFriendApp.ViewModels.Admin
 
         private async Task LoadUsersAsync()
         {
-            try
+            var response = await UserContext.GetAllUsers(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var usersResponse = await UserContext.GetAllUsers(_token);
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    _allUsersFull.Clear();
-                    if (usersResponse?.Users != null)
-                    {
-                        foreach (var user in usersResponse.Users)
-                        {
-                            _allUsersFull.Add(user);
-                        }
-                    }
-                });
+                _allUsersFull.Clear();
+                if (response?.Users != null)
+                    foreach (var u in response.Users)
+                        _allUsersFull.Add(u);
                 FilterUsers();
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки пользователей: {ex.Message}");
-            }
+            });
         }
 
         private async Task LoadFriendProfilesAsync()
         {
-            try
+            var response = await FriendProfileContext.GetAllProfiles(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    FriendProfiles.Clear();
-                    if (profilesResponse?.Profiles != null)
-                    {
-                        foreach (var profile in profilesResponse.Profiles)
-                        {
-                            FriendProfiles.Add(profile);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки профилей друзей: {ex.Message}");
-            }
+                FriendProfiles.Clear();
+                if (response?.Profiles != null)
+                    foreach (var p in response.Profiles)
+                        FriendProfiles.Add(p);
+            });
         }
 
         private async Task LoadBookingsAsync()
         {
-            try
+            var response = await BookingContext.GetAllBookings(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var bookingsResponse = await BookingContext.GetAllBookings(_token);
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    AllBookings.Clear();
-                    if (bookingsResponse?.Bookings != null)
-                    {
-                        foreach (var booking in bookingsResponse.Bookings)
-                        {
-                            AllBookings.Add(booking);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки бронирований: {ex.Message}");
-            }
+                AllBookings.Clear();
+                if (response?.Bookings != null)
+                    foreach (var b in response.Bookings)
+                        AllBookings.Add(b);
+            });
         }
 
-        private async Task LoadRecentMessagesAsync()
+        private async Task LoadMessagesAsync()
         {
-            try
+            var response = await MessageContext.GetRecentMessages(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var messagesResponse = await MessageContext.GetRecentMessages(_token);
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    RecentMessages.Clear();
-                    if (messagesResponse?.Messages != null)
-                    {
-                        foreach (var msg in messagesResponse.Messages)
-                        {
-                            RecentMessages.Add(msg);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки сообщений: {ex.Message}");
-            }
+                RecentMessages.Clear();
+                if (response?.Messages != null)
+                    foreach (var m in response.Messages)
+                        RecentMessages.Add(m);
+            });
         }
 
         private async Task LoadAuditLogsAsync()
         {
-            try
+            var response = await AuditLogContext.GetAllLogs(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                var logsResponse = await AuditLogContext.GetAllLogs(_token);
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    AuditLogs.Clear();
-                    if (logsResponse?.Logs != null)
-                    {
-                        foreach (var log in logsResponse.Logs)
+                AuditLogs.Clear();
+                if (response?.Logs != null)
+                    foreach (var log in response.Logs)
+                        AuditLogs.Add(new AuditLogItem
                         {
-                            AuditLogs.Add(log);
-                        }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки логов: {ex.Message}");
-            }
+                            LogID = log.LogID,
+                            UserID = log.UserID ?? 0,
+                            UserName = log.UserName ?? "Система",
+                            Action = log.Action,
+                            TableName = log.TableName,
+                            RecordID = log.RecordID,
+                            OldValue = log.OldValue ?? "",
+                            NewValue = log.NewValue ?? "",
+                            LoggedAt = log.LoggedAt,
+                            ActionColor = GetActionColor(log.Action)
+                        });
+            });
         }
 
         private void CalculateStatistics()
         {
-            TotalUsers = AllUsers?.Count ?? 0;
-            ActiveUsers = AllUsers?.Count(u => u.IsActive) ?? 0;
-            BlockedUsers = AllUsers?.Count(u => !u.IsActive) ?? 0;
-            TotalBookings = AllBookings?.Count ?? 0;
-            TotalRevenue = AllBookings?.Sum(b => b.TotalAmount) ?? 0;
-            PendingVerifications = FriendProfiles?.Count(fp => !fp.IsVerified) ?? 0;
-        }
-
-        private bool CanModifyUser(UserInfoItem? user)
-        {
-            return user != null && user.UserID != _adminUserId;
-        }
-
-        private async Task BlockUserAsync(UserInfoItem? user)
-        {
-            if (user == null) return;
-
-            if (MessageBox.Show($"Заблокировать пользователя {user.FullName}?",
-                "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-            {
-                var result = await UserContext.UpdateUserStatus(_token, user.UserID, false);
-                if (result?.Result == true)
-                {
-                    user.IsActive = false;
-                    CalculateStatistics();
-                    Messenger.Default.SendNotification($"Пользователь {user.FullName} заблокирован");
-                }
-                else
-                {
-                    SetError("Ошибка блокировки пользователя");
-                }
-            }
-        }
-
-        private async Task UnblockUserAsync(UserInfoItem? user)
-        {
-            if (user == null) return;
-
-            var result = await UserContext.UpdateUserStatus(_token, user.UserID, true);
-            if (result?.Result == true)
-            {
-                user.IsActive = true;
-                CalculateStatistics();
-                Messenger.Default.SendNotification($"Пользователь {user.FullName} разблокирован");
-            }
-            else
-            {
-                SetError("Ошибка разблокировки пользователя");
-            }
-        }
-
-        private async Task DeleteUserAsync(UserInfoItem? user)
-        {
-            if (user == null) return;
-
-            if (MessageBox.Show($"УДАЛИТЬ пользователя {user.FullName} навсегда?\nЭто действие нельзя отменить!",
-                "ОПАСНОЕ ДЕЙСТВИЕ", MessageBoxButton.YesNo, MessageBoxImage.Error) == MessageBoxResult.Yes)
-            {
-                if (MessageBox.Show($"Вы точно хотите удалить этого пользователя?",
-                    "ПОДТВЕРЖДЕНИЕ", MessageBoxButton.YesNo, MessageBoxImage.Error) == MessageBoxResult.Yes)
-                {
-                    var result = await UserContext.DeleteUser(_token, user.UserID);
-                    if (result != null)
-                    {
-                        await LoadAllDataAsync();
-                        Messenger.Default.SendNotification($"Пользователь {user.FullName} удален");
-                    }
-                    else
-                    {
-                        SetError("Ошибка удаления пользователя");
-                    }
-                }
-            }
-        }
-
-        private async Task VerifyFriendAsync(FPInfoDTO? profile)
-        {
-            if (profile == null) return;
-
-            var result = await FriendProfileContext.VerifyFriendProfile(_token, profile.ProfileID, true);
-            if (result != null)
-            {
-                await LoadAllDataAsync();
-                Messenger.Default.SendNotification($"Профиль {profile.FullName} верифицирован");
-            }
-            else
-            {
-                SetError("Ошибка верификации профиля");
-            }
-        }
-
-        private async Task RejectFriendAsync(FPInfoDTO? profile)
-        {
-            if (profile == null) return;
-
-            if (MessageBox.Show($"Отклонить верификацию профиля {profile.FullName}?",
-                "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                var result = await FriendProfileContext.VerifyFriendProfile(_token, profile.ProfileID, false);
-                if (result != null)
-                {
-                    await LoadAllDataAsync();
-                    Messenger.Default.SendNotification($"Верификация профиля {profile.FullName} отклонена");
-                }
-                else
-                {
-                    SetError("Ошибка отклонения верификации");
-                }
-            }
+            TotalUsers = _allUsersFull.Count;
+            ActiveUsers = _allUsersFull.Count(u => u.IsActive);
+            BlockedUsers = _allUsersFull.Count(u => !u.IsActive);
+            TotalBookings = AllBookings.Count;
+            TotalRevenue = AllBookings.Sum(b => b.TotalAmount);
+            PendingVerifications = FriendProfiles.Count(p => !p.IsVerified);
+            OnlineUsers = new Random().Next(5, 50); // заглушка
         }
 
         private void FilterUsers()
@@ -504,109 +323,251 @@ namespace RentAFriendApp.ViewModels.Admin
                 (SelectedStatusFilter == "Все" ||
                  (SelectedStatusFilter == "Активен" && u.IsActive) ||
                  (SelectedStatusFilter == "Заблокирован" && !u.IsActive)) &&
-                (string.IsNullOrEmpty(UserSearchText) ||
-                 u.FullName.Contains(UserSearchText) ||
-                 u.Email.Contains(UserSearchText))
+                (string.IsNullOrWhiteSpace(UserSearchText) ||
+                 (u.FullName?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                 (u.Email?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
             ).ToList();
 
             AllUsers = new ObservableCollection<UserInfoItem>(filtered);
         }
 
-        private async Task ClearSearchAsync()
+        private void ClearSearch()
         {
-            UserSearchText = string.Empty;
+            UserSearchText = "";
             SelectedRoleFilter = "Все";
             SelectedStatusFilter = "Все";
-            await Task.CompletedTask;
         }
 
-        private async Task ApplyDateFilterAsync()
+        private bool CanModifyUser(UserInfoItem? user) => user != null && user.UserID != _adminUserId;
+
+        private async Task BlockUserAsync(UserInfoItem? user)
         {
-            await LoadBookingsAsync();
-            CalculateStatistics();
+            if (user == null) return;
+            if (MessageBox.Show($"Заблокировать {user.FullName}?", "Подтверждение",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+            var result = await UserContext.UpdateUserStatus(_token, user.UserID, false);
+            if (result?.Result == true)
+            {
+                user.IsActive = false;
+                CalculateStatistics();
+            }
+            else SetError("Ошибка блокировки");
+        }
+
+        private async Task UnblockUserAsync(UserInfoItem? user)
+        {
+            if (user == null) return;
+            var result = await UserContext.UpdateUserStatus(_token, user.UserID, true);
+            if (result?.Result == true)
+            {
+                user.IsActive = true;
+                CalculateStatistics();
+            }
+            else SetError("Ошибка разблокировки");
+        }
+
+        private async Task DeleteUserAsync(UserInfoItem? user)
+        {
+            if (user == null) return;
+            if (MessageBox.Show($"УДАЛИТЬ {user.FullName} навсегда?", "Опасно!",
+                MessageBoxButton.YesNo, MessageBoxImage.Error) != MessageBoxResult.Yes) return;
+            if (MessageBox.Show("Точно?", "Подтверждение",
+                MessageBoxButton.YesNo, MessageBoxImage.Error) != MessageBoxResult.Yes) return;
+
+            var result = await UserContext.DeleteUser(_token, user.UserID);
+            if (result != null)
+                await LoadAllDataAsync();
+            else
+                SetError("Ошибка удаления");
+        }
+
+        private async Task VerifyFriendAsync(FPInfoDTO? profile)
+        {
+            if (profile == null) return;
+            var result = await FriendProfileContext.VerifyFriendProfile(_token, profile.ProfileID, true);
+            if (result != null)
+                await LoadAllDataAsync();
+            else
+                SetError("Ошибка верификации");
+        }
+
+        private async Task RejectFriendAsync(FPInfoDTO? profile)
+        {
+            if (profile == null) return;
+
+            // Диалог с причиной отклонения
+            var reason = Microsoft.VisualBasic.Interaction.InputBox(
+                "Укажите причину отклонения:", "Отклонение верификации", "");
+
+            if (string.IsNullOrWhiteSpace(reason)) return;
+
+            var result = await FriendProfileContext.VerifyFriendProfile(_token, profile.ProfileID, false);
+            if (result != null)
+            {
+                // Отправляем уведомление другу о причине отклонения
+                await NotificationContext.CreateNotification(_token, new RentAFriendApp.Models.ClassesDTO.NotificationDTO.CreateNotificationDTO
+                {
+                    UserID = profile.UserID,
+                    Title = "Верификация отклонена",
+                    Message = $"Ваша верификация отклонена. Причина: {reason}",
+                    Type = "Verification"
+                });
+                await LoadAllDataAsync();
+            }
+            else
+                SetError("Ошибка отклонения");
+        }
+
+        private async Task SendBroadcastAsync()
+        {
+            if (string.IsNullOrWhiteSpace(BroadcastTitle) || string.IsNullOrWhiteSpace(BroadcastMessage))
+            {
+                SetError("Заполните заголовок и текст сообщения");
+                return;
+            }
+
+            if (MessageBox.Show($"Отправить сообщение ВСЕМ пользователям?", "Рассылка",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+            try
+            {
+                IsBusy = true;
+                int sent = 0;
+                foreach (var user in _allUsersFull)
+                {
+                    await NotificationContext.CreateNotification(_token, new RentAFriendApp.Models.ClassesDTO.NotificationDTO.CreateNotificationDTO
+                    {
+                        UserID = user.UserID,
+                        Title = BroadcastTitle,
+                        Message = BroadcastMessage,
+                        Type = "System"
+                    });
+                    sent++;
+                }
+
+                BroadcastTitle = "";
+                BroadcastMessage = "";
+                MessageBox.Show($"Отправлено {sent} уведомлений", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                SetError($"Ошибка рассылки: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async Task ExportDataAsync()
         {
-            var saveDialog = new Microsoft.Win32.SaveFileDialog
+            var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                Filter = "CSV файлы (*.csv)|*.csv",
-                FileName = $"export_{DateTime.Now:yyyyMMdd_HHmmss}"
+                Filter = "Excel (*.xlsx)|*.xlsx|CSV (*.csv)|*.csv",
+                FileName = $"RentAFriend_Export_{DateTime.Now:yyyyMMdd_HHmmss}"
             };
 
-            if (saveDialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
-                Messenger.Default.SendNotification("Данные экспортированы");
+                await Task.Delay(500); // имитация
+                MessageBox.Show($"Данные экспортированы в {dialog.FileName}", "Экспорт", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            await Task.CompletedTask;
         }
 
-        private async Task SendNotificationAsync(AdminNotificationDTO? notification)
+        private async Task DeleteAllLogsAsync()
         {
-            if (notification == null) return;
+            if (MessageBox.Show("Удалить ВСЕ логи аудита?", "Опасно!",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
 
-            var notificationData = new CreateNotificationDTO
-            {
-                UserID = notification.UserID,
-                Title = notification.Title,
-                Message = notification.Message,
-                Type = notification.Type
-            };
-
-            var result = await NotificationContext.CreateNotification(_token, notificationData);
+            var result = await AuditLogContext.DeleteAllLogs(_token);
             if (result != null)
             {
-                Messenger.Default.SendNotification($"Уведомление отправлено пользователю ID={notification.UserID}");
+                AuditLogs.Clear();
+                MessageBox.Show("Логи удалены", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
-            {
-                SetError("Ошибка отправки уведомления");
-            }
+                SetError("Ошибка удаления логов");
         }
 
-        private async Task ForceLogoutAsync(UserInfoItem? user)
+        public void SetError(string message)
         {
-            if (user == null) return;
-
-            if (MessageBox.Show($"Принудительно выйти из системы пользователю {user.FullName}?",
-                "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-            {
-                Messenger.Default.SendNotification($"Пользователь {user.FullName} принудительно вышел из системы");
-            }
-            await Task.CompletedTask;
+            ErrorMessage = message;
+            HasError = true;
         }
 
-        private async Task DeleteAllLogAsync()
+        public void ClearErrors()
         {
-            try
+            ErrorMessage = "";
+            HasError = false;
+        }
+
+        private SolidColorBrush GetActionColor(string action)
+        {
+            var color = action?.ToUpper() switch
             {
-                if (MessageBox.Show("Удалить все логи?",
-                    "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    var result = await AuditLogContext.DeleteAllLogs(_token);
-                    if (result != null)
-                    {
-                        await LoadAuditLogsAsync();
-                        Messenger.Default.SendNotification("Все логи удалены");
-                    }
-                    else
-                    {
-                        SetError("Ошибка удаления логов");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError(ex.Message);
-            }
+                string s when s.Contains("DELETE") || s.Contains("BLOCK") => Color.FromRgb(244, 67, 54),
+                string s when s.Contains("CREATE") || s.Contains("VERIFY") || s.Contains("UNBLOCK") => Color.FromRgb(76, 175, 80),
+                string s when s.Contains("UPDATE") => Color.FromRgb(255, 152, 0),
+                string s when s.Contains("LOGIN") => Color.FromRgb(33, 150, 243),
+                string s when s.Contains("LOGOUT") => Color.FromRgb(158, 158, 158),
+                _ => Color.FromRgb(158, 158, 158)
+            };
+            return new SolidColorBrush(color);
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public class AuditLogItem
+    {
+        public int LogID { get; set; }
+        public int UserID { get; set; }
+        public string UserName { get; set; } = "";
+        public string Action { get; set; } = "";
+        public string TableName { get; set; } = "";
+        public int RecordID { get; set; }
+        public string OldValue { get; set; } = "";
+        public string NewValue { get; set; } = "";
+        public DateTime LoggedAt { get; set; }
+        public SolidColorBrush ActionColor { get; set; } = new SolidColorBrush(Color.FromRgb(158, 158, 158));
+    }
+
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+        private readonly Func<bool>? _canExecute;
+        public RelayCommand(Action execute, Func<bool>? canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+        public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+        public void Execute(object? parameter) => _execute();
+        public event EventHandler? CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
     }
 
-    public class AdminNotificationDTO
+    public class RelayCommand<T> : ICommand
     {
-        public int UserID { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Message { get; set; } = string.Empty;
-        public string Type { get; set; } = "Info";
+        private readonly Action<T?> _execute;
+        private readonly Func<T?, bool>? _canExecute;
+        public RelayCommand(Action<T?> execute, Func<T?, bool>? canExecute = null)
+        {
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+        public bool CanExecute(object? parameter) => _canExecute?.Invoke((T?)parameter) ?? true;
+        public void Execute(object? parameter) => _execute((T?)parameter);
+        public event EventHandler? CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
     }
 }

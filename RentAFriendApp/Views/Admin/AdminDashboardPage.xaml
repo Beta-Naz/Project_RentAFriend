@@ -3,1238 +3,436 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:local="clr-namespace:RentAFriendApp.Views.Admin"
-      xmlns:vm="clr-namespace:RentAFriendApp.ViewModels.Admin"
       xmlns:convertes="clr-namespace:RentAFriendApp.Converters.Admin"
       mc:Ignorable="d" 
-      d:DesignHeight="900" d:DesignWidth="1600"
+      d:DesignHeight="900" d:DesignWidth="1400"
       Title="Административная панель"
-      Background="#F8F9FA">
+      Background="#F5F6FA">
 
     <Page.Resources>
-        <!-- Стили для административной панели -->
-        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
-            <Grid>
-                <Border x:Name="Border"
-                Background="White"
-                BorderBrush="#E0E0E0"
-                BorderThickness="1"
-                CornerRadius="6">
-                    <Path x:Name="Arrow"
-                  Data="M0,0 L4,4 L8,0 Z"
-                  Fill="#666666"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Width="8"
-                  Height="8"/>
-                </Border>
-            </Grid>
-            <ControlTemplate.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="Border" Property="Background" Value="#F0F0F0"/>
-                </Trigger>
-                <Trigger Property="IsChecked" Value="True">
-                    <Setter TargetName="Border" Property="Background" Value="#E0E0E0"/>
-                </Trigger>
-            </ControlTemplate.Triggers>
-        </ControlTemplate>
-        <Style x:Key="AdminCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="20" Opacity="0.1" ShadowDepth="0"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#FF5252"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" 
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#D32F2F"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SuccessButton" TargetType="Button">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" 
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#388E3C"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="WarningButton" TargetType="Button">
-            <Setter Property="Background" Value="#FF9800"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" 
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#F57C00"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Конвертеры -->
         <convertes:InitialsConverter x:Key="InitialsConverter"/>
         <convertes:RoleToColorConverter x:Key="RoleToColorConverter"/>
         <convertes:StatusToColorConverter x:Key="StatusToColorConverter"/>
-        <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <convertes:BooleanToStatusConverter x:Key="BooleanToStatusConverter"/>
+        <convertes:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <convertes:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <convertes:BooleanToStatusTextConverter x:Key="BoolToStatusConverter"/>
+        <convertes:VerificationStatusConverter x:Key="VerificationStatusConverter"/>
+        <convertes:VerificationColorConverter x:Key="VerificationColorConverter"/>
         <convertes:TrimTextConverter x:Key="TrimTextConverter"/>
-        <convertes:VerificationStatusColorConverter x:Key="VerificationStatusColorConverter"/>
-        <convertes:ActionTypeColorConverter x:Key="ActionTypeColorConverter"/>
-        <convertes:ReadStatusTextConverter x:Key="ReadStatusTextConverter"/>
-        <convertes:ReadStatusColorConverter x:Key="ReadStatusColorConverter"/>
+        <convertes:DateFormatConverter x:Key="DateFormatConverter"/>
+        <convertes:MoneyFormatConverter x:Key="MoneyFormatConverter"/>
         <convertes:BookingStatusColorConverter x:Key="BookingStatusColorConverter"/>
-        <convertes:VerificationStatusTextConverter x:Key="VerificationStatusTextConverter"/>
 
-        <!-- Иконки -->
-        <Geometry x:Key="ShieldIcon">M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5C13.66,5 15,6.34 15,8C15,9.66 13.66,11 12,11C10.34,11 9,9.66 9,8C9,6.34 10.34,5 12,5M12,13C14.76,13 17,15.24 17,18C17,20.76 14.76,23 12,23C9.24,23 7,20.76 7,18C7,15.24 9.24,13 12,13M12,15C10.34,15 9,16.34 9,18C9,19.66 10.34,21 12,21C13.66,21 15,19.66 15,18C15,16.34 13.66,15 12,15Z</Geometry>
-        <Geometry x:Key="UsersIcon">M16,13C15.71,13 15.38,13 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z</Geometry>
-        <Geometry x:Key="CalendarIcon">M9,1V3H15V1H17V3H21C22.11,3 23,3.89 23,5V21C23,22.11 22.11,23 21,23H3C1.89,23 1,22.11 1,21V5C1,3.89 1.89,3 3,3H7V1H9M7,7V9H9V7H7M11,7V9H13V7H11M15,7V9H17V7H15M19,7V9H21V7H19M3,10V21H21V10H3M7,11V13H9V11H7M11,11V13H13V11H11M15,11V13H17V11H15M19,11V13H21V11H19Z</Geometry>
-        <Geometry x:Key="MoneyIcon">M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6C9.79,6 8,7.79 8,10C8,12.21 9.79,14 12,14C14.21,14 16,12.21 16,10C16,7.79 14.21,6 12,6M12,8C13.1,8 14,8.9 14,10C14,11.1 13.1,12 12,12C10.9,12 10,11.1 10,10C10,8.9 10.9,8 12,8Z</Geometry>
-        <Geometry x:Key="VerifiedIcon">M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Geometry>
-        <Geometry x:Key="BlockIcon">M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,4C16.42,4 20,7.58 20,12C20,16.42 16.42,20 12,20C7.58,20 4,16.42 4,12C4,7.58 7.58,4 12,4M12,5C8.14,5 5,8.14 5,12C5,15.86 8.14,19 12,19C15.86,19 19,15.86 19,12C19,8.14 15.86,5 12,5Z</Geometry>
-        <Geometry x:Key="DeleteIcon">M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z</Geometry>
-        <Geometry x:Key="RefreshIcon">M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</Geometry>
-        <Geometry x:Key="SearchIcon">M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z</Geometry>
-        <Geometry x:Key="ExportIcon">M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z</Geometry>
-        <Geometry x:Key="MessageIcon">M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2Z</Geometry>
-        <Geometry x:Key="LogIcon">M14,12H10V10H14M14,16H10V14H14M20,8H17V6A3,3 0 0,0 14,3H10A3,3 0 0,0 7,6V8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V10A2,2 0 0,0 20,8M9,6A1,1 0 0,1 10,5H14A1,1 0 0,1 15,6V8H9V6Z</Geometry>
+        <!-- Цвета -->
+        <Color x:Key="GreenColor">#4CAF50</Color>
+        <Color x:Key="RedColor">#F44336</Color>
+        <Color x:Key="BlueColor">#2196F3</Color>
+        <Color x:Key="OrangeColor">#FF9800</Color>
+        <Color x:Key="PurpleColor">#9C27B0</Color>
+        <SolidColorBrush x:Key="GreenBrush" Color="#4CAF50"/>
+        <SolidColorBrush x:Key="RedBrush" Color="#F44336"/>
+        <SolidColorBrush x:Key="BlueBrush" Color="#2196F3"/>
+        <SolidColorBrush x:Key="OrangeBrush" Color="#FF9800"/>
+        <SolidColorBrush x:Key="PurpleBrush" Color="#9C27B0"/>
+        <SolidColorBrush x:Key="GrayBrush" Color="#9E9E9E"/>
+        <SolidColorBrush x:Key="BgBrush" Color="#F5F6FA"/>
+        <SolidColorBrush x:Key="CardBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#212121"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#757575"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0"/>
 
+        <!-- Стиль кнопки действия -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#F5F5F5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль опасной кнопки -->
+        <Style x:Key="DangerBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F44336"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#D32F2F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль успешной кнопки -->
+        <Style x:Key="SuccessBtn" TargetType="Button" BasedOn="{StaticResource DangerBtn}">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#388E3C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль карточки -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <!-- Стиль таба -->
+        <Style TargetType="TabItem">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Foreground" Value="#757575"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="border" Background="Transparent" 
+                                BorderBrush="Transparent" BorderThickness="0,0,0,2"
+                                Padding="{TemplateBinding Padding}" Cursor="Hand">
+                            <ContentPresenter ContentSource="Header" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter Property="Foreground" Value="#4CAF50"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#4CAF50"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль TextBox -->
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#4CAF50"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль ComboBox -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="36"/>
+        </Style>
     </Page.Resources>
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <Grid Margin="20">
-                <!-- Заголовок панели -->
-                <Grid Margin="0,0,0,25">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Заголовок -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <Border Background="#4CAF50"
-                                Width="48"
-                                Height="48"
-                                CornerRadius="10"
-                                VerticalAlignment="Center">
-                            <Path Data="{StaticResource ShieldIcon}"
-                                  Fill="White"
-                                  Width="24"
-                                  Height="24"
-                                  Stretch="Uniform"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Margin="15,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="🛡️ Административная панель"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="#333333"/>
-                            <TextBlock Text="Полный контроль над системой RentAFriend"
-                                       FontSize="13"
-                                       Foreground="#666666"/>
-                        </StackPanel>
+            <StackPanel Margin="24">
+                
+                <!-- ============ ЗАГОЛОВОК ============ -->
+                <Grid Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Административная панель" FontSize="22" FontWeight="Bold" Foreground="#212121"/>
+                        <TextBlock Text="Управление пользователями, профилями, бронированиями и системой" 
+                                   FontSize="13" Foreground="#757575" Margin="0,4,0,0"/>
                     </StackPanel>
-
-                    <!-- Быстрые действия -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Content="🔄 Обновить"
-                                Style="{StaticResource SuccessButton}"
-                                Command="{Binding LoadDataCommand}"
-                                Width="120"
-                                Margin="0,0,10,0"/>
-                        <Button Content="📤 Экспорт"
-                                Style="{StaticResource WarningButton}"
-                                Command="{Binding ExportDataCommand}"
-                                Width="100"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="🔄 Обновить" Style="{StaticResource SuccessBtn}" 
+                                Command="{Binding LoadDataCommand}" Margin="0,0,8,0"/>
+                        <Button Content="📤 Экспорт" Style="{StaticResource DangerBtn}" 
+                                Command="{Binding ExportDataCommand}" Background="#FF9800"/>
                     </StackPanel>
                 </Grid>
 
-                <!-- Основная статистика -->
-                <Grid Visibility="Collapsed" Margin="0,0,0,30">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="15"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="15"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="15"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Карточка: Все пользователи -->
-                    <Border Style="{StaticResource AdminCardStyle}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#E3F2FD"
-                                        Width="48"
-                                        Height="48"
-                                        CornerRadius="10"
-                                        VerticalAlignment="Center">
-                                    <Path Data="{StaticResource UsersIcon}"
-                                          Fill="#2196F3"
-                                          Width="24"
-                                          Height="24"
-                                          Stretch="Uniform"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Margin="12,0,0,0">
-                                    <TextBlock Text="Все пользователи"
-                                               FontSize="12"
-                                               Foreground="#666666"/>
-                                    <TextBlock Text="{Binding TotalUsers}"
-                                               FontSize="28"
-                                               FontWeight="Bold"
-                                               Foreground="#2196F3"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding ActiveUsers, StringFormat='Активных: {0}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding BlockedUsers, StringFormat='Заблокировано: {0}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Карточка: Друзья -->
-                    <Border Grid.Column="2" Style="{StaticResource AdminCardStyle}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#E8F5E8"
-                                        Width="48"
-                                        Height="48"
-                                        CornerRadius="10"
-                                        VerticalAlignment="Center">
-                                    <Path Data="{StaticResource VerifiedIcon}"
-                                          Fill="#4CAF50"
-                                          Width="24"
-                                          Height="24"
-                                          Stretch="Uniform"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Margin="12,0,0,0">
-                                    <TextBlock Text="Верифицированные друзья"
-                                               FontSize="12"
-                                               Foreground="#666666"/>
-                                    <TextBlock Text="{Binding FriendsCount}"
-                                               FontSize="28"
-                                               FontWeight="Bold"
-                                               Foreground="#4CAF50"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding PendingVerifications, StringFormat='На проверке: {0}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Path=FriendProfiles.Count, StringFormat='Всего: {0}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Карточка: Бронирования -->
-                    <Border Grid.Column="4" Style="{StaticResource AdminCardStyle}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#FFF3E0"
-                                        Width="48"
-                                        Height="48"
-                                        CornerRadius="10"
-                                        VerticalAlignment="Center">
-                                    <Path Data="{StaticResource CalendarIcon}"
-                                          Fill="#FF9800"
-                                          Width="24"
-                                          Height="24"
-                                          Stretch="Uniform"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Margin="12,0,0,0">
-                                    <TextBlock Text="Все бронирования"
-                                               FontSize="12"
-                                               Foreground="#666666"/>
-                                    <TextBlock Text="{Binding TotalBookings}"
-                                               FontSize="28"
-                                               FontWeight="Bold"
-                                               Foreground="#FF9800"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding TotalRevenue, StringFormat='Выручка: {0:C}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="За период"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Карточка: Администраторы -->
-                    <Border Grid.Column="6" Style="{StaticResource AdminCardStyle}">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border Background="#F3E5F5"
-                                        Width="48"
-                                        Height="48"
-                                        CornerRadius="10"
-                                        VerticalAlignment="Center">
-                                    <Path Data="{StaticResource ShieldIcon}"
-                                          Fill="#9C27B0"
-                                          Width="24"
-                                          Height="24"
-                                          Stretch="Uniform"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Margin="12,0,0,0">
-                                    <TextBlock Text="Администраторы"
-                                               FontSize="12"
-                                               Foreground="#666666"/>
-                                    <TextBlock Text="{Binding AdminsCount}"
-                                               FontSize="28"
-                                               FontWeight="Bold"
-                                               Foreground="#9C27B0"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding ModeratorsCount, StringFormat='Модераторов: {0}'}"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="Вы: Админ"
-                                           FontSize="12"
-                                           Foreground="#666666"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                </Grid>
-
-                <!-- Основной контент: Табы -->
-                <TabControl Background="Transparent" BorderThickness="0">
-                    <TabControl.Resources>
-                        <Style TargetType="TabItem">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="TabItem">
-                                        <Border x:Name="border" 
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Margin="0,0,10,0">
-                                            <ContentPresenter x:Name="contentPresenter"
-                                                              ContentSource="Header"
-                                                              HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="border" Property="Background" Value="#4CAF50"/>
-                                                <Setter TargetName="border" Property="CornerRadius" Value="6"/>
-                                                <Setter TargetName="border" Property="Padding" Value="15,8"/>
-                                                <Setter Property="Foreground" Value="White"/>
-                                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                            </Trigger>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Foreground" Value="#4CAF50"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </TabControl.Resources>
-
-                    <!-- Вкладка 1: Управление пользователями -->
+                <!-- ============ ТАБЫ ============ -->
+                <TabControl Background="Transparent" BorderThickness="0" 
+                            SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                    
+                    <!-- ===== ТАБ 1: ПОЛЬЗОВАТЕЛИ ===== -->
                     <TabItem Header="👥 Пользователи">
-                        <Border Style="{StaticResource AdminCardStyle}">
+                        <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- Фильтры -->
-                                <Border Grid.Row="0" 
-                                        Background="#F8F9FA"
-                                        CornerRadius="8"
-                                        Padding="15"
-                                        Margin="0,0,0,15">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- Поиск -->
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                            <Path Data="{StaticResource SearchIcon}"
-                                                  Fill="#666666"
-                                                  Width="20"
-                                                  Height="20"
-                                                  VerticalAlignment="Center"/>
-                                            <TextBox Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     Width="300"
-                                                     Margin="10,0,0,0"
-                                                     Padding="10"
-                                                     Background="White"
-                                                     BorderBrush="#E0E0E0"
-                                                     BorderThickness="1"
-                                                     FontSize="13"
-                                                     VerticalAlignment="Center">
-                                                <TextBox.Style>
-                                                    <Style TargetType="TextBox">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="TextBox">
-                                                                    <Border x:Name="border" 
-                                                                            Background="{TemplateBinding Background}"
-                                                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                                                            BorderThickness="{TemplateBinding BorderThickness}">
-                                                                        <ScrollViewer x:Name="PART_ContentHost" 
-                                                                                      Margin="{TemplateBinding Padding}"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsFocused" Value="True">
-                                                                            <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </TextBox.Style>
-                                            </TextBox>
-                                        </StackPanel>
-
-                                        <!-- Фильтр по роли -->
-                                        <ComboBox Grid.Column="1"
-                                                  ItemsSource="{Binding RoleFilters}"
-                                                  SelectedItem="{Binding SelectedRoleFilter}"
-                                                  Width="120"
-                                                  Margin="15,0,0,0"
-                                                  Padding="8"
-                                                  FontSize="12"
-                                                  VerticalAlignment="Center">
-                                        </ComboBox>
-
-                                        <!-- Фильтр по статусу -->
-                                        <ComboBox Grid.Column="2"
-                                                  ItemsSource="{Binding StatusFilters}"
-                                                  SelectedItem="{Binding SelectedStatusFilter}"
-                                                  Width="120"
-                                                  Margin="10,0,0,0"
-                                                  Padding="8"
-                                                  FontSize="12"
-                                                  VerticalAlignment="Center">
-                                            <ComboBox.Style>
-                                                <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox"/>
-                                            </ComboBox.Style>
-                                        </ComboBox>
-
-                                        <!-- Кнопка сброса -->
-                                        <Button Grid.Column="3"
-                                                Content="🗑️ Очистить"
-                                                Command="{Binding ClearSearchCommand}"
-                                                Background="Transparent"
-                                                BorderBrush="#666666"
-                                                BorderThickness="1"
-                                                Foreground="#666666"
-                                                FontSize="12"
-                                                Height="32"
-                                                Margin="10,0,0,0"
-                                                Padding="10,0"
-                                                VerticalAlignment="Center"
-                                                Cursor="Hand">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border x:Name="border" 
-                                                                        Background="{TemplateBinding Background}"
-                                                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                                                        CornerRadius="6">
-                                                                    <ContentPresenter HorizontalAlignment="Center" 
-                                                                                      VerticalAlignment="Center"/>
-                                                                </Border>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                    </Grid>
+                                <Border Background="#F8F9FB" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                    <WrapPanel>
+                                        <TextBox Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Width="240" Margin="0,0,10,0" Tag="🔍 Поиск по имени или email"/>
+                                        <ComboBox ItemsSource="{Binding RoleFilters}" SelectedItem="{Binding SelectedRoleFilter}"
+                                                  Width="130" Margin="0,0,10,0"/>
+                                        <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatusFilter}"
+                                                  Width="140" Margin="0,0,10,0"/>
+                                        <Button Content="Очистить фильтры" Background="Transparent" BorderBrush="#BDBDBD" 
+                                                BorderThickness="1" Foreground="#757575" FontSize="12" Height="34" Padding="12,0"
+                                                Cursor="Hand" Command="{Binding ClearSearchCommand}"/>
+                                    </WrapPanel>
                                 </Border>
 
-                                <!-- Заголовки таблицы -->
-                                <Grid Grid.Row="1" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50"/>
-                                        <ColumnDefinition Width="200"/>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition Width="150"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="ID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="Пользователь"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="Email"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="3"
-                                               Text="Роль"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="4"
-                                               Text="Статус"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="5"
-                                               Text="Дата регистрации"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="6"
-                                               Text="Действия"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"
-                                               HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="7"
-                                               Text="Быстрые действия"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"
-                                               HorizontalAlignment="Center"/>
-                                </Grid>
-
-                                <!-- Список пользователей -->
-                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <!-- Таблица -->
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl ItemsSource="{Binding AllUsers}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="White" 
-                                                        BorderBrush="#F0F0F0" 
-                                                        BorderThickness="0,0,0,1"
-                                                        Padding="0,12">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="50"/>
-                                                            <ColumnDefinition Width="200"/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <!-- ID -->
-                                                        <TextBlock Text="{Binding UserID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Имя -->
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="36" 
-                                                                    Height="36" 
-                                                                    Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}"
-                                                                    CornerRadius="18"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
-                                                                           Foreground="White"
-                                                                           FontSize="12"
-                                                                           FontWeight="Bold"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <StackPanel Margin="10,0,0,0">
-                                                                <TextBlock Text="{Binding FullName}"
-                                                                           FontSize="13"
-                                                                           FontWeight="SemiBold"
-                                                                           Foreground="#333333"/>
-                                                                <TextBlock Text="{Binding Phone}"
-                                                                           FontSize="11"
-                                                                           Foreground="#666666"/>
-                                                            </StackPanel>
-                                                        </StackPanel>
-
-                                                        <!-- Email -->
-                                                        <TextBlock Grid.Column="2"
-                                                                   Text="{Binding Email}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"/>
-
-                                                        <!-- Роль -->
-                                                        <Border Grid.Column="3"
-                                                                Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding Role}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <!-- Статус -->
-                                                        <Border Grid.Column="4"
-                                                                Background="{Binding IsActive, Converter={StaticResource StatusToColorConverter}}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding IsActive, Converter={StaticResource BooleanToStatusConverter}}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <!-- Дата регистрации -->
-                                                        <TextBlock Grid.Column="5"
-                                                                   Text="{Binding CreatedAt, StringFormat='dd.MM.yyyy'}"
-                                                                   FontSize="11"
-                                                                   Foreground="#666666"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Действия -->
-                                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Content="👁️"
-                                                                    ToolTip="Просмотр"
-                                                                    Background="Transparent"
-                                                                    BorderBrush="#2196F3"
-                                                                    BorderThickness="1"
-                                                                    Foreground="#2196F3"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    FontSize="12"
-                                                                    Margin="0,0,5,0"
-                                                                    Click="ViewUserButton_Click"
-                                                                    Tag="{Binding UserID}"/>
-                                                            <Button Content="✏️"
-                                                                    ToolTip="Редактировать"
-                                                                    Background="Transparent"
-                                                                    BorderBrush="#4CAF50"
-                                                                    BorderThickness="1"
-                                                                    Foreground="#4CAF50"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    FontSize="12"
-                                                                    Margin="0,0,5,0"
-                                                                    Click="EditUserButton_Click"
-                                                                    Tag="{Binding UserID}"/>
-                                                            <Button Content="🔍"
-                                                                    ToolTip="Подробнее"
-                                                                    Background="Transparent"
-                                                                    BorderBrush="#9C27B0"
-                                                                    BorderThickness="1"
-                                                                    Foreground="#9C27B0"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    FontSize="12"
-                                                                    Click="DetailsUserButton_Click"
-                                                                    Tag="{Binding UserID}"/>
-                                                        </StackPanel>
-
-                                                        <!-- Быстрые действия -->
-                                                        <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Content="🚫"
-                                                                    ToolTip="Заблокировать"
-                                                                    Style="{StaticResource DangerButton}"
-                                                                    Command="{Binding DataContext.BlockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    Margin="0,0,5,0"
-                                                                    IsEnabled="{Binding IsActive}"/>
-                                                            <Button Content="✅"
-                                                                    ToolTip="Разблокировать"
-                                                                    Style="{StaticResource SuccessButton}"
-                                                                    Command="{Binding DataContext.UnblockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    Margin="0,0,5,0"
-                                                                    Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=reverse}"/>
-                                                            <Button Content="🗑️"
-                                                                    ToolTip="Удалить"
-                                                                    Style="{StaticResource DangerButton}"
-                                                                    Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Width="32"
-                                                                    Height="32"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-
-                    <!-- Вкладка 2: Профили друзей -->
-                    <TabItem Header="⭐ Профили друзей">
-                        <Border Style="{StaticResource AdminCardStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Заголовки -->
-                                <Grid Grid.Row="0" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition Width="80"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="150"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="ID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="Друг"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="Описание"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="3"
-                                               Text="Город"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="4"
-                                               Text="Ставка"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="5"
-                                               Text="Рейтинг"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="6"
-                                               Text="Статус"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="7"
-                                               Text="Действия"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                </Grid>
-
-                                <!-- Список профилей -->
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding FriendProfiles}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="White" 
-                                                        BorderBrush="#F0F0F0" 
-                                                        BorderThickness="0,0,0,1"
-                                                        Padding="0,12">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="50"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition Width="80"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <!-- ID -->
-                                                        <TextBlock Text="{Binding ProfileID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Имя и фото -->
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="40" 
-                                                                    Height="40" 
-                                                                    Background="#4CAF50"
-                                                                    CornerRadius="20"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
-                                                                           Foreground="White"
-                                                                           FontSize="14"
-                                                                           FontWeight="Bold"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <StackPanel Margin="10,0,0,0">
-                                                                <TextBlock Text="{Binding FullName}"
-                                                                           FontSize="13"
-                                                                           FontWeight="SemiBold"
-                                                                           Foreground="#333333"/>
-                                                                <TextBlock Text="{Binding Email}"
-                                                                           FontSize="11"
-                                                                           Foreground="#666666"/>
-                                                            </StackPanel>
-                                                        </StackPanel>
-
-                                                        <!-- Описание -->
-                                                        <TextBlock Grid.Column="2"
-                                                                   Text="{Binding Bio, Converter={StaticResource TrimTextConverter}, ConverterParameter=50}"
-                                                                   FontSize="12"
-                                                                   Foreground="#666666"
-                                                                   VerticalAlignment="Center"
-                                                                   TextWrapping="Wrap"
-                                                                   MaxHeight="40"
-                                                                   TextTrimming="CharacterEllipsis"/>
-
-                                                        <!-- Город -->
-                                                        <TextBlock Grid.Column="3"
-                                                                   Text="{Binding City}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Ставка -->
-                                                        <TextBlock Grid.Column="4"
-                                                                   Text="{Binding HourlyRate, StringFormat='{}{0:C}/час'}"
-                                                                   FontSize="12"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="#4CAF50"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Рейтинг -->
-                                                        <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="⭐"
-                                                                       FontSize="12"
-                                                                       Foreground="#FFC107"/>
-
-                                                            <TextBlock Text="{Binding AverageRating, StringFormat={}{0:0.0}}"
-                                                                       FontSize="12"
-                                                                       FontWeight="SemiBold"
-                                                                       Foreground="#333333"
-                                                                       Margin="4,0,0,0"/>
-                                                        </StackPanel>
-
-                                                        <!-- Статус верификации -->
-                                                        <Border Grid.Column="6"
-                                                                Background="{Binding IsVerified, Converter={StaticResource VerificationStatusColorConverter}}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding IsVerified, Converter={StaticResource VerificationStatusTextConverter}}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <!-- Действия -->
-                                                        <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Center">
-                                                            <Button Content="✅"
-                                                                    ToolTip="Верифицировать"
-                                                                    Style="{StaticResource SuccessButton}"
-                                                                    Command="{Binding DataContext.VerifyFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    Margin="0,0,5,0"
-                                                                    Visibility="{Binding IsVerified, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=reverse}"/>
-                                                            <Button Content="❌"
-                                                                    ToolTip="Отклонить"
-                                                                    Style="{StaticResource DangerButton}"
-                                                                    Command="{Binding DataContext.RejectFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    Margin="0,0,5,0"
-                                                                    Visibility="{Binding IsVerified, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=reverse}"/>
-                                                            <Button Content="👁️"
-                                                                    ToolTip="Просмотр"
-                                                                    Background="Transparent"
-                                                                    BorderBrush="#2196F3"
-                                                                    BorderThickness="1"
-                                                                    Foreground="#2196F3"
-                                                                    Width="32"
-                                                                    Height="32"
-                                                                    FontSize="12"
-                                                                    Click="ViewFriendButton_Click"
-                                                                    Tag="{Binding ProfileID}"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-
-                    <!-- Вкладка 3: Бронирования -->
-                    <TabItem Header="📅 Бронирования">
-                        <Border Style="{StaticResource AdminCardStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Фильтр по дате -->
-                                <Border Grid.Row="0" 
-                                        Background="#F8F9FA"
-                                        CornerRadius="8"
-                                        Padding="15"
-                                        Margin="0,0,0,15">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="200"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="200"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="Период с:"
-                                                   FontSize="13"
-                                                   Foreground="#666666"
-                                                   VerticalAlignment="Center"/>
-
-                                        <DatePicker Grid.Column="1"
-                                                    SelectedDate="{Binding DateFrom}"
-                                                    Margin="10,0,0,0"
-                                                    Width="120"
-                                                    FontSize="12"
-                                                    VerticalAlignment="Center"/>
-
-                                        <TextBlock Grid.Column="2"
-                                                   Text="по:"
-                                                   FontSize="13"
-                                                   Foreground="#666666"
-                                                   Margin="15,0,0,0"
-                                                   VerticalAlignment="Center"/>
-
-                                        <DatePicker Grid.Column="3"
-                                                    SelectedDate="{Binding DateTo}"
-                                                    Margin="10,0,0,0"
-                                                    Width="120"
-                                                    FontSize="12"
-                                                    VerticalAlignment="Center"/>
-
-                                        <Button Grid.Column="4"
-                                                Content="Применить"
-                                                Command="{Binding ApplyDateFilterCommand}"
-                                                Style="{StaticResource SuccessButton}"
-                                                Width="100"
-                                                Margin="15,0,0,0"
-                                                VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Заголовки таблицы -->
-                                <Grid Grid.Row="1" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="60"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="100"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="ID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="Клиент"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="Друг"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="3"
-                                               Text="Дата"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="4"
-                                               Text="Время"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="5"
-                                               Text="Сумма"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="6"
-                                               Text="Статус"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="7"
-                                               Text="Оплата"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                </Grid>
-
-                                <!-- Список бронирований -->
-                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding AllBookings}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="White" 
-                                                        BorderBrush="#F0F0F0" 
-                                                        BorderThickness="0,0,0,1"
-                                                        Padding="0,12">
+                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition Width="150"/>
+                                                            <ColumnDefinition Width="220"/>
+                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="140"/>
+                                                            <ColumnDefinition Width="180"/>
                                                         </Grid.ColumnDefinitions>
 
-                                                        <!-- ID бронирования -->
-                                                        <TextBlock Text="{Binding BookingID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
+                                                        <TextBlock Text="{Binding UserID}" FontSize="12" Foreground="#757575" 
                                                                    VerticalAlignment="Center"/>
 
-                                                        <!-- Клиент -->
                                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="32" 
-                                                                    Height="32" 
-                                                                    Background="#2196F3"
-                                                                    CornerRadius="16"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding ClientInitials}"
-                                                                           Foreground="White"
-                                                                           FontSize="11"
-                                                                           FontWeight="Bold"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
+                                                            <Border Width="36" Height="36" CornerRadius="18"
+                                                                    Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}">
+                                                                <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
+                                                                           Foreground="White" FontSize="12" FontWeight="Bold"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
-                                                            <StackPanel Margin="8,0,0,0">
-                                                                <TextBlock Text="{Binding ClientName}"
-                                                                           FontSize="12"
-                                                                           Foreground="#333333"/>
-                                                                <TextBlock Text="{Binding ClientEmail}"
-                                                                           FontSize="10"
-                                                                           Foreground="#666666"/>
+                                                            <StackPanel Margin="10,0,0,0">
+                                                                <TextBlock Text="{Binding FullName}" FontSize="13" FontWeight="SemiBold" 
+                                                                           Foreground="#212121"/>
+                                                                <TextBlock Text="{Binding Phone}" FontSize="11" Foreground="#757575"/>
                                                             </StackPanel>
                                                         </StackPanel>
 
-                                                        <!-- Друг -->
-                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="32" 
-                                                                    Height="32" 
-                                                                    Background="#4CAF50"
-                                                                    CornerRadius="16"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="F"
-                                                                           Foreground="White"
-                                                                           FontSize="11"
-                                                                           FontWeight="Bold"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <TextBlock Text="Друг"
-                                                                       FontSize="12"
-                                                                       Foreground="#333333"
-                                                                       Margin="8,0,0,0"/>
-                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Email}" FontSize="12" 
+                                                                   Foreground="#424242" VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"/>
 
-                                                        <!-- Дата -->
-                                                        <TextBlock Grid.Column="3"
-                                                                   Text="{Binding Date, StringFormat='dd.MM.yyyy'}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Время -->
-                                                        <TextBlock Grid.Column="4"
-                                                                   Text="{Binding TimeRange}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Сумма -->
-                                                        <TextBlock Grid.Column="5"
-                                                                   Text="{Binding TotalAmount, StringFormat='{}{0:C}'}"
-                                                                   FontSize="12"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="#4CAF50"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Статус -->
-                                                        <Border Grid.Column="6"
-                                                                Background="{Binding Status, Converter={StaticResource BookingStatusColorConverter}}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding StatusDisplay}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
+                                                        <Border Grid.Column="3" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                                Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}">
+                                                            <TextBlock Text="{Binding Role}" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
                                                         </Border>
 
-                                                        <!-- Статус оплаты -->
-                                                        <Border Grid.Column="7"
-                                                                Background="{Binding PaymentStatusBrush}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding PaymentStatusDisplay}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
+                                                        <Border Grid.Column="4" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                                Background="{Binding IsActive, Converter={StaticResource StatusToColorConverter}}">
+                                                            <TextBlock Text="{Binding IsActive, Converter={StaticResource BoolToStatusConverter}}"
+                                                                       FontSize="11" Foreground="White" FontWeight="SemiBold"/>
+                                                        </Border>
+
+                                                        <TextBlock Grid.Column="5" FontSize="11" Foreground="#757575" VerticalAlignment="Center"
+                                                                   Text="{Binding CreatedAt, Converter={StaticResource DateFormatConverter}}"/>
+
+                                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                            <Button Content="🚫" ToolTip="Заблокировать" Style="{StaticResource ActionButton}"
+                                                                    Foreground="#F44336"
+                                                                    Command="{Binding DataContext.BlockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisConverter}}"/>
+                                                            <Button Content="✅" ToolTip="Разблокировать" Style="{StaticResource ActionButton}"
+                                                                    Foreground="#4CAF50"
+                                                                    Command="{Binding DataContext.UnblockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"/>
+                                                            <Button Content="🗑" ToolTip="Удалить" Style="{StaticResource ActionButton}"
+                                                                    Foreground="#9E9E9E"
+                                                                    Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                    CommandParameter="{Binding}"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </TabItem>
+
+                    <!-- ===== ТАБ 2: ПРОФИЛИ ДРУЗЕЙ ===== -->
+                    <TabItem Header="⭐ Профили друзей">
+                        <Border Style="{StaticResource Card}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding FriendProfiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="200"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="90"/>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                        <ColumnDefinition Width="180"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Text="{Binding ProfileID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Border Width="36" Height="36" CornerRadius="18" Background="#4CAF50">
+                                                            <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
+                                                                       Foreground="White" FontSize="12" FontWeight="Bold"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <StackPanel Margin="10,0,0,0">
+                                                            <TextBlock Text="{Binding FullName}" FontSize="13" FontWeight="SemiBold" Foreground="#212121"/>
+                                                            <TextBlock Text="{Binding Email}" FontSize="11" Foreground="#757575"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="2" Text="{Binding Bio, Converter={StaticResource TrimTextConverter}, ConverterParameter=60}"
+                                                               FontSize="12" Foreground="#616161" VerticalAlignment="Center" TextWrapping="Wrap"/>
+
+                                                    <TextBlock Grid.Column="3" Text="{Binding City}" FontSize="12" Foreground="#424242" VerticalAlignment="Center"/>
+
+                                                    <TextBlock Grid.Column="4" FontSize="12" FontWeight="SemiBold" Foreground="#4CAF50" VerticalAlignment="Center"
+                                                               Text="{Binding HourlyRate, Converter={StaticResource MoneyFormatConverter}}"/>
+
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="⭐ " Foreground="#FFC107" FontSize="13"/>
+                                                        <TextBlock Text="{Binding AverageRating, StringFormat={}{0:F1}}" FontSize="12" Foreground="#212121"/>
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="6" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                            Background="{Binding IsVerified, Converter={StaticResource VerificationColorConverter}}">
+                                                        <TextBlock Text="{Binding IsVerified, Converter={StaticResource VerificationStatusConverter}}"
+                                                                   FontSize="10" Foreground="White" FontWeight="SemiBold"/>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <Button Content="✅" ToolTip="Верифицировать" Style="{StaticResource SuccessBtn}" Width="34" Height="34" Padding="0"
+                                                                Command="{Binding DataContext.VerifyFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                CommandParameter="{Binding}"
+                                                                Visibility="{Binding IsVerified, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"/>
+                                                        <Button Content="❌" ToolTip="Отклонить" Style="{StaticResource DangerBtn}" Width="34" Height="34" Padding="0"
+                                                                Command="{Binding DataContext.RejectFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                CommandParameter="{Binding}"
+                                                                Visibility="{Binding IsVerified, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"
+                                                                Margin="4,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </TabItem>
+
+                    <!-- ===== ТАБ 3: БРОНИРОВАНИЯ ===== -->
+                    <TabItem Header="📅 Бронирования">
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Background="#F8F9FB" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                    <WrapPanel>
+                                        <TextBlock Text="Период:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="13" Foreground="#616161"/>
+                                        <DatePicker SelectedDate="{Binding DateFrom}" Width="130" Margin="0,0,10,0" FontSize="12"/>
+                                        <TextBlock Text="—" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="13" Foreground="#616161"/>
+                                        <DatePicker SelectedDate="{Binding DateTo}" Width="130" Margin="0,0,10,0" FontSize="12"/>
+                                        <Button Content="Применить" Style="{StaticResource SuccessBtn}" 
+                                                Command="{Binding ApplyDateFilterCommand}"/>
+                                    </WrapPanel>
+                                </Border>
+
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding AllBookings}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="160"/>
+                                                            <ColumnDefinition Width="160"/>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="110"/>
+                                                            <ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="110"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{Binding BookingID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding ClientName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding FriendName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding Date, Converter={StaticResource DateFormatConverter}}" FontSize="12" Foreground="#424242" VerticalAlignment="Center"/>
+                                                        
+                                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding TimeRange}" FontSize="12" Foreground="#424242"/>
+                                                            <TextBlock Text=" · " Foreground="#BDBDBD"/>
+                                                            <TextBlock Text="{Binding Location}" FontSize="12" Foreground="#757575" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
+                                                        </StackPanel>
+
+                                                        <TextBlock Grid.Column="5" Text="{Binding TotalAmount, Converter={StaticResource MoneyFormatConverter}}" FontSize="12" FontWeight="SemiBold" Foreground="#4CAF50" VerticalAlignment="Center"/>
+
+                                                        <Border Grid.Column="6" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                                Background="{Binding Status, Converter={StaticResource BookingStatusColorConverter}}">
+                                                            <TextBlock Text="{Binding StatusDisplay}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
+                                                        </Border>
+
+                                                        <Border Grid.Column="7" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                                Background="{Binding PaymentStatusBrush}">
+                                                            <TextBlock Text="{Binding PaymentStatusDisplay}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
                                                         </Border>
                                                     </Grid>
                                                 </Border>
@@ -1246,146 +444,66 @@
                         </Border>
                     </TabItem>
 
-                    <!-- Вкладка 4: Сообщения -->
+                    <!-- ===== ТАБ 4: СООБЩЕНИЯ ===== -->
                     <TabItem Header="💬 Сообщения">
-                        <Border Style="{StaticResource AdminCardStyle}">
+                        <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Заголовки -->
-                                <Grid Grid.Row="0" Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="60"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition Width="50"/>
-                                    </Grid.ColumnDefinitions>
+                                <!-- Отправка всем -->
+                                <Border Background="#F8F9FB" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding BroadcastTitle, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Tag="Заголовок" Margin="0,0,8,0"/>
+                                        <TextBox Grid.Column="1" Text="{Binding BroadcastMessage, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Tag="Текст сообщения" Margin="0,0,8,0"/>
+                                        <Button Grid.Column="2" Content="📨 Отправить всем" Style="{StaticResource SuccessBtn}"
+                                                Command="{Binding SendBroadcastCommand}" Height="36"/>
+                                    </Grid>
+                                </Border>
 
-                                    <TextBlock Text="ID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="Отправитель"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="Сообщение"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="3"
-                                               Text="Тип"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="4"
-                                               Text="Дата"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="5"
-                                               Text="Прочитано"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                </Grid>
-
-                                <!-- Список сообщений -->
+                                <!-- Список -->
                                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl ItemsSource="{Binding RecentMessages}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="White" 
-                                                        BorderBrush="#F0F0F0" 
-                                                        BorderThickness="0,0,0,1"
-                                                        Padding="0,12">
+                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="60"/>
                                                             <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition/>
+                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="100"/>
                                                             <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition Width="50"/>
+                                                            <ColumnDefinition Width="80"/>
                                                         </Grid.ColumnDefinitions>
 
-                                                        <!-- ID сообщения -->
-                                                        <TextBlock Text="{Binding MessageID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding MessageID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding SenderName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Content, Converter={StaticResource TrimTextConverter}, ConverterParameter=80}" 
+                                                                   FontSize="12" Foreground="#616161" VerticalAlignment="Center"/>
 
-                                                        <!-- Отправитель -->
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="32" 
-                                                                    Height="32" 
-                                                                    Background="#9C27B0"
-                                                                    CornerRadius="16"
-                                                                    VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding SenderName, Converter={StaticResource InitialsConverter}}"
-                                                                           Foreground="White"
-                                                                           FontSize="11"
-                                                                           FontWeight="Bold"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <TextBlock Text="{Binding SenderName}"
-                                                                       FontSize="12"
-                                                                       Foreground="#333333"
-                                                                       Margin="8,0,0,0"/>
-                                                        </StackPanel>
-
-                                                        <!-- Сообщение -->
-                                                        <TextBlock Grid.Column="2"
-                                                                   Text="{Binding Content}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"
-                                                                   TextWrapping="Wrap"
-                                                                   MaxHeight="40"
-                                                                   TextTrimming="CharacterEllipsis"/>
-
-                                                        <!-- Тип -->
-                                                        <Border Grid.Column="3"
-                                                                Background="#E0E0E0"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding MessageType}"
-                                                                       FontSize="11"
-                                                                       Foreground="#333333"
-                                                                       HorizontalAlignment="Center"/>
+                                                        <Border Grid.Column="3" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Background="#E0E0E0">
+                                                            <TextBlock Text="{Binding MessageType}" FontSize="10" Foreground="#424242"/>
                                                         </Border>
 
-                                                        <!-- Дата -->
-                                                        <TextBlock Grid.Column="4"
-                                                                   Text="{Binding CreatedAt, StringFormat='dd.MM.yyyy HH:mm'}"
-                                                                   FontSize="11"
-                                                                   Foreground="#666666"
-                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="4" Text="{Binding CreatedAt, Converter={StaticResource DateFormatConverter}, ConverterParameter='dd.MM.yyyy HH:mm'}" 
+                                                                   FontSize="11" Foreground="#757575" VerticalAlignment="Center"/>
 
-                                                        <!-- Прочитано -->
-                                                        <Border Grid.Column="5"
-                                                                Background="{Binding IsRead, Converter={StaticResource ReadStatusColorConverter}}"
-                                                                Width="24"
-                                                                Height="24"
-                                                                CornerRadius="12"
-                                                                VerticalAlignment="Center"
+                                                        <Border Grid.Column="5" Width="28" Height="28" CornerRadius="14"
+                                                                Background="{Binding IsRead, Converter={StaticResource VerificationColorConverter}}"
                                                                 HorizontalAlignment="Center">
-                                                            <TextBlock Text="{Binding IsRead, Converter={StaticResource ReadStatusTextConverter}}"
-                                                                       Foreground="White"
-                                                                       FontSize="10"
-                                                                       FontWeight="Bold"
-                                                                       HorizontalAlignment="Center"
-                                                                       VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding IsRead, Converter={StaticResource VerificationStatusConverter}}"
+                                                                       FontSize="10" Foreground="White" FontWeight="Bold"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
                                                     </Grid>
                                                 </Border>
@@ -1397,370 +515,139 @@
                         </Border>
                     </TabItem>
 
-                    <!-- Вкладка 5: Логи аудита -->
+                    <!-- ===== ТАБ 5: ЛОГИ ===== -->
                     <TabItem Header="📋 Логи аудита">
-                        <Border Style="{StaticResource AdminCardStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
+                        <Border Style="{StaticResource Card}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding AuditLogs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="150"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="160"/>
+                                                    </Grid.ColumnDefinitions>
 
-                                <!-- Заголовки -->
-                                <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                    <TextBlock Text="{Binding LogID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding UserName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
+                                                    
+                                                    <Border Grid.Column="2" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                            Background="{Binding ActionColor}">
+                                                        <TextBlock Text="{Binding Action}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                    
+                                                    <TextBlock Grid.Column="3" Text="{Binding TableName}" FontSize="12" Foreground="#424242" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding RecordID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
+                                                    
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding OldValue, Converter={StaticResource TrimTextConverter}, ConverterParameter=30}" FontSize="11" Foreground="#9E9E9E"/>
+                                                        <TextBlock Text=" → " Foreground="#BDBDBD" FontSize="11"/>
+                                                        <TextBlock Text="{Binding NewValue, Converter={StaticResource TrimTextConverter}, ConverterParameter=30}" FontSize="11" Foreground="#4CAF50"/>
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="6" FontSize="11" Foreground="#757575" VerticalAlignment="Center"
+                                                               Text="{Binding LoggedAt, Converter={StaticResource DateFormatConverter}, ConverterParameter='dd.MM.yyyy HH:mm:ss'}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </TabItem>
+
+                    <!-- ===== ТАБ 6: СИСТЕМА ===== -->
+                    <TabItem Header="⚙️ Система">
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <!-- Информация -->
+                                <Border Background="#E8F5E9" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Версия приложения" FontSize="11" Foreground="#616161"/>
+                                            <TextBlock Text="1.0.0" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Пользователей онлайн" FontSize="11" Foreground="#616161"/>
+                                            <TextBlock Text="{Binding OnlineUsers}" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Статистика -->
+                                <Grid Margin="0,0,0,14">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="60"/>
-                                        <ColumnDefinition Width="150"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="80"/>
                                         <ColumnDefinition/>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="ID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="Пользователь"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="Действие"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="3"
-                                               Text="Таблица"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="4"
-                                               Text="RecordID"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="5"
-                                               Text="Изменения"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                    <TextBlock Grid.Column="6"
-                                               Text="Время"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
+                                    <Border Background="#F8F9FB" CornerRadius="8" Padding="14">
+                                        <StackPanel>
+                                            <TextBlock Text="Всего пользователей" FontSize="11" Foreground="#757575"/>
+                                            <TextBlock Text="{Binding TotalUsers}" FontSize="22" FontWeight="Bold" Foreground="#212121"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="#F8F9FB" CornerRadius="8" Padding="14">
+                                        <StackPanel>
+                                            <TextBlock Text="Активных бронирований" FontSize="11" Foreground="#757575"/>
+                                            <TextBlock Text="{Binding TotalBookings}" FontSize="22" FontWeight="Bold" Foreground="#212121"/>
+                                        </StackPanel>
+                                    </Border>
                                 </Grid>
 
-                                <!-- Список логов -->
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding AuditLogs}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="White" 
-                                                        BorderBrush="#F0F0F0" 
-                                                        BorderThickness="0,0,0,1"
-                                                        Padding="0,12">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="150"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="80"/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition Width="150"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <!-- ID лога -->
-                                                        <TextBlock Text="{Binding LogID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Пользователь -->
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding UserName}"
-                                                                       FontSize="12"
-                                                                       Foreground="#333333"/>
-                                                            <TextBlock Text="{Binding UserID, StringFormat=' (ID: {0})'}"
-                                                                       FontSize="11"
-                                                                       Foreground="#666666"/>
-                                                        </StackPanel>
-
-                                                        <!-- Действие -->
-                                                        <Border Grid.Column="2"
-                                                                Background="{Binding Action, Converter={StaticResource ActionTypeColorConverter}}"
-                                                                CornerRadius="4"
-                                                                Padding="6,2"
-                                                                VerticalAlignment="Center"
-                                                                HorizontalAlignment="Left">
-                                                            <TextBlock Text="{Binding Action}"
-                                                                       Foreground="White"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold"
-                                                                       HorizontalAlignment="Center"/>
-                                                        </Border>
-
-                                                        <!-- Таблица -->
-                                                        <TextBlock Grid.Column="3"
-                                                                   Text="{Binding TableName}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- ID записи -->
-                                                        <TextBlock Grid.Column="4"
-                                                                   Text="{Binding RecordID}"
-                                                                   FontSize="12"
-                                                                   Foreground="#333333"
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <!-- Изменения -->
-                                                        <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding OldValue, Converter={StaticResource TrimTextConverter}, ConverterParameter=20}"
-                                                                       FontSize="11"
-                                                                       Foreground="#999999"
-                                                                       Margin="0,0,5,0"/>
-                                                            <TextBlock Text="→"
-                                                                       FontSize="11"
-                                                                       Foreground="#666666"/>
-                                                            <TextBlock Text="{Binding NewValue, Converter={StaticResource TrimTextConverter}, ConverterParameter=20}"
-                                                                       FontSize="11"
-                                                                       Foreground="#4CAF50"
-                                                                       Margin="5,0,0,0"/>
-                                                        </StackPanel>
-
-                                                        <!-- Время -->
-                                                        <TextBlock Grid.Column="6"
-                                                                   Text="{Binding LoggedAt, StringFormat='dd.MM.yyyy HH:mm:ss'}"
-                                                                   FontSize="11"
-                                                                   Foreground="#666666"
-                                                                   VerticalAlignment="Center"/>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </TabItem>
-
-                    <!-- Вкладка 6: Система -->
-                    <TabItem Header="⚙️ Система">
-                        <Border Style="{StaticResource AdminCardStyle}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-
-                                <!-- Системная информация -->
-                                <Border Grid.Row="0" 
-                                        Background="#F0F7FF"
-                                        CornerRadius="8"
-                                        Padding="20"
-                                        Margin="0,0,0,15">
-                                    <StackPanel>
-                                        <TextBlock Text="📊 Системная информация"
-                                                   FontSize="16"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#2196F3"
-                                                   Margin="0,0,0,10"/>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition/>
-                                                <ColumnDefinition/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel>
-                                                <TextBlock Text="🖥️ Версия приложения: 1.0.0"
-                                                           FontSize="13"
-                                                           Foreground="#333333"
-                                                           Margin="0,0,0,5"/>
-                                                <TextBlock Text="🗄️ БД: SQL Server LocalDB"
-                                                           FontSize="13"
-                                                           Foreground="#333333"
-                                                           Margin="0,0,0,5"/>
-                                                <TextBlock Text="👤 Текущий админ: Администратор"
-                                                           FontSize="13"
-                                                           Foreground="#333333"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="📅 Запущено: 01.01.2024"
-                                                           FontSize="13"
-                                                           Foreground="#333333"
-                                                           Margin="0,0,0,5"/>
-                                                <TextBlock Text="⏱️ Время работы: 15 дн. 8 ч."
-                                                           FontSize="13"
-                                                           Foreground="#333333"
-                                                           Margin="0,0,0,5"/>
-                                                <TextBlock Text="✅ Статус: Работает нормально"
-                                                           FontSize="13"
-                                                           Foreground="#4CAF50"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Быстрые действия -->
-                                <TextBlock Grid.Row="1"
-                                           Text="⚡ Опасные действия"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
-                                           Foreground="#333333"
-                                           Margin="0,0,0,10"/>
-
-                                <Border Grid.Row="2" 
-                                        Background="#FFF5F5"
-                                        CornerRadius="8"
-                                        Padding="20"
-                                        Margin="0,0,0,15">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Button Content="🗑️ Очистить все логи"
-                                                Style="{StaticResource DangerButton}"
-                                                Height="40"
-                                                Command="{Binding DeleteAllLogCommand}"/>
-
-                                        <Button Grid.Column="1"
-                                                Content="🔄 Перезапустить БД"
-                                                Style="{StaticResource WarningButton}"
-                                                Height="40"
-                                                Margin="10,0"
-                                                Click="RestartDbButton_Click"/>
-
-                                        <Button Grid.Column="2"
-                                                Content="📋 Резервное копирование"
-                                                Style="{StaticResource SuccessButton}"
-                                                Height="40"
+                                <!-- Опасные действия -->
+                                <TextBlock Text="Опасные действия" FontSize="14" FontWeight="SemiBold" Foreground="#212121" Margin="0,0,0,10"/>
+                                <Border Background="#FFF3E0" CornerRadius="8" Padding="14">
+                                    <WrapPanel>
+                                        <Button Content="🗑 Очистить логи" Style="{StaticResource DangerBtn}" 
+                                                Command="{Binding DeleteAllLogCommand}" Margin="0,0,10,0"/>
+                                        <Button Content="🔄 Перезапустить БД" Background="#FF9800" Foreground="White" 
+                                                FontSize="12" FontWeight="SemiBold" Height="34" Padding="16,0" BorderThickness="0"
+                                                Cursor="Hand" Margin="0,0,10,0" Click="RestartDbButton_Click"/>
+                                        <Button Content="💾 Резервное копирование" Style="{StaticResource SuccessBtn}"
                                                 Click="BackupButton_Click"/>
-                                    </Grid>
+                                    </WrapPanel>
                                 </Border>
-
-                                <!-- Статистика API -->
-                                <TextBlock Grid.Row="3"
-                                           Text="📈 Статистика использования"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
-                                           Foreground="#333333"
-                                           Margin="0,0,0,10"/>
-
-                                <Border Grid.Row="4" 
-                                        Background="#F8F9FA"
-                                        CornerRadius="8"
-                                        Padding="20">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel HorizontalAlignment="Center">
-                                            <TextBlock Text="1,245"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#4CAF50"/>
-                                            <TextBlock Text="Запросов сегодня"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                            <TextBlock Text="98.7%"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#4CAF50"/>
-                                            <TextBlock Text="Доступность API"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                            <TextBlock Text="45 мс"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#4CAF50"/>
-                                            <TextBlock Text="Среднее время ответа"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="3" HorizontalAlignment="Center">
-                                            <TextBlock Text="0"
-                                                       FontSize="24"
-                                                       FontWeight="Bold"
-                                                       Foreground="#4CAF50"/>
-                                            <TextBlock Text="Ошибок сегодня"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </Grid>
+                            </StackPanel>
                         </Border>
                     </TabItem>
+
                 </TabControl>
 
-                <!-- Индикатор загрузки -->
-                <Border x:Name="LoadingOverlay" 
-                        Background="#80000000" 
-                        Visibility="Collapsed"
-                        Panel.ZIndex="999">
+                <!-- Оверлей загрузки -->
+                <Border x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border Background="White" 
-                                CornerRadius="12" 
-                                Padding="30">
+                        <Border Background="White" CornerRadius="12" Padding="30">
                             <StackPanel>
-                                <ProgressBar IsIndeterminate="True" 
-                                             Height="4" 
-                                             Width="200" 
-                                             Margin="0,0,0,15"/>
-                                <TextBlock Text="Загрузка данных..."
-                                           FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="#333333"
-                                           HorizontalAlignment="Center"/>
+                                <ProgressBar IsIndeterminate="True" Height="4" Width="200" Margin="0,0,0,15"/>
+                                <TextBlock Text="Загрузка..." FontSize="14" FontWeight="SemiBold" Foreground="#212121" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </Border>
 
-                <!-- Сообщения об ошибках -->
-                <Border x:Name="ErrorPanel" 
-                        Background="#FF5252" 
-                        CornerRadius="8"
-                        Padding="15"
-                        Margin="0,0,0,20"
-                        Visibility="Collapsed"
-                        Panel.ZIndex="1000">
-                    <StackPanel>
-                        <TextBlock x:Name="ErrorMessageText"
-                                   FontSize="13"
-                                   Foreground="White"
-                                   TextWrapping="Wrap"/>
-                        <Button Content="✕"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="White"
-                                FontSize="12"
-                                HorizontalAlignment="Right"
-                                Margin="0,5,0,0"
-                                Click="CloseErrorButton_Click"/>
-                    </StackPanel>
+                <!-- Панель ошибок -->
+                <Border x:Name="ErrorPanel" Background="#F44336" CornerRadius="8" Padding="14"
+                        Visibility="Collapsed" Margin="0,16,0,0">
+                    <Grid>
+                        <TextBlock x:Name="ErrorMessageText" FontSize="13" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        <Button Content="✕" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0"
+                                Foreground="White" FontSize="14" Cursor="Hand" Click="CloseErrorButton_Click"/>
+                    </Grid>
                 </Border>
-            </Grid>
+
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>

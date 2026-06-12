@@ -146,20 +146,19 @@
                             Click="BtnMenuNotifications_Click"/>
                             <Border Height="1" Background="#F0F0F0" Margin="8,4"/>
                             <Button Height="44"
-        Style="{StaticResource NavButtonStyle}"
-        Foreground="#FF5252"
-        Click="BtnMenuLogout_Click">
+                                Style="{StaticResource NavButtonStyle}"
+                                Foreground="#FF5252"
+                                Click="BtnMenuLogout_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Image Source="/Resources/Icons/exit.png" 
-               Width="16" Height="16" 
-               Margin="0,0,8,0"
-               VerticalAlignment="Center"/>
+                                    Width="16" Height="16" 
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"/>
                                     <TextBlock Text="Выйти" 
-                   FontSize="14" 
-                   VerticalAlignment="Center"/>
+                                    FontSize="14" 
+                                    VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-
                         </StackPanel>
                     </Border>
                 </Popup>
