@@ -1,5 +1,6 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
+using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -83,10 +84,10 @@ namespace RentAFriendApp.ViewModels.Client
         {
             Token = token;
 
-            SearchCommand = new RelayCommand(ApplyFilters);
-            ResetCommand = new RelayCommand(ResetFilters);
-            ToggleHobbyCommand = new RelayCommand<string>(ToggleHobby);
-            ViewFriendCommand = new RelayCommand<object>(ViewFriend);
+            SearchCommand = new RelayCommandAsync(ApplyFilters);
+            ResetCommand = new RelayCommandAsync(ResetFilters);
+            ToggleHobbyCommand = new RelayCommandAsync<string>(ToggleHobby);
+            ViewFriendCommand = new RelayCommandAsync<object>(ViewFriend);
         }
 
         public async Task LoadAsync()
@@ -112,7 +113,7 @@ namespace RentAFriendApp.ViewModels.Client
             finally { IsBusy = false; }
         }
 
-        public void ApplyFilters()
+        public Task ApplyFilters()
         {
             var filtered = _allFriends.AsEnumerable();
 
@@ -152,9 +153,10 @@ namespace RentAFriendApp.ViewModels.Client
                 FilteredFriends = new ObservableCollection<FPInfoDTO>(filtered);
                 FriendsChanged?.Invoke();
             });
+            return Task.CompletedTask;
         }
 
-        private void ResetFilters()
+        private Task ResetFilters()
         {
             SelectedCity = "Все города";
             MaxPrice = 5000;
@@ -165,46 +167,31 @@ namespace RentAFriendApp.ViewModels.Client
             _selectedHobbies.Clear();
             SearchText = "";
             ApplyFilters();
+            return Task.CompletedTask;
         }
 
-        private void ToggleHobby(string? hobby)
+        private Task ToggleHobby(string? hobby)
         {
-            if (string.IsNullOrEmpty(hobby)) return;
+            if (string.IsNullOrEmpty(hobby)) return Task.CompletedTask;
             if (_selectedHobbies.Contains(hobby))
                 _selectedHobbies.Remove(hobby);
             else
                 _selectedHobbies.Add(hobby);
             ApplyFilters();
+            return Task.CompletedTask;
         }
 
-        private void ViewFriend(object? friend)
+        private Task ViewFriend(object? friend)
         {
             if (friend is FPInfoDTO f)
             {
                 var main = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
                 main?.MainFrame.Navigate(new Views.Client.FriendDetailsPage(Token, f.ProfileID));
             }
+            return Task.CompletedTask;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? n = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action _execute;
-        public RelayCommand(Action execute) => _execute = execute;
-        public bool CanExecute(object? p) => true;
-        public void Execute(object? p) => _execute();
-        public event EventHandler? CanExecuteChanged { add { } remove { } }
-    }
-
-    public class RelayCommand<T> : ICommand
-    {
-        private readonly Action<T?> _execute;
-        public RelayCommand(Action<T?> execute) => _execute = execute;
-        public bool CanExecute(object? p) => true;
-        public void Execute(object? p) => _execute((T?)p);
-        public event EventHandler? CanExecuteChanged { add { } remove { } }
     }
 }

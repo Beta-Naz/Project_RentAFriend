@@ -1,60 +1,30 @@
-﻿using RentAFriendApp.Context;
-using RentAFriendApp.Models.ClassesDTO.BookingDTO.Response;
-using RentAFriendApp.ViewModels.Base;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
+using RentAFriendApp.Context;
+using RentAFriendApp.ViewModels.Base;
+using RentAFriendApp.Views.Client;
 
 namespace RentAFriendApp.ViewModels.Client
 {
     internal class MyBookingsViewModel : BaseViewModel
     {
         private readonly string _token;
+        public string Token => _token;
 
-        // Данные
-        private ObservableCollection<BookingDisplayModel> _bookings;
-        public ObservableCollection<BookingDisplayModel> Bookings
-        {
-            get => _bookings;
-            set => SetProperty(ref _bookings, value);
-        }
+        #region СВОЙСТВА
 
-        private ObservableCollection<BookingDisplayModel> _filteredBookings;
+        private ObservableCollection<BookingDisplayModel> _allBookings = new();
+        private ObservableCollection<BookingDisplayModel> _filteredBookings = new();
         public ObservableCollection<BookingDisplayModel> FilteredBookings
         {
             get => _filteredBookings;
             set => SetProperty(ref _filteredBookings, value);
         }
 
-        private string _currentFilter = "All";
-        public string CurrentFilter
-        {
-            get => _currentFilter;
-            set
-            {
-                if (SetProperty(ref _currentFilter, value))
-                {
-                    ApplyFilters();
-                }
-            }
-        }
+        public bool IsEmpty => FilteredBookings.Count == 0;
+        public bool IsNotEmpty => !IsEmpty;
 
-        private string _searchText = "";
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                if (SetProperty(ref _searchText, value))
-                {
-                    ApplyFilters();
-                }
-            }
-        }
-
-        // Статистика
         private int _totalBookings;
         public int TotalBookings
         {
@@ -83,255 +53,175 @@ namespace RentAFriendApp.ViewModels.Client
             set => SetProperty(ref _averageCheck, value);
         }
 
-        // Команды
+        public string BookingsCountText => $"({FilteredBookings.Count})";
+
+        #endregion
+
+        #region КОМАНДЫ
         public ICommand LoadBookingsCommand { get; }
         public ICommand FilterCommand { get; }
-        public ICommand ShowDetailsCommand { get; }
+        public ICommand SearchCommand { get; }
         public ICommand CancelBookingCommand { get; }
         public ICommand OpenChatCommand { get; }
         public ICommand AddReviewCommand { get; }
         public ICommand ProcessPaymentCommand { get; }
-        public ICommand SearchCommand { get; }
         public ICommand RefreshCommand { get; }
+        #endregion
 
         public MyBookingsViewModel(string token)
         {
             _token = token;
 
-            Bookings = new ObservableCollection<BookingDisplayModel>();
-            FilteredBookings = new ObservableCollection<BookingDisplayModel>();
-
-            // Инициализация команд
-            LoadBookingsCommand = new RelayCommandAsync(LoadBookingsAsync);
+            LoadBookingsCommand = new RelayCommandAsync(LoadAllBookingsAsync);
             FilterCommand = new RelayCommandAsync<string>(ApplyFilter);
-            ShowDetailsCommand = new RelayCommandAsync<int>(ShowBookingDetailsAsync);
+            SearchCommand = new RelayCommandAsync<string>(ApplySearch);
             CancelBookingCommand = new RelayCommandAsync<int>(CancelBookingAsync);
             OpenChatCommand = new RelayCommandAsync<int>(OpenChatAsync);
-            AddReviewCommand = new RelayCommandAsync<int>(AddReviewAsync);
+            AddReviewCommand = new RelayCommandAsync<int>(AddReview);
             ProcessPaymentCommand = new RelayCommandAsync<int>(ProcessPaymentAsync);
-            SearchCommand = new RelayCommandAsync(ApplyFilters);
-            RefreshCommand = new RelayCommandAsync(LoadBookingsAsync);
+            RefreshCommand = new RelayCommandAsync(LoadAllBookingsAsync);
 
-            // Загрузка данных
-            _ = LoadBookingsAsync();
+            _ = LoadAllBookingsAsync();
         }
 
-        private async Task LoadBookingsAsync()
+        #region ЗАГРУЗКА
+        private async Task LoadAllBookingsAsync()
         {
             try
             {
                 IsBusy = true;
                 ClearErrors();
 
-                // Получаем все бронирования клиента
-                var bookingsResponse = await BookingContext.GetMyBookings(_token, null, 1, 100);
+                var resp = await BookingContext.GetMyBookings(_token, null, 1, int.MaxValue);
+                if (resp?.Bookings == null) return;
 
-                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                _allBookings.Clear();
+                foreach (var b in resp.Bookings)
                 {
-                    Bookings.Clear();
-
-                    if (bookingsResponse?.Bookings != null)
+                    _allBookings.Add(new BookingDisplayModel
                     {
-                        foreach (var booking in bookingsResponse.Bookings)
-                        {
-                            Bookings.Add(new BookingDisplayModel
-                            {
-                                BookingID = booking.BookingID,
-                                FriendProfileID = booking.FriendId,
-                                FriendName = booking.FriendName,
-                                FriendCity = booking.FriendCity,
-                                Purpose = booking.Purpose,
-                                MeetingLocation = booking.MeetingLocation ?? "",
-                                Status = booking.Status,
-                                PaymentStatus = booking.PaymentStatus,
-                                TotalAmount = booking.TotalAmount,
-                                Date = booking.ScheduleDate,
-                                StartTime = booking.StartTime,
-                                EndTime = booking.EndTime,
-                                CreatedAt = booking.CreatedAt,
-                                SpecialRequests = null,
-                                HasReview = booking.HasReview,
-                                HasChat = false
-                            });
-                        }
-                    }
-                });
+                        BookingID = b.BookingID,
+                        FriendProfileID = b.FriendId,
+                        FriendName = b.FriendName,
+                        FriendCity = b.FriendCity,
+                        Purpose = b.Purpose,
+                        Status = b.Status,
+                        PaymentStatus = b.PaymentStatus,
+                        TotalAmount = b.TotalAmount,
+                        Date = b.ScheduleDate,
+                        StartTime = b.StartTime,
+                        EndTime = b.EndTime,
+                        HasReview = b.HasReview
+                    });
+                }
 
-                // Загружаем статистику
                 await LoadStatisticsAsync();
-
-                // Применяем фильтры
-                ApplyFilters();
+                ApplyFilter("All");
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки бронирований: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
 
         private async Task LoadStatisticsAsync()
         {
-            try
-            {
-                var stats = await BookingContext.GetBookingStatistics(_token);
+            var stats = await BookingContext.GetBookingStatistics(_token);
+            if (stats == null) return;
 
-                if (stats != null)
-                {
-                    TotalBookings = stats.Statistics.TotalBookings;
-                    ActiveBookings = stats.Statistics.ActiveBookings;
-                    TotalSpent = stats.Statistics.TotalSpent;
-                    AverageCheck = stats.Statistics.AverageCheck;
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки статистики: {ex.Message}");
-            }
+            TotalBookings = stats.Statistics.TotalBookings;
+            ActiveBookings = stats.Statistics.ActiveBookings;
+            TotalSpent = stats.Statistics.TotalSpent;
+            AverageCheck = stats.Statistics.AverageCheck;
         }
+        #endregion
 
-        private async Task ApplyFilter(string filter)
-        {
-            CurrentFilter = filter;
-            await ApplyFiltersAsync();
-        }
+        #region ФИЛЬТРЫ
+        private string _currentFilter = "All";
+        private string _searchText = "";
 
-        private Task ApplyFilters()
+        public Task ApplyFilter(string filter)
         {
-            _ = ApplyFiltersAsync();
+            _currentFilter = filter ?? "All";
+            DoFilter();
             return Task.CompletedTask;
         }
 
-        private async Task ApplyFiltersAsync()
+        public Task ApplySearch(string search)
         {
-            var snapshot = Bookings.ToList();
-            await Task.Run(() =>
-            {
-                var filtered = snapshot.AsEnumerable();
-
-                // Фильтр по статусу
-                if (CurrentFilter != "All")
-                {
-                    filtered = filtered.Where(b => b.Status == CurrentFilter);
-                }
-
-                // Поиск по тексту
-                if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    string searchLower = SearchText.ToLower();
-                    filtered = filtered.Where(b =>
-                        b.FriendName.ToLower().Contains(searchLower) ||
-                        b.Purpose.ToLower().Contains(searchLower) ||
-                        (b.MeetingLocation?.ToLower().Contains(searchLower) ?? false) ||
-                        b.FriendCity.ToLower().Contains(searchLower));
-                }
-
-                // Сортировка по дате (новые сверху)
-                var sorted = filtered.OrderByDescending(b => b.Date).ToList();
-
-                var newCollection = new ObservableCollection<BookingDisplayModel>(sorted);
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    FilteredBookings = newCollection;
-                });
-            });
+            _searchText = search ?? "";
+            DoFilter();
+            return Task.CompletedTask;
         }
 
-        private async Task ShowBookingDetailsAsync(int bookingId)
+        private void DoFilter()
         {
-            try
-            {
-                var details = await BookingContext.GetBookingDetails(_token, bookingId);
+            var filtered = _allBookings.AsEnumerable();
 
-                if (details?.Booking != null)
-                {
-                    Base.Messenger.Default.SendData(details.Booking);
-                }
-                else
-                {
-                    SetError("Не удалось загрузить детали бронирования");
-                }
-            }
-            catch (Exception ex)
+            if (_currentFilter != "All")
+                filtered = filtered.Where(b => b.Status == _currentFilter);
+
+            if (!string.IsNullOrWhiteSpace(_searchText))
             {
-                SetError($"Ошибка загрузки деталей: {ex.Message}");
+                var s = _searchText.ToLower();
+                filtered = filtered.Where(b =>
+                    b.FriendName.ToLower().Contains(s) ||
+                    b.Purpose.ToLower().Contains(s) ||
+                    b.FriendCity.ToLower().Contains(s));
             }
+
+            FilteredBookings = new ObservableCollection<BookingDisplayModel>(
+                filtered.OrderByDescending(b => b.Date));
+            OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(IsNotEmpty));
+            OnPropertyChanged(nameof(BookingsCountText));
         }
+        #endregion
+
+        #region ДЕЙСТВИЯ
 
         private async Task CancelBookingAsync(int bookingId)
         {
+            var booking = _allBookings.FirstOrDefault(b => b.BookingID == bookingId);
+            if (booking == null) return;
+
+            var result = System.Windows.MessageBox.Show(
+                $"Отменить встречу с {booking.FriendName}?",
+                "Отмена", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
+
+            if (result != System.Windows.MessageBoxResult.Yes) return;
+
             try
             {
                 IsBusy = true;
-                ClearErrors();
-
-                var result = await BookingContext.CancelBooking(_token, bookingId);
-
-                if (result != null)
-                {
-                    // Обновляем локальный объект
-                    var booking = Bookings.FirstOrDefault(b => b.BookingID == bookingId);
-                    if (booking != null)
-                    {
-                        booking.Status = "Cancelled";
-                    }
-
-                    Base.Messenger.Default.SendNotification($"Бронирование #{bookingId} отменено");
-
-                    // Обновляем данные
-                    await LoadBookingsAsync();
-                    await LoadStatisticsAsync();
-                    ApplyFilters();
-                }
-                else
-                {
-                    SetError("Ошибка отмены бронирования");
-                }
+                await BookingContext.CancelBooking(_token, bookingId);
+                await LoadAllBookingsAsync();
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка отмены бронирования: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
 
-        private async Task OpenChatAsync(int friendProfileId)
+        public async Task OpenChatAsync(int friendProfileId)
         {
             try
             {
-                // Сначала получаем профиль друга по ID
-                var friendProfile = await FriendProfileContext.GetFriendProfileById(friendProfileId, _token);
+                var profile = await FriendProfileContext.GetFriendProfileById(friendProfileId, _token);
+                if (profile?.Profile == null) return;
 
-                if (friendProfile?.Profile != null)
+                var chat = await ChatContext.GetOrCreateChat(_token, profile.Profile.UserID);
+                if (chat == null) return;
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
-                    var chat = await ChatContext.GetOrCreateChat(_token, friendProfile.Profile.UserID);
-
-                    if (chat != null)
-                    {
-                        Messenger.Default.SendData(new
-                        {
-                            chat.ChatId,
-                            FriendName = friendProfile.Profile.FullName
-                        });
-                    }
-                }
+                    MainWindow.Instanse?.MainFrame.Navigate(
+                        new ChatPage(_token, profile.Profile.UserID));
+                });
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка открытия чата: {ex.Message}");
-            }
+            catch (Exception ex) { SetError(ex.Message); }
         }
 
-        private async Task AddReviewAsync(int bookingId)
+        private Task AddReview(int bookingId)
         {
-            Base.Messenger.Default.SendNotification($"Добавление отзыва для бронирования #{bookingId}");
-            await Task.CompletedTask;
+            Messenger.Default.SendData(new { Action = "AddReview", BookingID = bookingId });
+            return Task.CompletedTask;
         }
 
         private async Task ProcessPaymentAsync(int bookingId)
@@ -339,161 +229,45 @@ namespace RentAFriendApp.ViewModels.Client
             try
             {
                 IsBusy = true;
-
-                var result = await BookingContext.PayBooking(_token, bookingId);
-
-                if (result != null)
-                {
-                    Base.Messenger.Default.SendNotification($"Бронирование #{bookingId} оплачено");
-
-                    // Обновляем данные
-                    await LoadBookingsAsync();
-                    await LoadStatisticsAsync();
-                    ApplyFilters();
-                }
-                else
-                {
-                    SetError("Ошибка оплаты бронирования");
-                }
+                await BookingContext.PayBooking(_token, bookingId);
+                await LoadAllBookingsAsync();
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка оплаты: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
+        #endregion
     }
 
-    // Модель для отображения бронирования в UI
+    #region МОДЕЛЬ ОТОБРАЖЕНИЯ
     public class BookingDisplayModel : BaseViewModel
     {
         public int BookingID { get; set; }
         public int FriendProfileID { get; set; }
-        public string FriendName { get; set; } = string.Empty;
-        public string FriendCity { get; set; } = string.Empty;
-        public string Purpose { get; set; } = string.Empty;
-        public string MeetingLocation { get; set; } = string.Empty;
-
-        private string _status = "Pending";
-        public string Status
-        {
-            get => _status;
-            set => SetProperty(ref _status, value);
-        }
-
-        public string PaymentStatus { get; set; } = string.Empty;
+        public string FriendName { get; set; } = "";
+        public string FriendCity { get; set; } = "";
+        public string Purpose { get; set; } = "";
+        public string Status { get; set; } = "Pending";
+        public string PaymentStatus { get; set; } = "Unpaid";
         public decimal TotalAmount { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string? SpecialRequests { get; set; }
         public bool HasReview { get; set; }
-        public bool HasChat { get; set; }
 
-        // Вычисляемые свойства
-        public string Duration => $"{StartTime:hh\\:mm} - {EndTime:hh\\:mm}";
-        public string StatusDisplay => Status switch
-        {
-            "Pending" => "Ожидает подтверждения",
-            "Confirmed" => "Подтверждено",
-            "Completed" => "Завершено",
-            "Cancelled" => "Отменено",
-            "Rejected" => "Отклонено",
-            _ => Status
-        };
-
-        public System.Windows.Media.Brush StatusColor => Status switch
-        {
-            "Pending" => System.Windows.Media.Brushes.Orange,
-            "Confirmed" => System.Windows.Media.Brushes.Green,
-            "Completed" => System.Windows.Media.Brushes.Blue,
-            "Cancelled" => System.Windows.Media.Brushes.Red,
-            "Rejected" => System.Windows.Media.Brushes.DarkRed,
-            _ => System.Windows.Media.Brushes.Gray
-        };
-
-        public string PaymentStatusDisplay => PaymentStatus == "Paid" ? "Оплачено" : "Не оплачено";
-        public string TotalAmountDisplay => $"{TotalAmount:N0} ₽";
-        public string DateDisplay => Date.ToString("dd.MM.yyyy");
-        public string TimeDisplay => $"{StartTime:hh\\:mm}";
-        public string FriendInitials
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(FriendName))
-                    return "??";
-
-                var parts = FriendName.Split(' ');
-                if (parts.Length >= 2)
-                    return $"{parts[0][0]}{parts[1][0]}".ToUpper();
-
-                return FriendName.Length >= 2
-                    ? FriendName.Substring(0, 2).ToUpper()
-                    : FriendName.ToUpper();
-            }
-        }
-
-        public DateTime StartDateTime => Date.Add(StartTime);
-        public DateTime EndDateTime => Date.Add(EndTime);
-
-        public bool CanBeCancelled => Status == "Pending" || Status == "Confirmed";
-        public bool CanChat => (Status == "Confirmed" || Status == "Completed") && !HasChat;
+        // Вычисляемые
+        public TimeSpan Duration => EndTime - StartTime;
+        public string FriendInitials => string.IsNullOrEmpty(FriendName) ? "?" : string.Concat(FriendName.Split(' ').Take(2).Select(w => w[0])).ToUpper();
+        public bool CanBeCancelled => Status is "Pending" or "Confirmed";
         public bool CanReview => Status == "Completed" && !HasReview;
-        public bool CanPay => PaymentStatus == "Unpaid" && Status != "Cancelled" && Status != "Rejected";
-        public Brush StatusForegroundColor
+        public bool CanPay => PaymentStatus == "Unpaid" && Status != "Cancelled";
+        public bool CanChat => Status is "Confirmed" or "Completed";
+        public Color StatusBackground => Status switch
         {
-            get
-            {
-                switch (Status)
-                {
-                    case "Pending": return new SolidColorBrush(Color.FromRgb(255, 152, 0)); // Orange
-                    case "Confirmed": return new SolidColorBrush(Color.FromRgb(76, 175, 80)); // Green
-                    case "Completed": return new SolidColorBrush(Color.FromRgb(33, 150, 243)); // Blue
-                    case "Cancelled": return new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
-                    case "Rejected": return new SolidColorBrush(Color.FromRgb(244, 67, 54)); // Red
-                    default: return Brushes.Gray;
-                }
-            }
-        }
-
-        public Brush StatusBackgroundColor
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case "Pending": return new SolidColorBrush(Color.FromRgb(255, 248, 225));
-                    case "Confirmed": return new SolidColorBrush(Color.FromRgb(232, 245, 233));
-                    case "Completed": return new SolidColorBrush(Color.FromRgb(227, 242, 253));
-                    case "Cancelled": return new SolidColorBrush(Color.FromRgb(253, 237, 237));
-                    case "Rejected": return new SolidColorBrush(Color.FromRgb(253, 237, 237));
-                    default: return Brushes.LightGray;
-                }
-            }
-        }
-
-        public Brush PaymentStatusColor
-        {
-            get
-            {
-                switch (PaymentStatus)
-                {
-                    case "Paid": return new SolidColorBrush(Color.FromRgb(76, 175, 80));
-                    case "Unpaid": return new SolidColorBrush(Color.FromRgb(244, 67, 54));
-                    case "Refunded": return new SolidColorBrush(Color.FromRgb(33, 150, 243));
-                    default: return Brushes.Gray;
-                }
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+            "Pending" => Color.FromRgb(255, 248, 225),
+            "Confirmed" => Color.FromRgb(232, 245, 233),
+            "Completed" => Color.FromRgb(227, 242, 253),
+            _ => Color.FromRgb(250, 250, 250)
+        };
     }
+    #endregion
 }
