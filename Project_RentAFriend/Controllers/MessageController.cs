@@ -370,8 +370,8 @@ namespace Project_RentAFriend.Controllers
         [Route("recent")]
         [HttpGet]
         public async Task<ActionResult> GetRecentMessages(
-    [FromHeader(Name = "TOKEN")] string token,
-    [FromQuery] int count = 50)
+            [FromHeader(Name = "TOKEN")] string token,
+            [FromQuery] int count = 50)
         {
             try
             {

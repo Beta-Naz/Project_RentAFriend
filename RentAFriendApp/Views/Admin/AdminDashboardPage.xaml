@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:convertes="clr-namespace:RentAFriendApp.Converters.Admin"
+      xmlns:adminControls="clr-namespace:RentAFriendApp.Views.Admin.Controls"
       mc:Ignorable="d" 
       d:DesignHeight="900" d:DesignWidth="1400"
       Title="Административная панель"
@@ -22,6 +23,8 @@
         <convertes:DateFormatConverter x:Key="DateFormatConverter"/>
         <convertes:MoneyFormatConverter x:Key="MoneyFormatConverter"/>
         <convertes:BookingStatusColorConverter x:Key="BookingStatusColorConverter"/>
+        <convertes:ReadStatusToColorConverter x:Key="ReadStatusToColorConverter"/>
+        <convertes:ReadStatusToTextConverter x:Key="ReadStatusToTextConverter"/>
 
         <!-- Цвета -->
         <Color x:Key="GreenColor">#4CAF50</Color>
@@ -229,74 +232,14 @@
                                     <ItemsControl ItemsSource="{Binding AllUsers}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="220"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="110"/>
-                                                            <ColumnDefinition Width="140"/>
-                                                            <ColumnDefinition Width="180"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <TextBlock Text="{Binding UserID}" FontSize="12" Foreground="#757575" 
-                                                                   VerticalAlignment="Center"/>
-
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border Width="36" Height="36" CornerRadius="18"
-                                                                    Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}">
-                                                                <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
-                                                                           Foreground="White" FontSize="12" FontWeight="Bold"
-                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </Border>
-                                                            <StackPanel Margin="10,0,0,0">
-                                                                <TextBlock Text="{Binding FullName}" FontSize="13" FontWeight="SemiBold" 
-                                                                           Foreground="#212121"/>
-                                                                <TextBlock Text="{Binding Phone}" FontSize="11" Foreground="#757575"/>
-                                                            </StackPanel>
-                                                        </StackPanel>
-
-                                                        <TextBlock Grid.Column="2" Text="{Binding Email}" FontSize="12" 
-                                                                   Foreground="#424242" VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"/>
-
-                                                        <Border Grid.Column="3" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
-                                                                Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}">
-                                                            <TextBlock Text="{Binding Role}" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
-                                                        </Border>
-
-                                                        <Border Grid.Column="4" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
-                                                                Background="{Binding IsActive, Converter={StaticResource StatusToColorConverter}}">
-                                                            <TextBlock Text="{Binding IsActive, Converter={StaticResource BoolToStatusConverter}}"
-                                                                       FontSize="11" Foreground="White" FontWeight="SemiBold"/>
-                                                        </Border>
-
-                                                        <TextBlock Grid.Column="5" FontSize="11" Foreground="#757575" VerticalAlignment="Center"
-                                                                   Text="{Binding CreatedAt, Converter={StaticResource DateFormatConverter}}"/>
-
-                                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right">
-                                                            <Button Content="🚫" ToolTip="Заблокировать" Style="{StaticResource ActionButton}"
-                                                                    Foreground="#F44336"
-                                                                    Command="{Binding DataContext.BlockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisConverter}}"/>
-                                                            <Button Content="✅" ToolTip="Разблокировать" Style="{StaticResource ActionButton}"
-                                                                    Foreground="#4CAF50"
-                                                                    Command="{Binding DataContext.UnblockUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"
-                                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"/>
-                                                            <Button Content="🗑" ToolTip="Удалить" Style="{StaticResource ActionButton}"
-                                                                    Foreground="#9E9E9E"
-                                                                    Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                    CommandParameter="{Binding}"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
+                                                <adminControls:AdminUserRow DataContext="{Binding}"
+                                                    BlockClicked="UserRow_BlockClicked"
+                                                    UnblockClicked="UserRow_UnblockClicked"
+                                                    DeleteClicked="UserRow_DeleteClicked"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+
                                 </ScrollViewer>
                             </Grid>
                         </Border>
@@ -309,65 +252,9 @@
                                 <ItemsControl ItemsSource="{Binding FriendProfiles}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="60"/>
-                                                        <ColumnDefinition Width="200"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="90"/>
-                                                        <ColumnDefinition Width="100"/>
-                                                        <ColumnDefinition Width="80"/>
-                                                        <ColumnDefinition Width="110"/>
-                                                        <ColumnDefinition Width="180"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Text="{Binding ProfileID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
-
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Border Width="36" Height="36" CornerRadius="18" Background="#4CAF50">
-                                                            <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
-                                                                       Foreground="White" FontSize="12" FontWeight="Bold"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                        <StackPanel Margin="10,0,0,0">
-                                                            <TextBlock Text="{Binding FullName}" FontSize="13" FontWeight="SemiBold" Foreground="#212121"/>
-                                                            <TextBlock Text="{Binding Email}" FontSize="11" Foreground="#757575"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-
-                                                    <TextBlock Grid.Column="2" Text="{Binding Bio, Converter={StaticResource TrimTextConverter}, ConverterParameter=60}"
-                                                               FontSize="12" Foreground="#616161" VerticalAlignment="Center" TextWrapping="Wrap"/>
-
-                                                    <TextBlock Grid.Column="3" Text="{Binding City}" FontSize="12" Foreground="#424242" VerticalAlignment="Center"/>
-
-                                                    <TextBlock Grid.Column="4" FontSize="12" FontWeight="SemiBold" Foreground="#4CAF50" VerticalAlignment="Center"
-                                                               Text="{Binding HourlyRate, Converter={StaticResource MoneyFormatConverter}}"/>
-
-                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="⭐ " Foreground="#FFC107" FontSize="13"/>
-                                                        <TextBlock Text="{Binding AverageRating, StringFormat={}{0:F1}}" FontSize="12" Foreground="#212121"/>
-                                                    </StackPanel>
-
-                                                    <Border Grid.Column="6" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
-                                                            Background="{Binding IsVerified, Converter={StaticResource VerificationColorConverter}}">
-                                                        <TextBlock Text="{Binding IsVerified, Converter={StaticResource VerificationStatusConverter}}"
-                                                                   FontSize="10" Foreground="White" FontWeight="SemiBold"/>
-                                                    </Border>
-
-                                                    <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Right">
-                                                        <Button Content="✅" ToolTip="Верифицировать" Style="{StaticResource SuccessBtn}" Width="34" Height="34" Padding="0"
-                                                                Command="{Binding DataContext.VerifyFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                CommandParameter="{Binding}"
-                                                                Visibility="{Binding IsVerified, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"/>
-                                                        <Button Content="❌" ToolTip="Отклонить" Style="{StaticResource DangerBtn}" Width="34" Height="34" Padding="0"
-                                                                Command="{Binding DataContext.RejectFriendCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                                CommandParameter="{Binding}"
-                                                                Visibility="{Binding IsVerified, Converter={StaticResource BoolToVisConverter}, ConverterParameter=invert}"
-                                                                Margin="4,0"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
+                                            <adminControls:AdminFriendRow DataContext="{Binding}"
+                                            VerifyClicked="FriendRow_VerifyClicked"
+                                            RejectClicked="FriendRow_RejectClicked"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -399,43 +286,7 @@
                                     <ItemsControl ItemsSource="{Binding AllBookings}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="0,10">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="160"/>
-                                                            <ColumnDefinition Width="160"/>
-                                                            <ColumnDefinition Width="110"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="110"/>
-                                                            <ColumnDefinition Width="100"/>
-                                                            <ColumnDefinition Width="110"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <TextBlock Text="{Binding BookingID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding ClientName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="2" Text="{Binding FriendName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="3" Text="{Binding Date, Converter={StaticResource DateFormatConverter}}" FontSize="12" Foreground="#424242" VerticalAlignment="Center"/>
-                                                        
-                                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding TimeRange}" FontSize="12" Foreground="#424242"/>
-                                                            <TextBlock Text=" · " Foreground="#BDBDBD"/>
-                                                            <TextBlock Text="{Binding Location}" FontSize="12" Foreground="#757575" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
-                                                        </StackPanel>
-
-                                                        <TextBlock Grid.Column="5" Text="{Binding TotalAmount, Converter={StaticResource MoneyFormatConverter}}" FontSize="12" FontWeight="SemiBold" Foreground="#4CAF50" VerticalAlignment="Center"/>
-
-                                                        <Border Grid.Column="6" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
-                                                                Background="{Binding Status, Converter={StaticResource BookingStatusColorConverter}}">
-                                                            <TextBlock Text="{Binding StatusDisplay}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
-                                                        </Border>
-
-                                                        <Border Grid.Column="7" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
-                                                                Background="{Binding PaymentStatusBrush}">
-                                                            <TextBlock Text="{Binding PaymentStatusDisplay}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
-                                                        </Border>
-                                                    </Grid>
-                                                </Border>
+                                                <adminControls:AdminBookingRow DataContext="{Binding}"/>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -479,7 +330,7 @@
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="150"/>
+                                                            <ColumnDefinition Width="200"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="100"/>
                                                             <ColumnDefinition Width="150"/>
@@ -488,7 +339,7 @@
 
                                                         <TextBlock Text="{Binding MessageID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding SenderName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="2" Text="{Binding Content, Converter={StaticResource TrimTextConverter}, ConverterParameter=80}" 
+                                                        <TextBlock Grid.Column="2" HorizontalAlignment="Center" Text="{Binding Content, Converter={StaticResource TrimTextConverter}, ConverterParameter=80}" 
                                                                    FontSize="12" Foreground="#616161" VerticalAlignment="Center"/>
 
                                                         <Border Grid.Column="3" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Background="#E0E0E0">
@@ -499,11 +350,11 @@
                                                                    FontSize="11" Foreground="#757575" VerticalAlignment="Center"/>
 
                                                         <Border Grid.Column="5" Width="28" Height="28" CornerRadius="14"
-                                                                Background="{Binding IsRead, Converter={StaticResource VerificationColorConverter}}"
+                                                                Background="{Binding IsRead, Converter={StaticResource ReadStatusToColorConverter}}"
                                                                 HorizontalAlignment="Center">
-                                                            <TextBlock Text="{Binding IsRead, Converter={StaticResource VerificationStatusConverter}}"
-                                                                       FontSize="10" Foreground="White" FontWeight="Bold"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding IsRead, Converter={StaticResource ReadStatusToTextConverter}}"
+                                                                FontSize="10" Foreground="White" FontWeight="Bold"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
                                                     </Grid>
                                                 </Border>
@@ -526,9 +377,9 @@
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="60"/>
-                                                        <ColumnDefinition Width="150"/>
-                                                        <ColumnDefinition Width="120"/>
-                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="200"/>
+                                                        <ColumnDefinition Width="250"/>
+                                                        <ColumnDefinition Width="200"/>
                                                         <ColumnDefinition Width="80"/>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="160"/>
@@ -537,7 +388,7 @@
                                                     <TextBlock Text="{Binding LogID}" FontSize="12" Foreground="#757575" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding UserName}" FontSize="13" Foreground="#212121" VerticalAlignment="Center"/>
 
-                                                    <Border Grid.Column="2" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left"
+                                                    <Border Grid.Column="2" CornerRadius="4" Padding="6,3" HorizontalAlignment="Center"
                                                             Background="{Binding ActionColor}">
                                                         <TextBlock Text="{Binding Action}" FontSize="10" Foreground="White" FontWeight="SemiBold"/>
                                                     </Border>
@@ -589,81 +440,16 @@
                                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
                                         <ItemsControl ItemsSource="{Binding PendingReviews}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Padding="12,10">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="60"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <adminControls:AdminReviewRow DataContext="{Binding}"
+                                                     ApproveClicked="ReviewRow_ApproveClicked"
+                                                     RejectClicked="ReviewRow_RejectClicked"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
 
-                                                        <!-- ID -->
-                                                        <TextBlock Text="{Binding ReviewID, StringFormat='#{0}'}" 
-                                               FontSize="12" Foreground="#757575" VerticalAlignment="Top" Margin="0,4,0,0"/>
-
-                                                        <!-- Контент отзыва -->
-                                                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                                            <!-- Заголовок и звёзды -->
-                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" 
-                                                       Foreground="#212121" MaxWidth="400" TextTrimming="CharacterEllipsis"/>
-                                                                <TextBlock Margin="10,0,0,0" FontSize="13">
-                                                <Run Text="⭐ " Foreground="#FFC107"/>
-                                                <Run Text="{Binding Rating, StringFormat={}{0}/5}" Foreground="#212121" FontWeight="SemiBold"/>
-                                                                </TextBlock>
-                                                            </StackPanel>
-
-                                                            <!-- Текст отзыва -->
-                                                            <TextBlock Text="{Binding Comment}" FontSize="12" Foreground="#616161" 
-                                                   TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis"
-                                                   Margin="0,0,0,6"/>
-
-                                                            <!-- Мета-информация -->
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock FontSize="11" Foreground="#9E9E9E">
-                                                <Run Text="Автор: "/>
-                                                <Run Text="{Binding ClientName}" FontWeight="SemiBold" Foreground="#424242"/>
-                                                                </TextBlock>
-                                                                <TextBlock Text=" · " FontSize="11" Foreground="#BDBDBD"/>
-                                                                <TextBlock FontSize="11" Foreground="#9E9E9E">
-                                                <Run Text="Бронирование №"/>
-                                                <Run Text="{Binding BookingID}"/>
-                                                                </TextBlock>
-                                                                <TextBlock Text=" · " FontSize="11" Foreground="#BDBDBD"/>
-                                                                <TextBlock Text="{Binding CreatedAt, StringFormat='dd.MM.yyyy HH:mm'}" 
-                                                       FontSize="11" Foreground="#9E9E9E"/>
-                                                            </StackPanel>
-
-                                                            <!-- Поле причины отклонения (скрыто по умолчанию) -->
-                                                            <Border x:Name="RejectReasonPanel" Background="#FFF3E0" CornerRadius="6" 
-                                                Padding="10" Margin="0,8,0,0" Visibility="Collapsed">
-                                                                <StackPanel>
-                                                                    <TextBlock Text="Причина отклонения:" FontSize="11" Foreground="#E65100" Margin="0,0,0,4"/>
-                                                                    <TextBox x:Name="RejectReasonBox" FontSize="12" Height="60"
-                                                         TextWrapping="Wrap" AcceptsReturn="True"
-                                                         Tag="Укажите причину отклонения отзыва..."/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </StackPanel>
-
-                                                        <!-- Кнопки действий -->
-                                                        <StackPanel Grid.Column="2" VerticalAlignment="Top" Margin="12,0,0,0" Width="100">
-                                                            <Button Content="✅ Одобрить" Style="{StaticResource SuccessBtn}" 
-                                                Width="100" Margin="0,0,0,6"
-                                                Click="ApproveReview_Click" Tag="{Binding ReviewID}"/>
-                                                            <Button Content="❌ Отклонить" Style="{StaticResource DangerBtn}" 
-                                                Width="100" Margin="0,0,0,6"
-                                                Click="RejectReview_Click" Tag="{Binding ReviewID}"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
-                                    <!-- Пустое состояние -->
+                                        <!-- Пустое состояние -->
                                     <Border x:Name="NoReviewsPlaceholder" Visibility="Collapsed" Padding="40" HorizontalAlignment="Center">
                                         <StackPanel HorizontalAlignment="Center">
                                             <TextBlock Text="✅" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>

@@ -829,9 +829,9 @@ namespace Project_RentAFriend.Controllers
         [Route("getAll")]
         [HttpGet]
         public async Task<ActionResult> GetAllBookings(
-            [FromHeader(Name = "TOKEN")] string token,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 50)
+             [FromHeader(Name = "TOKEN")] string token,
+             [FromQuery] int page = 1,
+             [FromQuery] int pageSize = 50)
         {
             try
             {
@@ -848,19 +848,30 @@ namespace Project_RentAFriend.Controllers
 
                 var bookings = await _dbManager.Bookings
                     .Include(b => b.Client)
+                    .Include(b => b.FriendProfile)
+                        .ThenInclude(fp => fp!.User)
                     .Include(b => b.Schedule)
                     .OrderByDescending(b => b.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(b => new
+                    .Select(b => new BookingDetailsDTO
                     {
-                        b.BookingID,
-                        b.ClientID,
-                        ClientName = b.Client.FullName,
-                        b.Status,
-                        b.TotalAmount,
-                        b.PaymentStatus,
-                        b.CreatedAt
+                        BookingID = b.BookingID,
+                        ClientID = b.ClientID,
+                        ClientName = b.Client != null ? b.Client.FullName : "Неизвестно",
+                        ClientEmail = b.Client != null ? b.Client.Email ?? "" : "",
+                        ClientPhone = b.Client != null ? b.Client.Phone ?? "" : "",
+                        FriendName = b.FriendProfile != null && b.FriendProfile.User != null
+                            ? b.FriendProfile.User.FullName : "Неизвестно",
+                        Status = b.Status,
+                        TotalAmount = b.TotalAmount,
+                        PaymentStatus = b.PaymentStatus,
+                        ScheduleDate = b.Schedule != null ? b.Schedule.Date : DateTime.MinValue,
+                        StartTime = b.Schedule != null ? b.Schedule.StartTime : TimeSpan.Zero,
+                        EndTime = b.Schedule != null ? b.Schedule.EndTime : TimeSpan.Zero,
+                        MeetingLocation = b.MeetingLocation ?? "",
+                        CreatedAt = b.CreatedAt,
+                        HasReview = b.Review != null
                     })
                     .ToListAsync();
 

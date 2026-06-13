@@ -128,4 +128,34 @@ namespace RentAFriendApp.Converters.Admin
         };
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
     }
+    public class ReadStatusToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isRead)
+            {
+                return isRead
+                    ? new SolidColorBrush(Color.FromRgb(76, 175, 80))   // Прочитано — зелёный
+                    : new SolidColorBrush(Color.FromRgb(255, 152, 0));  // Не прочитано — оранжевый
+            }
+            return new SolidColorBrush(Color.FromRgb(158, 158, 158)); // Серый
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+    public class ReadStatusToTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isRead)
+            {
+                return isRead ? "✓" : "✉";
+            }
+            return "?";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }
