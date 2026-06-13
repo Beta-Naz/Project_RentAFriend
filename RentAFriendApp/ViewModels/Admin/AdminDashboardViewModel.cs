@@ -3,6 +3,7 @@ using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.MessageDTO.Response;
+using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -51,6 +52,27 @@ namespace RentAFriendApp.ViewModels.Admin
         {
             get => _auditLogs;
             set { _auditLogs = value; OnPropertyChanged(); }
+        }
+
+        private ObservableCollection<ReviewDTO> _pendingReviews = new();
+        public ObservableCollection<ReviewDTO> PendingReviews
+        {
+            get => _pendingReviews;
+            set { _pendingReviews = value; OnPropertyChanged(); }
+        }
+
+        private int _pendingReviewsCount;
+        public int PendingReviewsCount
+        {
+            get => _pendingReviewsCount;
+            set { _pendingReviewsCount = value; OnPropertyChanged(); }
+        }
+
+        private int _approvedTodayCount;
+        public int ApprovedTodayCount
+        {
+            get => _approvedTodayCount;
+            set { _approvedTodayCount = value; OnPropertyChanged(); }
         }
 
         // ===== СТАТИСТИКА =====
@@ -169,6 +191,8 @@ namespace RentAFriendApp.ViewModels.Admin
         public ICommand ApplyDateFilterCommand { get; }
         public ICommand DeleteAllLogCommand { get; }
         public ICommand SendBroadcastCommand { get; }
+        public ICommand ApproveReviewCommand { get; }
+        public ICommand RejectReviewCommand { get; }
 
         public AdminDashboardViewModel(string token)
         {
@@ -185,6 +209,8 @@ namespace RentAFriendApp.ViewModels.Admin
             ApplyDateFilterCommand = new RelayCommand(async () => await LoadBookingsAsync());
             DeleteAllLogCommand = new RelayCommand(async () => await DeleteAllLogsAsync());
             SendBroadcastCommand = new RelayCommand(async () => await SendBroadcastAsync());
+            ApproveReviewCommand = new RelayCommand<int>(async (id) => await ApproveReviewAsync(id));
+            RejectReviewCommand = new RelayCommand<(int, string)>(async (tuple) => await RejectReviewAsync(tuple.Item1, tuple.Item2));
 
             _ = InitializeAsync();
         }
@@ -215,7 +241,8 @@ namespace RentAFriendApp.ViewModels.Admin
                     LoadFriendProfilesAsync(),
                     LoadBookingsAsync(),
                     LoadMessagesAsync(),
-                    LoadAuditLogsAsync()
+                    LoadAuditLogsAsync(),
+                    LoadPendingReviewsAsync()
                 );
 
                 CalculateStatistics();
@@ -302,7 +329,68 @@ namespace RentAFriendApp.ViewModels.Admin
                         });
             });
         }
+        private async Task LoadPendingReviewsAsync()
+        {
+            var response = await ReviewContext.GetPendingReviews(_token);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                PendingReviews.Clear();
+                if (response?.Reviews != null)
+                {
+                    foreach (var r in response.Reviews)
+                    {
+                        PendingReviews.Add(new ReviewDTO
+                        {
+                            ReviewID = r.ReviewID,
+                            BookingID = r.BookingID,
+                            Title = r.Title,
+                            Rating = r.Rating,
+                            Comment = r.Comment,
+                            IsApproved = false,
+                            CreatedAt = r.CreatedAt,
+                            ClientName = r.ClientName
+                        });
+                    }
+                }
+                PendingReviewsCount = PendingReviews.Count;
+            });
+        }
 
+        private async Task ApproveReviewAsync(int reviewId)
+        {
+            try
+            {
+                IsBusy = true;
+                var result = await ReviewContext.ApproveReview(_token, reviewId);
+                if (result != null)
+                {
+                    await LoadPendingReviewsAsync();
+                    MessageBox.Show("Отзыв одобрен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                    SetError("Ошибка одобрения отзыва");
+            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
+        }
+
+        private async Task RejectReviewAsync(int reviewId, string reason)
+        {
+            try
+            {
+                IsBusy = true;
+                var result = await ReviewContext.RejectReview(_token, reviewId, reason);
+                if (result != null)
+                {
+                    await LoadPendingReviewsAsync();
+                    MessageBox.Show("Отзыв отклонён", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                    SetError("Ошибка отклонения отзыва");
+            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
+        }
         private void CalculateStatistics()
         {
             TotalUsers = _allUsersFull.Count;

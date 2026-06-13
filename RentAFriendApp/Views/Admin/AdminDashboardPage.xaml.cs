@@ -39,7 +39,34 @@ namespace RentAFriendApp.Views.Admin
                 MessageBox.Show("БД перезапущена", "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+        private void ApproveReview_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag != null)
+            {
+                int reviewId = Convert.ToInt32(btn.Tag);
+                _viewModel.ApproveReviewCommand.Execute(reviewId);
+            }
+        }
 
+        private void RejectReview_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag != null)
+            {
+                int reviewId = Convert.ToInt32(btn.Tag);
+
+                var reason = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Укажите причину отклонения:", "Отклонение отзыва", "");
+
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    MessageBox.Show("Необходимо указать причину отклонения", "Внимание",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                _viewModel.RejectReviewCommand.Execute((reviewId, reason));
+            }
+        }
         private void BackupButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Резервное копирование запущено...", "Бэкап", MessageBoxButton.OK, MessageBoxImage.Information);

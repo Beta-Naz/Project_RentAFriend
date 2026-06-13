@@ -9,8 +9,8 @@ namespace RentAFriendApp.ViewModels.Base
     {
         private readonly Func<Task>? _execute;
         private readonly Func<bool>? _canExecute;
-        private readonly Func<object, Task>? _executeWithParameter;
-        private readonly Func<object, bool>? _canExecuteWithParameter;
+        private readonly Func<object?, Task>? _executeWithParameter;
+        private readonly Func<object?, bool>? _canExecuteWithParameter;
         private bool _isExecuting;
 
         public event EventHandler? CanExecuteChanged
@@ -40,7 +40,7 @@ namespace RentAFriendApp.ViewModels.Base
         }
 
         /// <summary> Конструктор для команды с параметром object </summary>
-        public RelayCommandAsync(Func<object, Task> execute, Func<object, bool>? canExecute = null)
+        public RelayCommandAsync(Func<object?, Task> execute, Func<object?, bool>? canExecute = null)
         {
             _executeWithParameter = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecuteWithParameter = canExecute;
@@ -52,7 +52,7 @@ namespace RentAFriendApp.ViewModels.Base
                 return false;
 
             if (_canExecuteWithParameter != null)
-                return _canExecuteWithParameter(parameter!);
+                return _canExecuteWithParameter(parameter);
 
             if (_canExecute != null)
                 return _canExecute();
@@ -62,6 +62,14 @@ namespace RentAFriendApp.ViewModels.Base
 
         public async void Execute(object? parameter)
         {
+            await ExecuteAsync(parameter);
+        }
+
+        /// <summary>
+        /// Выполняет команду асинхронно и возвращает Task для await
+        /// </summary>
+        public async Task ExecuteAsync(object? parameter = null)
+        {
             if (!CanExecute(parameter))
                 return;
 
@@ -70,7 +78,7 @@ namespace RentAFriendApp.ViewModels.Base
                 IsExecuting = true;
 
                 if (_executeWithParameter != null)
-                    await _executeWithParameter(parameter!);
+                    await _executeWithParameter(parameter);
                 else if (_execute != null)
                     await _execute();
             }
@@ -87,12 +95,12 @@ namespace RentAFriendApp.ViewModels.Base
     }
 
     /// <summary>
-    /// Асинхронная команда с типизированным параметром (для удобства)
+    /// Асинхронная команда с типизированным параметром
     /// </summary>
     public class RelayCommandAsync<T> : ICommand
     {
-        private readonly Func<T, Task> _execute;
-        private readonly Func<T, bool>? _canExecute;
+        private readonly Func<T?, Task> _execute;
+        private readonly Func<T?, bool>? _canExecute;
         private bool _isExecuting;
 
         public event EventHandler? CanExecuteChanged
@@ -114,7 +122,7 @@ namespace RentAFriendApp.ViewModels.Base
             }
         }
 
-        public RelayCommandAsync(Func<T, Task> execute, Func<T, bool>? canExecute = null)
+        public RelayCommandAsync(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
@@ -126,26 +134,31 @@ namespace RentAFriendApp.ViewModels.Base
                 return false;
 
             if (parameter is T typedParam)
-            {
                 return _canExecute?.Invoke(typedParam) ?? true;
-            }
 
-            // Если параметр не того типа, но команда его не ожидает
             return _canExecute == null && parameter == null;
         }
 
         public async void Execute(object? parameter)
         {
+            await ExecuteAsync(parameter);
+        }
+
+        /// <summary>
+        /// Выполняет команду асинхронно и возвращает Task для await
+        /// </summary>
+        public async Task ExecuteAsync(object? parameter = default)
+        {
             if (!CanExecute(parameter))
                 return;
 
-            if (parameter is not T typedParam)
+            if (parameter is not T typedParam && parameter != null)
                 return;
 
             try
             {
                 IsExecuting = true;
-                await _execute(typedParam);
+                await _execute((T?)parameter);
             }
             finally
             {

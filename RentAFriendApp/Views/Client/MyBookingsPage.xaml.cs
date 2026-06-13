@@ -29,6 +29,7 @@ namespace RentAFriendApp.Views.Client
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.25));
+            _viewModel.RefreshCommand.Execute(null);
             BeginAnimation(OpacityProperty, fadeIn);
         }
 

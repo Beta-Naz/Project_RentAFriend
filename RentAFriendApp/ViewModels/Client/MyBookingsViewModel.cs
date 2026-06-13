@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-using System.Windows.Media;
-using RentAFriendApp.Context;
+﻿using RentAFriendApp.Context;
 using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.Views.Client;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace RentAFriendApp.ViewModels.Client
 {
@@ -220,7 +220,7 @@ namespace RentAFriendApp.ViewModels.Client
 
         private Task AddReview(int bookingId)
         {
-            Messenger.Default.SendData(new { Action = "AddReview", BookingID = bookingId });
+            MainWindow.Instanse?.MainFrame.Navigate(new ReviewPage(_token, bookingId));
             return Task.CompletedTask;
         }
 
@@ -241,6 +241,8 @@ namespace RentAFriendApp.ViewModels.Client
     #region МОДЕЛЬ ОТОБРАЖЕНИЯ
     public class BookingDisplayModel : BaseViewModel
     {
+        private bool _hasReview;
+
         public int BookingID { get; set; }
         public int FriendProfileID { get; set; }
         public string FriendName { get; set; } = "";
@@ -252,9 +254,16 @@ namespace RentAFriendApp.ViewModels.Client
         public DateTime Date { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-        public bool HasReview { get; set; }
 
-        // Вычисляемые
+        public bool HasReview
+        {
+            get => _hasReview;
+            set
+            {
+                if (SetProperty(ref _hasReview, value))
+                    OnPropertyChanged(nameof(CanReview));
+            }
+        }
         public TimeSpan Duration => EndTime - StartTime;
         public string FriendInitials => string.IsNullOrEmpty(FriendName) ? "?" : string.Concat(FriendName.Split(' ').Take(2).Select(w => w[0])).ToUpper();
         public bool CanBeCancelled => Status is "Pending" or "Confirmed";

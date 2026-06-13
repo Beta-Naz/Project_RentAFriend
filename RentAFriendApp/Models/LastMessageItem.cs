@@ -9,6 +9,7 @@
         public string Content { get; set; } = string.Empty;
         public bool IsRead { get; set; }
         public string MessageType { get; set; } = "Text";
+
         public DateTime CreatedAt;
     }
 }

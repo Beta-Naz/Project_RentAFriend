@@ -324,7 +324,7 @@
                                                                 </ItemsControl.ItemsPanel>
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <Path Data="{StaticResource StarIcon}" Fill="#FFC107" Width="14" Height="14"/>
+                                                                        <Path Data="{StaticResource StarIcon}" Fill="#FFC107" Width="24" Height="22"/>
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>

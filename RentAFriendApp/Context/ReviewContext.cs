@@ -138,5 +138,21 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        /// <summary>
+        /// Проверить, оставлен ли отзыв на бронирование
+        /// </summary>
+        public static async Task<HasReviewResponse?> HasReview(string token, int bookingId)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/hasReview/{bookingId}");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<HasReviewResponse>(result);
+            }
+            return null;
+        }
     }
 }

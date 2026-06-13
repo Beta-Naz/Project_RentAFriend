@@ -161,6 +161,7 @@ namespace Project_RentAFriend.Controllers
                     .Include(b => b.FriendProfile)
                     .ThenInclude(fp => fp != null ? fp.User : null)
                     .Include(b => b.Schedule)
+                    .Include(b => b.Review)
                     .Where(b => b.ClientID == userId);
 
                 if (!string.IsNullOrEmpty(status))

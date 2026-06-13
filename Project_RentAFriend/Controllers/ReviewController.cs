@@ -306,83 +306,70 @@ namespace Project_RentAFriend.Controllers
             }
         }
 
-        /// <summary>
-        /// Одобрить отзыв (только администратор)
-        /// </summary>
         [Route("approve/{reviewId}")]
         [HttpPut]
         public async Task<ActionResult> ApproveReview(
-            [FromHeader(Name = "TOKEN")] string token,
-            int reviewId,
-            [FromBody] ApproveReviewDTO approveData)
+       [FromHeader(Name = "TOKEN")] string token,
+       int reviewId,
+       [FromBody] ApproveReviewDTO approveData)
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null
+                    || _dbManager.AuditLogs == null || _dbManager.Notifications == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
 
-                // Проверяем права администратора
                 int? userId = JwtToken.GetUserIdFromToken(token);
                 if (userId == null)
-                {
                     return Unauthorized(new { message = "Недействительный токен" });
-                }
 
                 var user = await _dbManager.Users.FindAsync(userId);
                 if (user == null || user.Role != "Admin")
-                {
-                    return Forbid("Доступ запрещен. Требуются права администратора.");
-                }
+                    return Forbid("Доступ запрещен");
 
                 var review = await _dbManager.Reviews
                     .Include(r => r.Booking)
+                    .ThenInclude(b => b!.FriendProfile)
+                    .ThenInclude(fp => fp!.User)
                     .FirstOrDefaultAsync(r => r.ReviewID == reviewId);
 
                 if (review == null)
-                {
                     return NotFound(new { message = "Отзыв не найден" });
-                }
 
                 if (review.IsApproved)
-                {
                     return BadRequest(new { message = "Отзыв уже одобрен" });
-                }
-                var approveLog = new AuditLog(userId, "APPROVE_REVIEW", "Reviews", reviewId, $"IsApproved={review.IsApproved}", "IsApproved=true",
-    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
-                _dbManager.AuditLogs.Add(approveLog);
+
                 review.IsApproved = true;
                 review.ModeratorComment = approveData.ModeratorComment;
-                await _dbManager.SaveChangesAsync();
 
-                // Обновляем средний рейтинг друга
-                if (review.Booking != null)
-                {
-                    await UpdateFriendAverageRating(review.Booking.FriendProfileID);
-                }
+                var approveLog = new AuditLog(userId, "APPROVE_REVIEW", "Reviews", reviewId,
+                    $"IsApproved={review.IsApproved}", "IsApproved=true",
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                _dbManager.AuditLogs.Add(approveLog);
 
-                // Создаем уведомление для друга
-                if (_dbManager.Notifications != null && review.Booking?.FriendProfile != null)
+                if (review.Booking?.FriendProfile?.User != null)
                 {
                     var notification = new Notification
                     {
                         UserID = review.Booking.FriendProfile.UserID,
                         Title = "Отзыв одобрен",
-                        Message = $"Ваш отзыв от клиента был одобрен модерацией. Рейтинг: {review.Rating}/5",
+                        Message = $"Новый отзыв одобрен модерацией. Рейтинг: {review.Rating}/5",
                         Type = "Review",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     };
                     _dbManager.Notifications.Add(notification);
-                    await _dbManager.SaveChangesAsync();
                 }
 
-                return Ok(new
-                {
-                    message = "Отзыв успешно одобрен",
-                    reviewId = review.ReviewID
-                });
+                await _dbManager.SaveChangesAsync();
+
+                if (review.Booking != null)
+                    await UpdateFriendAverageRating(review.Booking.FriendProfileID);
+
+                return Ok(new { message = "Отзыв одобрен", reviewId = review.ReviewID });
             }
             catch (Exception ex)
             {
@@ -402,7 +389,8 @@ namespace Project_RentAFriend.Controllers
         {
             try
             {
-                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null || _dbManager.AuditLogs == null)
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Users == null
+                    || _dbManager.AuditLogs == null || _dbManager.Bookings == null || _dbManager.Notifications == null)
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных" });
                 }
@@ -421,7 +409,9 @@ namespace Project_RentAFriend.Controllers
                 }
 
                 var review = await _dbManager.Reviews
-                    .FindAsync(reviewId);
+                    .Include(r => r.Booking)
+                    .ThenInclude(b => b!.Client)
+                    .FirstOrDefaultAsync(r => r.ReviewID == reviewId);
 
                 if (review == null)
                 {
@@ -433,18 +423,51 @@ namespace Project_RentAFriend.Controllers
                     return BadRequest(new { message = "Нельзя отклонить уже одобренный отзыв" });
                 }
 
-                review.ModeratorComment = rejectData.ModeratorComment;
-                var rejectLog = new AuditLog(userId, "REJECT_REVIEW", "Reviews", reviewId, $"Review content: Rating={review.Rating}, Comment={review.Comment}", $"Отклонен по причине: {rejectData.ModeratorComment}",
-    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                if (review.Booking?.Client == null)
+                {
+                    return BadRequest(new { message = "Клиент не найден для этого бронирования" });
+                }
+
+                // Сохраняем ID клиента до удаления отзыва
+                int clientUserId = review.Booking.Client.UserID;
+                string moderatorComment = rejectData.ModeratorComment ?? "Без комментария";
+
+                // Логируем отклонение
+                var rejectLog = new AuditLog(
+                    userId,
+                    "REJECT_REVIEW",
+                    "Reviews",
+                    reviewId,
+                    $"Review content: Rating={review.Rating}, Comment={review.Comment}",
+                    $"Отклонен по причине: {moderatorComment}",
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Request.Headers.UserAgent.ToString(),
+                    DateTime.UtcNow);
+
                 _dbManager.AuditLogs.Add(rejectLog);
+
+                // Удаляем отзыв
                 _dbManager.Reviews.Remove(review);
+
+                // Отправляем уведомление клиенту
+                var notification = new Notification
+                {
+                    UserID = clientUserId,
+                    Title = "Отзыв отклонён",
+                    Message = $"Ваш отзыв был отклонён модератором.\nПричина: {moderatorComment}\n\nВы можете написать новый отзыв.",
+                    Type = "Review",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbManager.Notifications.Add(notification);
+
                 await _dbManager.SaveChangesAsync();
 
                 return Ok(new
                 {
-                    message = "Отзыв отклонен и удален",
+                    message = "Отзыв отклонён и удалён",
                     reviewId = review.ReviewID,
-                    reason = rejectData.ModeratorComment
+                    reason = moderatorComment
                 });
             }
             catch (Exception ex)
@@ -540,6 +563,76 @@ namespace Project_RentAFriend.Controllers
                 friendProfile.AverageRating = averageRating ?? 0;
                 friendProfile.UpdatedAt = DateTime.UtcNow;
                 await _dbManager.SaveChangesAsync();
+            }
+        }
+        /// <summary>
+        /// Проверить, оставлен ли отзыв на бронирование
+        /// </summary>
+        [Route("hasReview/{bookingId}")]
+        [HttpGet]
+        public async Task<ActionResult> HasReview(
+            [FromHeader(Name = "TOKEN")] string token,
+            int bookingId)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.Reviews == null || _dbManager.Bookings == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                // Проверяем токен
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                // Проверяем существование бронирования
+                var booking = await _dbManager.Bookings.FindAsync(bookingId);
+                if (booking == null)
+                {
+                    return NotFound(new { message = "Бронирование не найдено" });
+                }
+
+                // Проверяем, что пользователь — клиент этого бронирования
+                if (booking.ClientID != userId)
+                {
+                    return Forbid("Вы не являетесь клиентом этого бронирования");
+                }
+
+                // Ищем отзыв
+                var review = await _dbManager.Reviews
+                    .FirstOrDefaultAsync(r => r.BookingID == bookingId);
+                var reviewDto = new ReviewDTO
+                {
+                    ReviewID = review.ReviewID,
+                    Title = review.Title,
+                    Rating = review.Rating,
+                    Comment = review.Comment,
+                    IsApproved = review.IsApproved,
+                    CreatedAt = review.CreatedAt,
+                    ClientName = booking.Client?.FullName ?? "Неизвестно",
+                    ModeratorComment = review.ModeratorComment
+                };
+                if (review != null)
+                {
+                    return Ok(new
+                    {
+                        hasReview = true,
+                        reviewDto
+                    });
+                }
+
+                return Ok(new
+                {
+                    hasReview = false,
+                    reviewDto = (object?)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
     }

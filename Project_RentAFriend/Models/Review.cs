@@ -14,7 +14,7 @@ namespace Project_RentAFriend.Models
         [Required]
         [Range(1, 5)]
         public int Rating { get; set; }
-        [MaxLength(100)]
+        [MaxLength(80)]
         public string? Title { get; set; }
 
         [MaxLength(1000)]
