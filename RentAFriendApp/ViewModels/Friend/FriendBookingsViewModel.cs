@@ -1,114 +1,75 @@
-﻿using RentAFriendApp.Context;
-using RentAFriendApp.Models.ClassesDTO.BookingDTO;
-using RentAFriendApp.ViewModels.Base;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using RentAFriendApp.Context;
+using RentAFriendApp.Models.ClassesDTO.BookingDTO;
+using RentAFriendApp.ViewModels.Base;
 
 namespace RentAFriendApp.ViewModels.Friend
 {
     internal class FriendBookingsViewModel : BaseViewModel
     {
         private readonly string _token;
+        public string Token => _token;
         private int _profileId;
 
-        // Коллекции
-        private ObservableCollection<BookingDetailsDTO>? _items;
-        public ObservableCollection<BookingDetailsDTO>? Items
+        private ObservableCollection<FriendBookingDisplayModel> _items = new();
+        public ObservableCollection<FriendBookingDisplayModel> Items
         {
             get => _items;
             set => SetProperty(ref _items, value);
         }
 
-        // Фильтры
-        private string _selectedStatus = "Pending";
+        private string _selectedStatus = "All";
         public string SelectedStatus
         {
             get => _selectedStatus;
             set
             {
                 if (SetProperty(ref _selectedStatus, value))
-                {
-                    FilterItems();
-                }
+                    _ = LoadItemsAsync();
             }
         }
 
-        // Доступные статусы для фильтрации
-        private ObservableCollection<string>? _availableStatuses;
-        public ObservableCollection<string>? AvailableStatuses
-        {
-            get => _availableStatuses;
-            set => SetProperty(ref _availableStatuses, value);
-        }
+        public int PendingCount => Items.Count(b => b.Status == "Pending");
+        public int ConfirmedCount => Items.Count(b => b.Status == "Confirmed");
+        public decimal TotalEarnings => Items.Where(b => b.PaymentStatus == "Paid" && b.Status == "Completed").Sum(b => b.TotalAmount);
+        public int TotalClients => Items.Select(b => b.ClientId).Distinct().Count();
+        public int FilteredCount => Items.Count;
+        public bool IsEmpty => Items.Count == 0;
+        public bool IsNotEmpty => !IsEmpty;
 
-        // Команды
-        public ICommand ViewBookingDetailsCommand { get; }
-        public ICommand AcceptBookingCommand { get; }
-        public ICommand RejectBookingCommand { get; }
-        public ICommand CompleteBookingCommand { get; }
-        public ICommand FilterByStatusCommand { get; }
-        public ICommand MessageClientCommand { get; }
         public ICommand RefreshCommand { get; }
-
-        // Вычисляемые свойства
-        public int PendingCount => Items?.Count(b => b.Status == "Pending") ?? 0;
-        public int ConfirmedCount => Items?.Count(b => b.Status == "Confirmed") ?? 0;
-        public decimal TotalEarnings => Items?.Where(b => b.PaymentStatus == "Paid" && b.Status == "Completed").Sum(b => b.TotalAmount) ?? 0;
-        public bool HasItems => Items?.Count > 0;
+        public ICommand FilterCommand { get; }
+        public ICommand AcceptCommand { get; }
+        public ICommand RejectCommand { get; }
+        public ICommand CompleteCommand { get; }
+        public ICommand ChatCommand { get; }
 
         public FriendBookingsViewModel(string token)
         {
             _token = token;
             Title = "Запросы на бронирование";
 
-            Items = [];
-            AvailableStatuses =
-            [
-                "Все",
-                "Pending",
-                "Confirmed",
-                "Completed",
-                "Cancelled",
-                "Rejected"
-            ];
-
-            ViewBookingDetailsCommand = new RelayCommandAsync<BookingDetailsDTO>(ViewBookingDetails);
-            AcceptBookingCommand = new RelayCommandAsync<BookingDetailsDTO>(AcceptBookingAsync, CanAcceptBooking);
-            RejectBookingCommand = new RelayCommandAsync<BookingDetailsDTO>(RejectBookingAsync, CanRejectBooking);
-            CompleteBookingCommand = new RelayCommandAsync<BookingDetailsDTO>(CompleteBookingAsync, CanCompleteBooking);
-            FilterByStatusCommand = new RelayCommandAsync<string>(FilterByStatus);
-            MessageClientCommand = new RelayCommandAsync<BookingDetailsDTO>(MessageClient);
             RefreshCommand = new RelayCommandAsync(LoadItemsAsync);
+            FilterCommand = new RelayCommand<string>(status => SelectedStatus = status);
+            AcceptCommand = new RelayCommandAsync<int>(AcceptAsync);
+            RejectCommand = new RelayCommandAsync<int>(RejectAsync);
+            CompleteCommand = new RelayCommandAsync<int>(CompleteAsync);
+            ChatCommand = new RelayCommandAsync<int>(OpenChatAsync);
 
             _ = InitializeAsync();
         }
+
         private async Task InitializeAsync()
         {
-            await LoadProfileAsync();
-            await LoadItemsAsync();
-        }
-        private async Task LoadProfileAsync()
-        {
-            try
-            {
-                var user = await UserContext.GetUser(_token);
-                var profilesResponse = await FriendProfileContext.GetAllProfiles(_token);
-                var profile = profilesResponse?.Profiles?.FirstOrDefault(p => p.UserID == user?.Data?.UserID);
+            var user = await UserContext.GetUser(_token);
+            var profiles = await FriendProfileContext.GetAllProfiles(_token);
+            var profile = profiles?.Profiles?.FirstOrDefault(p => p.UserID == user?.Data?.UserID);
+            if (profile != null) _profileId = profile.ProfileID;
 
-                if (profile != null)
-                {
-                    _profileId = profile.ProfileID;
-                }
-                else
-                {
-                    SetError("Профиль друга не найден");
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки профиля: {ex.Message}");
-            }
+            await LoadItemsAsync();
         }
 
         public async Task LoadItemsAsync()
@@ -118,265 +79,262 @@ namespace RentAFriendApp.ViewModels.Friend
                 IsBusy = true;
                 ClearErrors();
 
-                if (_profileId <= 0)
-                {
-                    await LoadProfileAsync();
-                }
+                if (_profileId <= 0) return;
 
-                if (_profileId <= 0)
-                {
-                    SetError("Профиль не загружен");
-                    return;
-                }
-
-                string? statusFilter = SelectedStatus == "Все" ? null : SelectedStatus;
-                var bookings = await BookingContext.GetFriendBookings(_token, _profileId, statusFilter);
+                string? filter = SelectedStatus == "All" ? null : SelectedStatus;
+                var bookings = await BookingContext.GetFriendBookings(_token, _profileId, filter);
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    Items?.Clear();
-
+                    Items.Clear();
                     if (bookings?.Bookings != null)
                     {
-                        foreach (var booking in bookings.Bookings)
-                        {
-                            Items?.Add(booking);
-                        }
+                        foreach (var b in bookings.Bookings)
+                            Items.Add(new FriendBookingDisplayModel(b));
                     }
                 });
 
                 OnPropertyChanged(nameof(PendingCount));
                 OnPropertyChanged(nameof(ConfirmedCount));
                 OnPropertyChanged(nameof(TotalEarnings));
-                OnPropertyChanged(nameof(HasItems));
+                OnPropertyChanged(nameof(TotalClients));
+                OnPropertyChanged(nameof(FilteredCount));
+                OnPropertyChanged(nameof(IsEmpty));
+                OnPropertyChanged(nameof(IsNotEmpty));
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки запросов: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
 
-        private bool CanAcceptBooking(BookingDetailsDTO? booking)
+        private async Task AcceptAsync(int bookingId)
         {
-            return booking != null &&
-                   booking.Status == "Pending" &&
-                   !IsBusy;
+            await UpdateStatus(bookingId, "Confirmed", "подтверждено");
         }
 
-        private bool CanRejectBooking(BookingDetailsDTO? booking)
+        private async Task RejectAsync(int bookingId)
         {
-            return booking != null &&
-                   booking.Status == "Pending" &&
-                   !IsBusy;
-        }
-
-        private bool CanCompleteBooking(BookingDetailsDTO? booking)
-        {
-            return booking != null &&
-                   booking.Status == "Confirmed" &&
-                   !IsBusy;
-        }
-
-        private async Task AcceptBookingAsync(BookingDetailsDTO? booking)
-        {
-            if (booking == null) return;
-
-            try
-            {
-                IsBusy = true;
-                ClearErrors();
-
-                var result = await BookingContext.UpdateBookingStatus(_token, booking.BookingID, "Confirmed");
-
-                if (result != null)
-                {
-                    Base.Messenger.Default.SendNotification($"Бронирование #{booking.BookingID} подтверждено");
-                    await LoadItemsAsync();
-                }
-                else
-                {
-                    SetError("Ошибка подтверждения бронирования");
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка подтверждения бронирования: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private async Task RejectBookingAsync(BookingDetailsDTO? booking)
-        {
-            if (booking == null) return;
-
-            try
-            {
-                IsBusy = true;
-                ClearErrors();
-
-                var result = await BookingContext.RejectBooking(_token, booking.BookingID);
-
-                if (result != null)
-                {
-                    Base.Messenger.Default.SendNotification($"Бронирование #{booking.BookingID} отклонено");
-                    await LoadItemsAsync();
-                }
-                else
-                {
-                    SetError("Ошибка отклонения бронирования");
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка отклонения бронирования: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private async Task CompleteBookingAsync(BookingDetailsDTO? booking)
-        {
-            if (booking == null) return;
-
-            try
-            {
-                IsBusy = true;
-                ClearErrors();
-
-                var result = await BookingContext.UpdateBookingStatus(_token, booking.BookingID, "Completed");
-
-                if (result != null)
-                {
-                    Base.Messenger.Default.SendNotification($"Встреча #{booking.BookingID} завершена");
-                    await LoadItemsAsync();
-                }
-                else
-                {
-                    SetError("Ошибка завершения встречи");
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка завершения встречи: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private async Task MessageClient(BookingDetailsDTO? booking)
-        {
-            if (booking == null) return;
-
-            try
-            {
-                // Открываем чат с клиентом
-                var chat = await ChatContext.GetOrCreateChat(_token, booking.ClientId);
-                if (chat != null)
-                {
-                    Messenger.Default.SendData(new
-                    {
-                        chat.ChatId,
-                        FriendName = booking.ClientName
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка открытия чата: {ex.Message}");
-            }
-        }
-
-        private async Task ViewBookingDetails(BookingDetailsDTO? booking)
-        {
-            if (booking == null)
-            {
-                MessageBox.Show("Нет данных для отображения.", "Детали бронирования",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+            if (MessageBox.Show("Отклонить запрос?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
                 return;
-            }
 
-            // Получаем детали бронирования
-            var details = await BookingContext.GetBookingDetails(_token, booking.BookingID);
-
-            if (details?.Booking != null)
-            {
-                string message = $@"
-                ID бронирования: #{details.Booking.BookingID}
-                Статус: {GetStatusDisplay(details.Booking.Status)}
-                Сумма: {details.Booking.TotalAmount:C}
-                Оплата: {GetPaymentStatusDisplay(details.Booking.PaymentStatus)}
-                
-                Клиент:
-                  Имя: {details.Booking.ClientName}
-                  Email: {details.Booking.ClientEmail}
-                  Телефон: {details.Booking.ClientPhone}
-                
-                Встреча:
-                  Дата: {details.Booking.ScheduleDate:dd.MM.yyyy}
-                  Время: {details.Booking.StartTime:hh\\:mm} - {details.Booking.EndTime:hh\\:mm}
-                  Место: {(string.IsNullOrEmpty(details.Booking.MeetingLocation) ? "Не указано" : details.Booking.MeetingLocation)}
-                
-                Цель: {(string.IsNullOrEmpty(details.Booking.Purpose) ? "Не указана" : details.Booking.Purpose)}
-                
-                Специальные пожелания:
-                {(string.IsNullOrEmpty(details.Booking.SpecialRequests) ? "Нет" : details.Booking.SpecialRequests)}
-                
-                Создано: {details.Booking.CreatedAt:dd.MM.yyyy HH:mm}
-                Обновлено: {details.Booking.UpdatedAt:dd.MM.yyyy HH:mm}
-                ";
-
-                MessageBox.Show(message.Trim(), "Детали бронирования",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            await UpdateStatus(bookingId, "Rejected", "отклонено");
         }
 
-        private async Task FilterByStatus(string? status)
+        private async Task CompleteAsync(int bookingId)
         {
-            if (status != null)
+            await UpdateStatus(bookingId, "Completed", "завершена");
+        }
+
+        private async Task UpdateStatus(int bookingId, string status, string message)
+        {
+            try
             {
-                SelectedStatus = status;
+                IsBusy = true;
+                await BookingContext.UpdateBookingStatus(_token, bookingId, status);
+                Messenger.Default.SendNotification($"Бронирование #{bookingId} {message}");
                 await LoadItemsAsync();
             }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
 
-        private void FilterItems()
+        private async Task OpenChatAsync(int bookingId)
         {
-            _ = LoadItemsAsync();
-        }
+            var booking = Items.FirstOrDefault(b => b.BookingID == bookingId);
+            if (booking == null) return;
 
-        private string GetStatusDisplay(string status)
-        {
-            return status switch
+            var chat = await ChatContext.GetOrCreateChat(_token, booking.ClientId);
+            if (chat != null)
             {
-                "Pending" => "Ожидает подтверждения",
-                "Confirmed" => "Подтверждено",
-                "Completed" => "Завершено",
-                "Cancelled" => "Отменено",
-                "Rejected" => "Отклонено",
-                _ => status
-            };
+                MessageBox.Show("Будет добавлена в следующем обновлении");
+            }
+        }
+    }
+
+    public class FriendBookingDisplayModel : BaseViewModel
+    {
+        private int _bookingID;
+        public int BookingID
+        {
+            get => _bookingID;
+            set => SetProperty(ref _bookingID, value);
         }
 
-        private string GetPaymentStatusDisplay(string paymentStatus)
+        private int _clientId;
+        public int ClientId
         {
-            return paymentStatus switch
+            get => _clientId;
+            set => SetProperty(ref _clientId, value);
+        }
+
+        private string _clientName = "";
+        public string ClientName
+        {
+            get => _clientName;
+            set
             {
-                "Paid" => "Оплачено",
-                "Unpaid" => "Не оплачено",
-                "Refunded" => "Возвращено",
-                _ => paymentStatus
-            };
+                if (SetProperty(ref _clientName, value))
+                    OnPropertyChanged(nameof(ClientInitials));
+            }
+        }
+
+        private string _clientEmail = "";
+        public string ClientEmail
+        {
+            get => _clientEmail;
+            set => SetProperty(ref _clientEmail, value);
+        }
+
+        private string _clientPhone = "";
+        public string ClientPhone
+        {
+            get => _clientPhone;
+            set => SetProperty(ref _clientPhone, value);
+        }
+
+        private string _status = "";
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                if (SetProperty(ref _status, value))
+                {
+                    OnPropertyChanged(nameof(StatusDisplay));
+                    OnPropertyChanged(nameof(StatusBackground));
+                    OnPropertyChanged(nameof(CanAccept));
+                    OnPropertyChanged(nameof(CanReject));
+                    OnPropertyChanged(nameof(CanComplete));
+                }
+            }
+        }
+
+        private string _paymentStatus = "";
+        public string PaymentStatus
+        {
+            get => _paymentStatus;
+            set
+            {
+                if (SetProperty(ref _paymentStatus, value))
+                    OnPropertyChanged(nameof(PaymentStatusDisplay));
+            }
+        }
+
+        private decimal _totalAmount;
+        public decimal TotalAmount
+        {
+            get => _totalAmount;
+            set => SetProperty(ref _totalAmount, value);
+        }
+
+        private DateTime _scheduleDate;
+        public DateTime ScheduleDate
+        {
+            get => _scheduleDate;
+            set
+            {
+                if (SetProperty(ref _scheduleDate, value))
+                    OnPropertyChanged(nameof(DateDisplay));
+            }
+        }
+
+        private TimeSpan _startTime;
+        public TimeSpan StartTime
+        {
+            get => _startTime;
+            set
+            {
+                if (SetProperty(ref _startTime, value))
+                    OnPropertyChanged(nameof(TimeRange));
+            }
+        }
+
+        private TimeSpan _endTime;
+        public TimeSpan EndTime
+        {
+            get => _endTime;
+            set
+            {
+                if (SetProperty(ref _endTime, value))
+                {
+                    OnPropertyChanged(nameof(TimeRange));
+                    OnPropertyChanged(nameof(Duration));
+                }
+            }
+        }
+
+        private string _meetingLocation = "";
+        public string MeetingLocation
+        {
+            get => _meetingLocation;
+            set => SetProperty(ref _meetingLocation, value);
+        }
+
+        private string _purpose = "";
+        public string Purpose
+        {
+            get => _purpose;
+            set => SetProperty(ref _purpose, value);
+        }
+
+        private DateTime _createdAt;
+        public DateTime CreatedAt
+        {
+            get => _createdAt;
+            set => SetProperty(ref _createdAt, value);
+        }
+
+        // Вычисляемые свойства (только для чтения)
+        public string ClientInitials => string.IsNullOrEmpty(ClientName)
+            ? "?"
+            : string.Concat(ClientName.Split(' ').Take(2).Select(w => w[0])).ToUpper();
+
+        public string DateDisplay => ScheduleDate.ToString("dd.MM.yyyy");
+        public string TimeRange => $"{StartTime:hh\\:mm} – {EndTime:hh\\:mm}";
+        public string Duration => $"{(EndTime - StartTime).TotalHours:F1} ч";
+
+        public string StatusDisplay => Status switch
+        {
+            "Pending" => "Ожидает",
+            "Confirmed" => "Подтверждена",
+            "Completed" => "Завершена",
+            "Cancelled" => "Отменена",
+            "Rejected" => "Отклонена",
+            _ => Status
+        };
+
+        public string PaymentStatusDisplay => PaymentStatus == "Paid" ? "Оплачено" : "Не оплачено";
+
+        public bool CanAccept => Status == "Pending";
+        public bool CanReject => Status == "Pending";
+        public bool CanComplete => Status == "Confirmed";
+
+        public Color StatusBackground => Status switch
+        {
+            "Pending" => Color.FromRgb(255, 248, 225),
+            "Confirmed" => Color.FromRgb(232, 245, 233),
+            "Completed" => Color.FromRgb(227, 242, 253),
+            "Rejected" => Color.FromRgb(255, 235, 238),
+            _ => Color.FromRgb(250, 250, 250)
+        };
+
+        public FriendBookingDisplayModel(){}
+
+        public FriendBookingDisplayModel(BookingDetailsDTO dto)
+        {
+            BookingID = dto.BookingID;
+            ClientId = dto.ClientId;
+            ClientName = dto.ClientName;
+            ClientEmail = dto.ClientEmail;
+            ClientPhone = dto.ClientPhone;
+            Status = dto.Status;
+            PaymentStatus = dto.PaymentStatus;
+            TotalAmount = dto.TotalAmount;
+            ScheduleDate = dto.ScheduleDate;
+            StartTime = dto.StartTime;
+            EndTime = dto.EndTime;
+            MeetingLocation = dto.MeetingLocation ?? "Не указано";
+            Purpose = dto.Purpose ?? "Не указана";
+            CreatedAt = dto.CreatedAt;
         }
     }
 }

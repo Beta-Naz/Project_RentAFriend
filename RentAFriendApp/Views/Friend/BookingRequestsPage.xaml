@@ -2,849 +2,197 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:RentAFriendApp.Views.Friend"
-      xmlns:system="clr-namespace:System;assembly=mscorlib"
-      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-      xmlns:converters="clr-namespace:RentAFriendApp.Converters" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:converters="clr-namespace:RentAFriendApp.Converters"
+      xmlns:controls="clr-namespace:RentAFriendApp.Views.Controls"
       mc:Ignorable="d" 
-      d:DesignHeight="750" d:DesignWidth="1200"
+      d:DesignHeight="800" d:DesignWidth="1000"
       Title="Запросы на бронирование"
-      Loaded="Page_Loaded"
-      Unloaded="Page_Unloaded">
+      Background="#F8F9FA"
+      Loaded="Page_Loaded">
 
     <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
 
-        <!-- Основная цветовая схема -->
-        <Color x:Key="PrimaryColor">#4CAF50</Color>
-        <Color x:Key="PrimaryDarkColor">#388E3C</Color>
-        <Color x:Key="PrimaryDarkerColor">#2E7D32</Color>
-        <Color x:Key="LightGreenColor">#E8F5E8</Color>
-        <Color x:Key="LightBlueColor">#E3F2FD</Color>
-        <Color x:Key="LightRedColor">#FFEBEE</Color>
-        <Color x:Key="BackgroundColor">#F8F9FA</Color>
-        <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
-        <Color x:Key="TextPrimaryColor">#212121</Color>
-        <Color x:Key="TextSecondaryColor">#757575</Color>
-        <Color x:Key="BorderColor">#E0E0E0</Color>
-        <Color x:Key="DividerColor">#EEEEEE</Color>
-        <Color x:Key="SuccessColor">#4CAF50</Color>
-        <Color x:Key="WarningColor">#FF9800</Color>
-        <Color x:Key="ErrorColor">#F44336</Color>
-        <Color x:Key="InfoColor">#2196F3</Color>
-
-        <!-- Цвета статусов -->
-        <Color x:Key="PendingColor">#FF9800</Color>
-        <Color x:Key="ConfirmedColor">#4CAF50</Color>
-        <Color x:Key="CompletedColor">#2196F3</Color>
-        <Color x:Key="CancelledColor">#9E9E9E</Color>
-        <Color x:Key="RejectedColor">#F44336</Color>
-
-        <!-- SolidColorBrush ресурсы -->
-        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}"/>
-        <SolidColorBrush x:Key="PrimaryDarkerBrush" Color="{StaticResource PrimaryDarkerColor}"/>
-        <SolidColorBrush x:Key="LightGreenBrush" Color="{StaticResource LightGreenColor}"/>
-        <SolidColorBrush x:Key="LightBlueBrush" Color="{StaticResource LightBlueColor}"/>
-        <SolidColorBrush x:Key="LightRedBrush" Color="{StaticResource LightRedColor}"/>
-        <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-        <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-        <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}"/>
-        <SolidColorBrush x:Key="PendingBrush" Color="{StaticResource PendingColor}"/>
-        <SolidColorBrush x:Key="ConfirmedBrush" Color="{StaticResource ConfirmedColor}"/>
-        <SolidColorBrush x:Key="CompletedBrush" Color="{StaticResource CompletedColor}"/>
-        <SolidColorBrush x:Key="CancelledBrush" Color="{StaticResource CancelledColor}"/>
-        <SolidColorBrush x:Key="RejectedBrush" Color="{StaticResource RejectedColor}"/>
-        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
-        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
-        <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
-        <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
-
-        <!-- Анимации -->
-        <Storyboard x:Key="FadeInAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="0" To="1" Duration="0:0:0.3"/>
-        </Storyboard>
-
-        <Storyboard x:Key="SlideInAnimation">
-            <ThicknessAnimation Storyboard.TargetProperty="Margin"
-                                From="0,20,0,0" To="0,0,0,0" 
-                                Duration="0:0:0.4"/>
-        </Storyboard>
-        <Style x:Key="IconButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border"
-                        Background="{TemplateBinding Background}"
-                        CornerRadius="6"
-                        SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource LightGreenBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource LightGreenBrush}"/>
-                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.5"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- Стили текста -->
-        <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="TitleTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        </Style>
-
-        <Style x:Key="SubtitleTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-        </Style>
-
-        <Style x:Key="BodyTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-        <Style x:Key="StatusBadgeStyle" TargetType="Border">
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="6,3"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Background" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="MinWidth" Value="70"/>
-            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="15" Opacity="0.08" ShadowDepth="0"/>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="10"
-                        SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource LightGreenBrush}"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource LightGreenBrush}"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryDarkBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Opacity" Value="0.5"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                                <Setter TargetName="border" Property="Background" Value="#388E3C"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="CaptionTextStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-        </Style>
-        <Style x:Key="FilterButtonStyle" TargetType="Button">
+
+        <Style x:Key="FilterButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="#E0E0E0"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#757575"/>
+            <Setter Property="Foreground" Value="#666666"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="12,8,12,8"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                        Background="{TemplateBinding Background}"
-                        CornerRadius="20"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter HorizontalAlignment="Center" 
-                                      VerticalAlignment="Center"/>
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="20">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
                                 <Setter Property="Foreground" Value="#4CAF50"/>
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Background" Value="#4CAF50"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Стили карточек -->
-        <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="24"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="20" Opacity="0.08" ShadowDepth="2" RenderingBias="Quality"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
 
-        <Style x:Key="StatCardStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}">
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="CornerRadius" Value="10"/>
-        </Style>
-
-        <!-- Стили кнопок -->
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Style x:Key="FilterButtonActive" TargetType="Button" BasedOn="{StaticResource FilterButton}">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="16,10"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
-                                CornerRadius="10"
-                                SnapsToDevicePixels="True">
-                            <ContentPresenter x:Name="contentPresenter"
-                                            HorizontalAlignment="Center" 
-                                            VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryDarkBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryDarkerBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Background" Value="#E0E0E0"/>
-                                <Setter TargetName="border" Property="Opacity" Value="0.6"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
-
-        <!-- Конвертеры -->
-        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
-        <converters:DateTimeConverter x:Key="DateTimeConverter"/>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-        <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
-        <converters:AmountToColorConverter x:Key="AmountToColorConverter"/>
-        <converters:RatingToStarsConverter x:Key="RatingToStarsConverter"/>
-
-        <!-- DataTemplate для элемента бронирования -->
-        <DataTemplate x:Key="BookingRequestItemTemplate">
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
-                <Border.Triggers>
-                    <EventTrigger RoutedEvent="Loaded">
-                        <BeginStoryboard Storyboard="{StaticResource FadeInAnimation}"/>
-                    </EventTrigger>
-                </Border.Triggers>
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Аватар клиента с инициалами -->
-                    <Border Grid.Column="0" 
-                            Width="56" 
-                            Height="56" 
-                            Background="{StaticResource LightGreenBrush}" 
-                            CornerRadius="28" 
-                            Margin="0,0,16,0">
-                        <Viewbox Width="24" Height="24">
-                            <TextBlock Text="{Binding ClientInitials}" 
-                                       Foreground="{StaticResource PrimaryBrush}"
-                                       FontWeight="Bold"/>
-                        </Viewbox>
-                    </Border>
-
-                    <!-- Основная информация -->
-                    <StackPanel Grid.Column="1">
-                        <!-- Заголовок с рейтингом -->
-                        <Grid Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <TextBlock Text="{Binding ClientName}" 
-                                               Style="{StaticResource HeaderTextStyle}"/>
-                                    <TextBlock Text="{Binding ClientRating, Converter={StaticResource RatingToStarsConverter}}"
-                                               Margin="8,0,0,0"
-                                               FontSize="14"
-                                               Foreground="{StaticResource WarningBrush}"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="📧 " Style="{StaticResource SubtitleTextStyle}"/>
-                                    <TextBlock Text="{Binding ClientEmail}" 
-                                               Style="{StaticResource SubtitleTextStyle}"/>
-                                    <TextBlock Text="  📱 " Style="{StaticResource SubtitleTextStyle}" Margin="12,0,0,0"/>
-                                    <TextBlock Text="{Binding ClientPhone}" 
-                                               Style="{StaticResource SubtitleTextStyle}"/>
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Border Style="{StaticResource StatusBadgeStyle}" 
-                                        Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
-                                        Margin="0,0,12,0">
-                                    <TextBlock Text="{Binding StatusDisplay}" 
-                                               Foreground="White" 
-                                               FontSize="11"
-                                               FontWeight="SemiBold"/>
-                                </Border>
-
-                                <StackPanel>
-                                    <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:C}}" 
-                                               Style="{StaticResource HeaderTextStyle}"
-                                               Foreground="{Binding TotalAmount, Converter={StaticResource AmountToColorConverter}}"/>
-                                    <TextBlock Text="Сумма" 
-                                               Style="{StaticResource CaptionTextStyle}"
-                                               HorizontalAlignment="Right"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Детали бронирования -->
-                        <Border Background="{StaticResource LightGreenBrush}" 
-                                CornerRadius="8" 
-                                Padding="16"
-                                Margin="0,0,0,12">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Дата -->
-                                <StackPanel Grid.Column="0">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock Text="📅" Margin="0,0,4,0"/>
-                                        <TextBlock Text="Дата" 
-                                                   Style="{StaticResource CaptionTextStyle}"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Date, Converter={StaticResource DateTimeConverter}}" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                </StackPanel>
-
-                                <Rectangle Grid.Column="1" 
-                                           Width="1" 
-                                           Fill="{StaticResource DividerBrush}" 
-                                           Margin="12,0"/>
-
-                                <!-- Время -->
-                                <StackPanel Grid.Column="2">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock Text="🕒" Margin="0,0,4,0"/>
-                                        <TextBlock Text="Время" 
-                                                   Style="{StaticResource CaptionTextStyle}"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding TimeRange}" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                </StackPanel>
-
-                                <Rectangle Grid.Column="3" 
-                                           Width="1" 
-                                           Fill="{StaticResource DividerBrush}" 
-                                           Margin="12,0"/>
-
-                                <!-- Продолжительность -->
-                                <StackPanel Grid.Column="4">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock Text="⏱️" Margin="0,0,4,0"/>
-                                        <TextBlock Text="Длительность" 
-                                                   Style="{StaticResource CaptionTextStyle}"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Duration}" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <!-- Местоположение и цель -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <StackPanel Margin="0,0,24,0">
-                                <TextBlock Text="📍 Место встречи:" 
-                                           Style="{StaticResource SubtitleTextStyle}"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,4"/>
-                                <TextBlock Text="{Binding MeetingLocation}" 
-                                           Style="{StaticResource BodyTextStyle}"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="🎯 Цель встречи:" 
-                                           Style="{StaticResource SubtitleTextStyle}"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,4"/>
-                                <TextBlock Text="{Binding Purpose}" 
-                                           Style="{StaticResource BodyTextStyle}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Специальные запросы -->
-                        <StackPanel Visibility="{Binding HasSpecialRequests, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="📝 Специальные запросы:" 
-                                       Style="{StaticResource SubtitleTextStyle}"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,8"/>
-                            <Border Background="{StaticResource LightBlueBrush}" 
-                                    CornerRadius="6" 
-                                    Padding="12">
-                                <TextBlock Text="{Binding SpecialRequests}" 
-                                           Style="{StaticResource BodyTextStyle}"
-                                           TextWrapping="Wrap"/>
-                            </Border>
-                        </StackPanel>
-
-                        <!-- Время создания -->
-                        <Border Margin="0,12,0,0" 
-                                Padding="8" 
-                                Background="{StaticResource LightGreenBrush}"
-                                CornerRadius="6">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📅 Создано: " 
-                                           Style="{StaticResource CaptionTextStyle}"/>
-                                <TextBlock Text="{Binding CreatedAt, StringFormat='dd.MM.yyyy HH:mm'}" 
-                                           Style="{StaticResource CaptionTextStyle}"
-                                           FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Кнопки действий -->
-                    <StackPanel Grid.Column="2" 
-                                Margin="16,0,0,0"
-                                Width="160"
-                                VerticalAlignment="Top">
-
-                        <Button Content="✅ Принять" 
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Command="{Binding DataContext.AcceptBookingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                ToolTip="Подтвердить бронирование"
-                                Visibility="{Binding CanAccept, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                Margin="0,0,0,8"/>
-
-                        <Button Content="❌ Отклонить" 
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Background="{StaticResource ErrorBrush}"
-                                Command="{Binding DataContext.RejectBookingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                ToolTip="Отклонить запрос"
-                                Visibility="{Binding CanReject, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                Margin="0,0,0,8"/>
-
-                        <Button Content="✓ Завершить" 
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Background="{StaticResource InfoBrush}"
-                                Command="{Binding DataContext.CompleteBookingCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                ToolTip="Отметить как завершенное"
-                                Visibility="{Binding CanComplete, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                Margin="0,0,0,8"/>
-
-                        <Button Content="💬 Написать" 
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding DataContext.MessageClientCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                ToolTip="Написать сообщение клиенту"
-                                Margin="0,0,0,8"/>
-
-                        <Button Content="👁 Подробнее" 
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Command="{Binding DataContext.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                CommandParameter="{Binding}"
-                                ToolTip="Просмотреть детали"/>
-
-                        <!-- Индикатор оплаты -->
-                        <Border Margin="0,8,0,0" 
-                                Background="{Binding PaymentStatusBrush}"
-                                CornerRadius="4"
-                                Padding="4,2"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding PaymentStatusDisplay}" 
-                                       Foreground="White"
-                                       FontSize="10"
-                                       FontWeight="Bold"/>
-                        </Border>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </DataTemplate>
-
-        <!-- Пустое состояние -->
-        <DataTemplate x:Key="EmptyStateTemplate">
-            <Border Style="{StaticResource CardStyle}" Height="400">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Border Width="120" 
-                            Height="120" 
-                            Background="{StaticResource LightGreenBrush}" 
-                            CornerRadius="60" 
-                            Margin="0,0,0,24">
-                        <Viewbox Width="60" Height="60">
-                            <Path Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
-                                  Fill="{StaticResource PrimaryBrush}"
-                                  Stretch="Uniform"/>
-                        </Viewbox>
-                    </Border>
-                    <TextBlock Text="Нет запросов на бронирование" 
-                               Style="{StaticResource TitleTextStyle}"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,12"/>
-                    <TextBlock Text="Когда клиенты будут отправлять вам запросы, они появятся здесь."
-                               Style="{StaticResource BodyTextStyle}"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               Width="400"/>
-                    <Button Content="📅 Создать расписание" 
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Click="CreateSchedule_Click"
-                            Margin="0,24,0,0"
-                            Padding="24,12"/>
-                </StackPanel>
-            </Border>
-        </DataTemplate>
-
-        <!-- Стиль для баджей статуса -->
-
     </Page.Resources>
 
-    <Grid Background="{StaticResource BackgroundBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <!-- Верхняя панель -->
-        <Border Grid.Row="0" 
-                Style="{StaticResource CardStyle}"
-                Padding="24"
-                Margin="12,12,12,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Заголовок -->
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="📨 Запросы на бронирование" 
-                               Style="{StaticResource TitleTextStyle}"/>
-                    <TextBlock Text="Управляйте запросами от клиентов на встречи с вами" 
-                               Style="{StaticResource SubtitleTextStyle}"
-                               Margin="0,4,0,0"/>
-                </StackPanel>
-
-                <!-- Кнопки действий -->
-                <StackPanel Grid.Column="1" 
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                    <Button x:Name="RefreshButton"
-                            ToolTip="Обновить список"
-                            Click="RefreshButton_Click"
-                            Style="{StaticResource IconButtonStyle}">
-                        <Viewbox Width="40" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Path Data="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
-                                  Fill="{StaticResource PrimaryBrush}"/>
-                        </Viewbox>
-                    </Button>
-
-                    <Button Content="  📊 Экспорт  " 
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Click="ExportButton_Click"
-                            Margin="8,0,0,0"/>
-
-                    <Button Content="  ⚙️ Настройки  " 
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Click="SettingsButton_Click"
-                            Margin="8,0,0,0"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Основное содержимое -->
-        <ScrollViewer Grid.Row="1" 
-                      VerticalScrollBarVisibility="Auto"
-                      Padding="12">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
             <StackPanel>
+                <!-- Заголовок -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="📨 Запросы на бронирование" FontSize="24" FontWeight="SemiBold" Foreground="#333333"/>
+                    <TextBlock Text="{Binding FilteredCount, StringFormat=' ({0})'}" FontSize="24" FontWeight="Bold"
+                               Foreground="#4CAF50" Margin="8,0,0,0"/>
+                </StackPanel>
 
                 <!-- Статистика -->
-                <Border Style="{StaticResource CardStyle}" 
-                        Margin="0,0,0,12">
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Ожидают" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding PendingCount}" FontSize="22" FontWeight="Bold" Foreground="#FF9800"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Подтверждены" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding ConfirmedCount}" FontSize="22" FontWeight="Bold" Foreground="#4CAF50"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="4" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Доход" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding TotalEarnings, StringFormat={}{0:N0} ₽}" FontSize="22" FontWeight="Bold" Foreground="#333333"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="6" Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Клиентов" FontSize="11" Foreground="#666666"/>
+                            <TextBlock Text="{Binding TotalClients}" FontSize="22" FontWeight="Bold" Foreground="#2196F3"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Фильтры + Обновить -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="📊 Статистика" 
-                                   Style="{StaticResource HeaderTextStyle}"
-                                   Margin="0,0,0,16"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Все" Style="{StaticResource FilterButtonActive}"
+                                    Click="FilterButton_Click" Tag="All" Margin="0,0,8,0"/>
+                            <Button Content="Ожидают" Style="{StaticResource FilterButton}"
+                                    Click="FilterButton_Click" Tag="Pending" Margin="0,0,8,0"/>
+                            <Button Content="Подтверждены" Style="{StaticResource FilterButton}"
+                                    Click="FilterButton_Click" Tag="Confirmed" Margin="0,0,8,0"/>
+                            <Button Content="Завершены" Style="{StaticResource FilterButton}"
+                                    Click="FilterButton_Click" Tag="Completed" Margin="0,0,8,0"/>
+                            <Button Content="Отменены" Style="{StaticResource FilterButton}"
+                                    Click="FilterButton_Click" Tag="Cancelled"/>
+                        </StackPanel>
 
-                        <WrapPanel Grid.Row="1">
-                            <!-- Статистические карточки -->
-                            <Border Style="{StaticResource StatCardStyle}" 
-                                    Margin="0,0,12,12">
-                                <StackPanel>
-                                    <TextBlock Text="⏳ Ожидающие" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="PendingCountText" 
-                                               Text="0"
-                                               Style="{StaticResource TitleTextStyle}"
-                                               Foreground="{StaticResource PendingBrush}"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatCardStyle}" 
-                                    Margin="0,0,12,12">
-                                <StackPanel>
-                                    <TextBlock Text="✅ Подтвержденные" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="ConfirmedCountText" 
-                                               Text="0"
-                                               Style="{StaticResource TitleTextStyle}"
-                                               Foreground="{StaticResource ConfirmedBrush}"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatCardStyle}" 
-                                    Margin="0,0,12,12">
-                                <StackPanel>
-                                    <TextBlock Text="💵 Общий доход" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="TotalEarningsText" 
-                                               Text="0 ₽"
-                                               Style="{StaticResource TitleTextStyle}"
-                                               Foreground="{StaticResource SuccessBrush}"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource StatCardStyle}" 
-                                    Margin="0,0,12,12">
-                                <StackPanel>
-                                    <TextBlock Text="👥 Всего клиентов" 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="TotalClientsText" 
-                                               Text="0"
-                                               Style="{StaticResource TitleTextStyle}"
-                                               Foreground="{StaticResource InfoBrush}"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Border>
-                        </WrapPanel>
+                        <Button Grid.Column="1" Content="🔄" Style="{StaticResource PrimaryButton}"
+                                Width="44" Click="BtnRefresh_Click" ToolTip="Обновить"/>
                     </Grid>
                 </Border>
 
-                <!-- Фильтры -->
-                <Border Style="{StaticResource CardStyle}" 
-                        Margin="0,0,0,12">
+                <!-- Список -->
+                <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="🔍 Фильтры" 
-                                   Style="{StaticResource HeaderTextStyle}"
-                                   Margin="0,0,0,16"/>
-
-                        <WrapPanel>
-                            <Button x:Name="AllFilterButton"
-                                    Content="  Все  "
-                                    Style="{StaticResource FilterButtonStyle}"
-                                    Tag="All"
-                                    Click="FilterButton_Click"
-                                    IsEnabled="False"
-                                    Margin="0,0,5,0"/>
-
-                            <Button x:Name="PendingFilterButton"
-                                    Content="  Ожидающие  "
-                                    Style="{StaticResource FilterButtonStyle}"
-                                    Tag="Pending"
-                                    Click="FilterButton_Click"
-                                    Margin="0,0,5,0"/>
-
-                            <Button x:Name="ConfirmedFilterButton"
-                                    Content="  Подтвержденные  "
-                                    Style="{StaticResource FilterButtonStyle}"
-                                    Tag="Confirmed"
-                                    Click="FilterButton_Click"
-                                    Margin="0,0,5,0"/>
-
-                            <Button x:Name="CompletedFilterButton"
-                                    Content="  Завершенные  "
-                                    Style="{StaticResource FilterButtonStyle}"
-                                    Tag="Completed"
-                                    Click="FilterButton_Click"
-                                    Margin="0,0,5,0"/>
-
-                            <Button x:Name="CancelledFilterButton"
-                                    Content="  Отмененные  "
-                                    Style="{StaticResource FilterButtonStyle}"
-                                    Tag="Cancelled"
-                                    Click="FilterButton_Click"
-                                    Margin="0,0,5,0"/>
-                        </WrapPanel>
-
-                        <!-- Дополнительные фильтры -->
-                        <StackPanel Orientation="Horizontal" 
-                                    Margin="0,12,0,0">
-                            <CheckBox x:Name="TodayOnlyCheckBox"
-                                      Content="Только сегодня"
-                                      Margin="0,0,16,0"
-                                      Checked="TodayOnlyCheckBox_Changed"
-                                      Unchecked="TodayOnlyCheckBox_Changed"/>
-
-                            <CheckBox x:Name="PaidOnlyCheckBox"
-                                      Content="Только оплаченные"
-                                      Checked="PaidOnlyCheckBox_Changed"
-                                      Unchecked="PaidOnlyCheckBox_Changed"/>
+                        <Border Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}"
+                            Padding="40" HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                            <TextBlock Text="Нет запросов на бронирование" FontSize="16"
+                                       FontWeight="SemiBold" Foreground="#666666" HorizontalAlignment="Center"/>
                         </StackPanel>
+                    </Border>
+
+                        <ItemsControl ItemsSource="{Binding Items}"
+                                  Visibility="{Binding IsNotEmpty, Converter={StaticResource BoolToVisibility}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <controls:FriendBookingCard
+                                    DataContext="{Binding}"
+                                    AcceptClicked="Card_AcceptClicked"
+                                    RejectClicked="Card_RejectClicked"
+                                    CompleteClicked="Card_CompleteClicked"
+                                    ChatClicked="Card_ChatClicked"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
-
-                <!-- Список бронирований -->
-                <Border Style="{StaticResource CardStyle}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Заголовок -->
-                        <StackPanel Grid.Row="0" 
-                                    Orientation="Horizontal" 
-                                    Margin="0,0,0,20">
-                            <TextBlock Text="📋 Список запросов" 
-                                       Style="{StaticResource HeaderTextStyle}"/>
-                            <TextBlock x:Name="TotalCountText"
-                                       Text=" (0)"
-                                       Style="{StaticResource HeaderTextStyle}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"/>
-                        </StackPanel>
-
-                        <!-- Содержимое -->
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="270*"/>
-                                <ColumnDefinition Width="839*"/>
-                            </Grid.ColumnDefinitions>
-                            <!-- Список -->
-                            <ItemsControl x:Name="BookingsListControl"
-                                          Visibility="Collapsed" Grid.ColumnSpan="2">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <ContentControl Content="{Binding}"
-                                                        ContentTemplate="{StaticResource BookingRequestItemTemplate}"
-                                                        Margin="0,0,0,12"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- Состояние загрузки -->
-                            <Border x:Name="LoadingState"
-                                    Visibility="Visible" Grid.ColumnSpan="2">
-                                <StackPanel HorizontalAlignment="Center" 
-                                            VerticalAlignment="Center"
-                                            Height="200">
-                                    <ProgressBar IsIndeterminate="True"
-                                                 Width="200"
-                                                 Height="4"
-                                                 Margin="0,0,0,16"/>
-                                    <TextBlock Text="Загрузка данных..." 
-                                               Style="{StaticResource BodyTextStyle}"
-                                               HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Пустое состояние -->
-                            <Border x:Name="EmptyState"
-                                    Visibility="Collapsed" Grid.ColumnSpan="2">
-                                <ContentControl ContentTemplate="{StaticResource EmptyStateTemplate}"/>
-                            </Border>
-                        </Grid>
-                    </Grid>
-                </Border>
             </StackPanel>
-        </ScrollViewer>
-
-        <!-- Уведомления -->
-        <Border x:Name="NotificationPanel"
-                Grid.RowSpan="2"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Margin="12"
-                Width="300"
-                Visibility="Collapsed">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="20" Opacity="0.1"/>
-            </Border.Effect>
-        </Border>
-
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </Page>
