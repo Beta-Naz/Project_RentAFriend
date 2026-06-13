@@ -33,7 +33,6 @@ namespace RentAFriendApp.Views.AuthSign
             var anim = new DoubleAnimation(0, TimeSpan.FromSeconds(0.3));
             anim.Completed += (s, e) =>
             {
-                // Важно: вызываем Close на UI потоке
                 Dispatcher.Invoke(() => base.Close());
             };
 
@@ -58,7 +57,6 @@ namespace RentAFriendApp.Views.AuthSign
             if (_isClosing || !IsLoaded)
                 return;
 
-            // 🟢 Запускаем на UI потоке
             Dispatcher.Invoke(() =>
             {
                 var registerWindow = new RegisterWindow();
