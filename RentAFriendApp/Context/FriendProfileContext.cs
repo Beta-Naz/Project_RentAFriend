@@ -95,7 +95,7 @@ namespace RentAFriendApp.Context
         /// <summary>
         /// Получить статистику профиля друга
         /// </summary>
-        public static async Task<FPStatsDTO?> GetFriendProfileStats(string token, int profileId)
+        public static async Task<ProfileStatsResponse?> GetFriendProfileStats(string token, int profileId)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);
@@ -104,7 +104,7 @@ namespace RentAFriendApp.Context
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string result = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<FPStatsDTO>(result);
+                return JsonConvert.DeserializeObject<ProfileStatsResponse>(result);
             }
             return null;
         }

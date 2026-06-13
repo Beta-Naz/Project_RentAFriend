@@ -193,7 +193,8 @@ namespace RentAFriendApp.ViewModels.Friend
                 if (_currentProfile == null) return;
 
                 // Получаем статистику бронирований друга
-                var stats = await FriendProfileContext.GetFriendProfileStats(_token, _currentProfile.ProfileID);
+                var getStats = await FriendProfileContext.GetFriendProfileStats(_token, _currentProfile.ProfileID);
+                var stats = getStats?.Statistic;
                 if (stats != null)
                 {
                     TotalBookings = stats.TotalBookings;

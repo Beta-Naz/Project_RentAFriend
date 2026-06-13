@@ -4,6 +4,7 @@
     {
         public int ReviewID { get; set; }
         public int Rating { get; set; }
+        public string? Title { get; set; }
         public string? Comment { get; set; }
         public bool IsApproved { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -16,6 +17,7 @@
             {
                 ReviewID = review.ReviewID,
                 Rating = review.Rating,
+                Title = review.Title,
                 Comment = review.Comment,
                 IsApproved = review.IsApproved,
                 CreatedAt = review.CreatedAt,

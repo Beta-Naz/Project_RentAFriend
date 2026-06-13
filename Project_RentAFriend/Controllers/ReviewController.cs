@@ -79,6 +79,7 @@ namespace Project_RentAFriend.Controllers
                 // Создаем отзыв
                 var review = new Review
                 {
+                    Title = reviewData.Title,
                     BookingID = reviewData.BookingID,
                     Rating = reviewData.Rating,
                     Comment = reviewData.Comment,
@@ -215,6 +216,7 @@ namespace Project_RentAFriend.Controllers
                     {
                         r.ReviewID,
                         r.Rating,
+                        r.Title,
                         r.Comment,
                         r.IsApproved,
                         r.CreatedAt,
@@ -280,6 +282,7 @@ namespace Project_RentAFriend.Controllers
                     .Select(r => new
                     {
                         r.ReviewID,
+                        r.Title,
                         r.Rating,
                         r.Comment,
                         r.CreatedAt,

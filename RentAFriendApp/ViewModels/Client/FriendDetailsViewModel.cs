@@ -3,6 +3,9 @@ using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
 using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace RentAFriendApp.ViewModels.Client
@@ -11,6 +14,7 @@ namespace RentAFriendApp.ViewModels.Client
     {
         private readonly string _token;
         private FPInfoDTO _currentFriend;
+        public FPInfoDTO CurrentFriend => _currentFriend;
         private DateTime _selectedDate = DateTime.Today;
 
         // Отзывы
@@ -62,9 +66,68 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 if (SetProperty(ref _selectedDate, value))
                 {
+                    UpdateSelectedDateDisplay();
                     _ = LoadAvailableTimeSlotsForDateAsync();
                 }
             }
+        }
+
+        // ========== ДОБАВЛЕННЫЕ СВОЙСТВА ДЛЯ XAML ==========
+
+        private string _friendInitials;
+        public string FriendInitials
+        {
+            get => _friendInitials;
+            set => SetProperty(ref _friendInitials, value);
+        }
+
+        private string _friendRatingDisplay;
+        public string FriendRatingDisplay
+        {
+            get => _friendRatingDisplay;
+            set => SetProperty(ref _friendRatingDisplay, value);
+        }
+
+        private string _reviewCountDisplay;
+        public string ReviewCountDisplay
+        {
+            get => _reviewCountDisplay;
+            set => SetProperty(ref _reviewCountDisplay, value);
+        }
+
+        private int _totalBookings;
+        public int TotalBookings
+        {
+            get => _totalBookings;
+            set => SetProperty(ref _totalBookings, value);
+        }
+
+        private string _completedPercent;
+        public string CompletedPercent
+        {
+            get => _completedPercent;
+            set => SetProperty(ref _completedPercent, value);
+        }
+
+        private int _reviewCount;
+        public int ReviewCount
+        {
+            get => _reviewCount;
+            set => SetProperty(ref _reviewCount, value);
+        }
+
+        private string _reviewHeader;
+        public string ReviewHeader
+        {
+            get => _reviewHeader;
+            set => SetProperty(ref _reviewHeader, value);
+        }
+
+        private string _selectedDateDisplay;
+        public string SelectedDateDisplay
+        {
+            get => _selectedDateDisplay;
+            set => SetProperty(ref _selectedDateDisplay, value);
         }
 
         // Итоговая стоимость
@@ -79,7 +142,6 @@ namespace RentAFriendApp.ViewModels.Client
         public ICommand BackCommand { get; }
         public ICommand BookCommand { get; }
         public ICommand MessageCommand { get; }
-        public ICommand AddToFavoritesCommand { get; }
         public ICommand ShareCommand { get; }
         public ICommand ViewAllReviewsCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -113,17 +175,88 @@ namespace RentAFriendApp.ViewModels.Client
             AvailableTimeSlots = new ObservableCollection<ScheduleSlot>();
             AvailableDates = new ObservableCollection<DateTime>();
 
+            // Инициализация свойств из friend
+            InitializePropertiesFromFriend();
+
             // Инициализация команд
             BackCommand = new RelayCommandAsync(GoBack);
             BookCommand = new RelayCommandAsync(BookMeetingAsync, CanBookMeeting);
             MessageCommand = new RelayCommandAsync(SendMessageAsync);
-            AddToFavoritesCommand = new RelayCommandAsync(AddToFavoritesAsync);
             ShareCommand = new RelayCommandAsync(ShareProfileAsync);
             ViewAllReviewsCommand = new RelayCommandAsync(ViewAllReviewsAsync);
             RefreshCommand = new RelayCommandAsync(LoadDataAsync);
 
             // Загрузка данных
             _ = LoadDataAsync();
+        }
+
+        private async Task InitializePropertiesFromFriend()
+        {
+            if (_currentFriend == null) return;
+
+            // Инициализация инициалов
+            FriendInitials = GetInitials(_currentFriend.FullName);
+
+            // Инициализация рейтинга
+            if (_currentFriend.AverageRating.HasValue)
+            {
+                FriendRatingDisplay = _currentFriend.AverageRating.Value.ToString("0.0");
+            }
+            else
+            {
+                FriendRatingDisplay = "Нет оценок";
+            }
+            var profileStats = await FriendProfileContext.GetFriendProfileStats(_token, _currentFriend.ProfileID);
+            var stats = profileStats.Statistic;
+            // Инициализация количества отзывов
+            ReviewCount = stats?.ReviewCount ?? 0;
+            UpdateReviewDisplayProperties();
+
+            // Инициализация статистики
+            TotalBookings = stats?.CompletedBookings ?? 0;
+            float? completedPercent = (float?)(stats?.TotalBookings / 100) * stats?.CompletedBookings;
+            CompletedPercent = $"{completedPercent ?? 0}%";
+            if(stats?.TotalBookings == 0)
+            {
+                CompletedPercent = "None";
+            }
+            // Инициализация отображения даты
+            UpdateSelectedDateDisplay();
+        }
+
+        private void UpdateReviewDisplayProperties()
+        {
+            ReviewCountDisplay = $"({ReviewCount} {GetReviewWord(ReviewCount)})";
+            ReviewHeader = $"Отзывы ({ReviewCount})";
+        }
+
+        private void UpdateSelectedDateDisplay()
+        {
+            SelectedDateDisplay = $"Выбрана дата: {SelectedDate:dd.MM.yyyy}";
+        }
+
+        private string GetInitials(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                return "?";
+
+            var parts = fullName.Trim().Split(' ');
+            if (parts.Length >= 2 && parts[0].Length > 0 && parts[1].Length > 0)
+                return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+
+            if (parts.Length >= 1 && parts[0].Length > 0)
+                return parts[0][0].ToString().ToUpper();
+
+            return "?";
+        }
+
+        private string GetReviewWord(int count)
+        {
+            if (count % 10 == 1 && count % 100 != 11)
+                return "отзыв";
+            if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20))
+                return "отзыва";
+            return "отзывов";
         }
 
         private async Task LoadDataAsync()
@@ -203,7 +336,6 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 IsBusy = true;
 
-                // Создаем или получаем чат
                 var chat = await ChatContext.GetOrCreateChat(_token, _currentFriend.UserID);
 
                 if (chat != null)
@@ -226,38 +358,15 @@ namespace RentAFriendApp.ViewModels.Client
             }
         }
 
-        private async Task AddToFavoritesAsync()
-        {
-            try
-            {
-                IsBusy = true;
-
-                // TODO: Добавить метод AddToFavorites в FriendProfileContext
-                // var result = await FriendProfileContext.AddToFavorites(_token, _currentFriend.ProfileID);
-
-                Base.Messenger.Default.SendNotification($"{FriendName} добавлен в избранное");
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка при добавлении в избранное: {ex.Message}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
         private async Task ShareProfileAsync()
         {
-            // Логика для шаринга профиля
-            Base.Messenger.Default.SendNotification($"Поделиться профилем {FriendName}");
+            Messenger.Default.SendNotification($"Поделиться профилем {FriendName}");
             await Task.CompletedTask;
         }
 
         private async Task ViewAllReviewsAsync()
         {
-            // Переход ко всем отзывам
-            Base.Messenger.Default.SendData(new
+            Messenger.Default.SendData(new
             {
                 FriendProfileID = _currentFriend?.ProfileID,
                 FriendName = FriendName
@@ -267,11 +376,11 @@ namespace RentAFriendApp.ViewModels.Client
 
         private async Task GoBack()
         {
-            Base.Messenger.Default.SendNotification("Возврат в каталог");
+            Messenger.Default.SendNotification("Возврат в каталог");
             await Task.CompletedTask;
         }
 
-        private async Task LoadReviewsAsync()
+        public async Task LoadReviewsAsync()
         {
             try
             {
@@ -291,6 +400,10 @@ namespace RentAFriendApp.ViewModels.Client
                             Reviews.Add(review);
                         }
                     }
+
+                    // Обновляем количество отзывов из загруженных данных
+                    ReviewCount = Reviews.Count;
+                    UpdateReviewDisplayProperties();
                 });
             }
             catch (Exception ex)
