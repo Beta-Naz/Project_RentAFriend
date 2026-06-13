@@ -1,11 +1,8 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
-using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
-using RentAFriendApp.Models.ClassesDTO.ScheduleDTO;
 using RentAFriendApp.ViewModels.Base;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Input;
 
 namespace RentAFriendApp.ViewModels.Client

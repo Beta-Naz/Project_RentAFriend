@@ -264,5 +264,46 @@ namespace Project_RentAFriend.Controllers
                 return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
             }
         }
+        /// <summary>
+        /// Получить свои последние 5 логов (для любого пользователя)
+        /// </summary>
+        [Route("myLogs")]
+        [HttpGet]
+        public async Task<ActionResult> GetMyRecentLogs([FromHeader(Name = "TOKEN")] string token)
+        {
+            try
+            {
+                if (_dbManager == null || _dbManager.AuditLogs == null)
+                {
+                    return StatusCode(500, new { message = "Ошибка базы данных" });
+                }
+
+                // Проверяем токен
+                int? userId = JwtToken.GetUserIdFromToken(token);
+                if (userId == null)
+                {
+                    return Unauthorized(new { message = "Недействительный токен" });
+                }
+
+                // Получаем последние 5 логов пользователя
+                var logs = await _dbManager.AuditLogs
+                    .Where(al => al.UserID == userId)
+                    .OrderByDescending(al => al.LoggedAt)
+                    .Take(5)
+                    .Select(al => AuditLogDTO.Convert(al))
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    message = logs.Any() ? "Логи успешно получены" : "У вас пока нет логов",
+                    count = logs.Count,
+                    logs
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Ошибка сервера", error = ex.Message });
+            }
+        }
     }
 }

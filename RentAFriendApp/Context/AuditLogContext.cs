@@ -79,5 +79,21 @@ namespace RentAFriendApp.Context
             }
             return null;
         }
+        /// <summary>
+        /// Получить свои последние 5 логов (для любого пользователя)
+        /// </summary>
+        public static async Task<GetMyLogsResponse?> GetMyRecentLogs(string token)
+        {
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Add("TOKEN", token);
+            var response = await client.GetAsync($"{_url}/myLogs");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<GetMyLogsResponse>(result);
+            }
+            return null;
+        }
     }
 }

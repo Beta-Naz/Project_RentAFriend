@@ -1,0 +1,95 @@
+﻿<UserControl x:Class="RentAFriendApp.Views.Controls.BookingCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RentAFriendApp.Views.Controls"
+             xmlns:converters="clr-namespace:RentAFriendApp.Converters"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+
+        <Style x:Key="BookingCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E8F5E8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" Opacity="0.05" ShadowDepth="1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Border x:Name="MainBorder"
+            Style="{StaticResource BookingCardStyle}"
+            MouseDown="Border_MouseDown">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="40"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock VerticalAlignment="Center"
+                FontSize="14"
+                Foreground="#333333">
+                <TextBlock.Text>
+                    <Binding Path="Date" StringFormat="{}{0:dd.MM}"/>
+                </TextBlock.Text>
+            </TextBlock>
+
+            <!-- Друг и цель -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding FriendName}" 
+                           FontWeight="Bold" 
+                           FontSize="14"
+                           Foreground="#333333"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding Purpose}" 
+                           Foreground="#666666" 
+                           FontSize="12" 
+                           TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+
+            <!-- Время -->
+            <TextBlock Grid.Column="2" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       FontSize="13"
+                       Foreground="#333333">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0:hh\:mm} – {1:hh\:mm}">
+                        <Binding Path="StartTime"/>
+                        <Binding Path="EndTime"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+
+            <!-- Статус -->
+            <TextBlock Grid.Column="3"
+                       Text="{Binding Status}"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+
+            <!-- Кнопка меню -->
+            <Button Grid.Column="4"
+                    Content="⋯"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    FontSize="18"
+                    Foreground="#666666"
+                    Cursor="Hand"
+                    Click="MenuButton_Click"/>
+        </Grid>
+    </Border>
+</UserControl>

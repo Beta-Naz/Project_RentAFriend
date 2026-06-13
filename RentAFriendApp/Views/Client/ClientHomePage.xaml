@@ -5,23 +5,25 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:RentAFriendApp.Views.Client"
       xmlns:converters="clr-namespace:RentAFriendApp.Converters"
+      xmlns:controls="clr-namespace:RentAFriendApp.Views.Controls"
       mc:Ignorable="d" 
       d:DesignHeight="1080" d:DesignWidth="1920"
       Title="Главная - RentAFriend"
       Background="#F8F9FA"
       Loaded="Page_Loaded"
-      Unloaded="Page_Unloaded"
-      SizeChanged="Page_SizeChanged">
+      Unloaded="Page_Unloaded">
 
     <Page.Resources>
-        <!-- Стили для карточек -->
         <converters:InitialsConverter x:Key="InitialsConverter"/>
         <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        
+        <!-- Стили карточек -->
         <Style x:Key="StatsCardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="Margin" Value="0"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect BlurRadius="15" Opacity="0.08" ShadowDepth="0"/>
@@ -51,13 +53,13 @@
             </Setter>
         </Style>
 
-        <!-- Стили для кнопок -->
+        <!-- Стиль основной кнопки -->
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="#4CAF50"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="44"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -82,919 +84,510 @@
             </Setter>
         </Style>
 
-        <!-- Анимации -->
-        <Storyboard x:Key="HoverAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                             From="0.1" To="0.3" Duration="0:0:0.2"/>
-        </Storyboard>
-        <Storyboard x:Key="ClickAnimation">
-            <DoubleAnimation Storyboard.TargetProperty="ScaleX"
-                             From="1" To="0.98" Duration="0:0:0.1"
-                             AutoReverse="True"/>
-            <DoubleAnimation Storyboard.TargetProperty="ScaleY"
-                             From="1" To="0.98" Duration="0:0:0.1"
-                             AutoReverse="True"/>
-        </Storyboard>
+        <!-- Стиль вторичной кнопки -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#4CAF50"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F0F9F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-        <!-- Иконки -->
+        <!-- Геометрии иконок -->
         <Geometry x:Key="CalendarIcon">M9,1V3H15V1H17V3H21C22.11,3 23,3.89 23,5V21C23,22.11 22.11,23 21,23H3C1.89,23 1,22.11 1,21V5C1,3.89 1.89,3 3,3H7V1H9M7,7V9H9V7H7M11,7V9H13V7H11M15,7V9H17V7H15M19,7V9H21V7H19M3,10V21H21V10H3Z</Geometry>
         <Geometry x:Key="MoneyIcon">M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6C9.79,6 8,7.79 8,10C8,12.21 9.79,14 12,14C14.21,14 16,12.21 16,10C16,7.79 14.21,6 12,6M12,8C13.1,8 14,8.9 14,10C14,11.1 13.1,12 12,12C10.9,12 10,11.1 10,10C10,8.9 10.9,8 12,8Z</Geometry>
         <Geometry x:Key="ClockIcon">M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z</Geometry>
-        <Geometry x:Key="StarIcon">M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z</Geometry>
-        <Geometry x:Key="SearchIcon">M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z</Geometry>
-        <Geometry x:Key="ArrowIcon">M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z</Geometry>
         <Geometry x:Key="TrendingUpIcon">M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z</Geometry>
         <Geometry x:Key="UsersIcon">M16,13C15.71,13 15.38,13 15.03,13.05C16.19,13.89 17,15 17,16.5V19H23V16.5C23,14.17 18.33,13 16,13M8,13C5.67,13 1,14.17 1,16.5V19H15V16.5C15,14.17 10.33,13 8,13M8,11A3,3 0 0,0 11,8A3,3 0 0,0 8,5A3,3 0 0,0 5,8A3,3 0 0,0 8,11M16,11A3,3 0 0,0 19,8A3,3 0 0,0 16,5A3,3 0 0,0 13,8A3,3 0 0,0 16,11Z</Geometry>
-        <Geometry x:Key="VerifiedIcon">M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Geometry>
+        <Geometry x:Key="RefreshIcon">M17.65,6.35C16.2,4.9 14.21,4 12,4C7.58,4 4,7.58 4,12C4,16.42 7.58,20 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18C8.69,18 6,15.31 6,12C6,8.69 8.69,6 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</Geometry>
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  ScrollChanged="ScrollViewer_ScrollChanged">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="20">
-            <!-- Заголовок и приветствие -->
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-                <!-- Приветствие -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-                    <TextBlock Text="👋 Добро пожаловать, "
-                               FontSize="24"
-                               FontWeight="SemiBold"
-                               Foreground="#333333"/>
-                    <TextBlock x:Name="UserNameText" 
-                               Text="{Binding UserFirstName}"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Foreground="#4CAF50"/>
-                    <TextBlock Text="!"
-                               FontSize="24"
-                               FontWeight="SemiBold"
-                               Foreground="#333333"/>
+            <!-- ===== ПРИВЕТСТВИЕ И СТАТУС ===== -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+                <TextBlock Text="👋 Добро пожаловать, "
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="#333333"/>
+                <TextBlock Text="{Binding UserFirstName}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#4CAF50"/>
+                <TextBlock Text="!"
+                           FontSize="24"
+                           FontWeight="SemiBold"
+                           Foreground="#333333"/>
+            </StackPanel>
 
-                    <!-- Статус клиента -->
-                    <Border Background="#E8F5E8" 
-                            CornerRadius="12"
-                            Padding="8,4"
-                            Margin="15,0,0,0"
-                            VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource VerifiedIcon}"
+            <!-- ===== БЫСТРАЯ СТАТИСТИКА ===== -->
+            <Border Grid.Row="1" 
+                    Style="{StaticResource StatsCardStyle}"
+                    Margin="0,0,0,25">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- В этом месяце -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Border Background="#E8F5E8"
+                                Width="48"
+                                Height="48"
+                                CornerRadius="10">
+                            <Path Data="{StaticResource TrendingUpIcon}"
                                   Fill="#4CAF50"
                                   Width="24"
                                   Height="24"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"
                                   VerticalAlignment="Center"/>
-                            <TextBlock VerticalAlignment="Center"
-                                       Text="Проверенный клиент"
+                        </Border>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="В этом месяце"
                                        FontSize="12"
-                                       FontWeight="SemiBold"
-                                       Foreground="#2E7D32"
-                                       Margin="6,0,0,0"/>
+                                       Foreground="#666666"/>
+                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="#333333">
+                                <Run Text="{Binding MonthlyCount, Mode=OneWay}"/>
+                                <Run Text=" "/>
+                                <Run Text="встреч"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== ОСНОВНОЙ КОНТЕНТ ===== -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ===== ЛЕВАЯ КОЛОНКА ===== -->
+                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+
+                    <!-- Статистика -->
+                    <TextBlock Text="📊 Подробная статистика"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#333333"
+                               Margin="0,0,0,20"/>
+
+                    <Grid Margin="0,0,0,25">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Карточка: Встречи -->
+                        <Border Style="{StaticResource StatsCardStyle}"
+                                MouseDown="StatsCard_MouseDown"
+                                MouseEnter="StatsCard_MouseEnter"
+                                MouseLeave="StatsCard_MouseLeave"
+                                Tag="bookings"
+                                ToolTip="Нажмите для детальной статистики">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <Border Background="#E8F5E8"
+                                            Width="48"
+                                            Height="48"
+                                            CornerRadius="10">
+                                        <Path Data="{StaticResource CalendarIcon}"
+                                              Fill="#4CAF50"
+                                              Width="24"
+                                              Height="24"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="12,0,0,0">
+                                        <TextBlock Text="Всего встреч"
+                                                   FontSize="12"
+                                                   Foreground="#666666"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding TotalBookings}"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="{Binding BookingsTrend}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#4CAF50"
+                                                       Margin="8,0,0,0"
+                                                       VerticalAlignment="Bottom"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Grid>
+                                    <TextBlock Text="{Binding ActiveBookings, StringFormat='Активных: {0}'}"
+                                               FontSize="12"
+                                               Foreground="#666666"/>
+                                    <TextBlock HorizontalAlignment="Right"
+                                               Text="{Binding CompletedCount, StringFormat='Завершено: {0}'}"
+                                               FontSize="12"
+                                               Foreground="#666666"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка: Финансы -->
+                        <Border Grid.Column="2"
+                                Style="{StaticResource StatsCardStyle}"
+                                MouseDown="StatsCard_MouseDown"
+                                MouseEnter="StatsCard_MouseEnter"
+                                MouseLeave="StatsCard_MouseLeave"
+                                Tag="spent"
+                                ToolTip="Нажмите для финансовой статистики">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <Border Background="#E8F5E8"
+                                            Width="48"
+                                            Height="48"
+                                            CornerRadius="10">
+                                        <Path Data="{StaticResource MoneyIcon}"
+                                              Fill="#4CAF50"
+                                              Width="24"
+                                              Height="24"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="12,0,0,0">
+                                        <TextBlock Text="Всего потрачено"
+                                                   FontSize="12"
+                                                   Foreground="#666666"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding TotalSpent, StringFormat={}{0:N0} ₽}"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="{Binding SpentTrend}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#4CAF50"
+                                                       Margin="8,0,0,0"
+                                                       VerticalAlignment="Bottom"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Text="{Binding AverageCheck, StringFormat='Средний чек: {0:N0} ₽'}"
+                                           FontSize="12"
+                                           Foreground="#666666"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Карточка: Время -->
+                        <Border Grid.Column="4"
+                                Style="{StaticResource StatsCardStyle}"
+                                MouseDown="StatsCard_MouseDown"
+                                MouseEnter="StatsCard_MouseEnter"
+                                MouseLeave="StatsCard_MouseLeave"
+                                Tag="hours"
+                                ToolTip="Нажмите для статистики по времени">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <Border Background="#E8F5E8"
+                                            Width="48"
+                                            Height="48"
+                                            CornerRadius="10">
+                                        <Path Data="{StaticResource ClockIcon}"
+                                              Fill="#4CAF50"
+                                              Width="24"
+                                              Height="24"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="12,0,0,0">
+                                        <TextBlock Text="Времени с друзьями"
+                                                   FontSize="12"
+                                                   Foreground="#666666"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding TotalHours, StringFormat={}{0} ч}"
+                                                       FontSize="28"
+                                                       FontWeight="Bold"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="{Binding HoursTrend}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#4CAF50"
+                                                       Margin="8,0,0,0"
+                                                       VerticalAlignment="Bottom"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Text="{Binding UniqueFriendsCount, StringFormat='Разных друзей: {0}'}"
+                                           FontSize="12"
+                                           Foreground="#666666"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Ближайшие встречи -->
+                    <Grid Margin="0,0,0,15">
+                        <TextBlock Text="📅 Ближайшие встречи"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="#333333"
+                                   HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding UpcomingBookings.Count, StringFormat='{}{0} предстоящих'}"
+                                   FontSize="12"
+                                   Foreground="#666666"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Border Style="{StaticResource StatsCardStyle}">
+                        <StackPanel>
+                            <!-- Заголовки -->
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock HorizontalAlignment="Center" Text="Дата" FontSize="12" FontWeight="SemiBold" Foreground="#666666"/>
+                                <TextBlock HorizontalAlignment="Center" Grid.Column="1" Text="Друг / Цель" FontSize="12" FontWeight="SemiBold" Foreground="#666666"/>
+                                <TextBlock HorizontalAlignment="Center" Grid.Column="2" Text="Время" FontSize="12" FontWeight="SemiBold" Foreground="#666666"/>
+                                <TextBlock HorizontalAlignment="Center" Grid.Column="3" Text="Статус" FontSize="12" FontWeight="SemiBold" Foreground="#666666"/>
+                                <TextBlock HorizontalAlignment="Center" Grid.Column="4" Text="" FontSize="12"/>
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding UpcomingBookings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <controls:BookingCard 
+                                        DataContext="{Binding}"
+                                        Margin="0,0,0,12"
+                                        CardClicked="BookingCard_CardClicked"
+                                        MenuClicked="BookingCard_MenuClicked"
+                                        DoubleClicked="BookingCard_DoubleClicked"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Нет встреч -->
+                            <Border Background="#F8F9FA"
+                                    CornerRadius="8"
+                                    Padding="30"
+                                    Margin="0,10,0,0"
+                                    Visibility="{Binding HasNoUpcomingBookings, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="📅" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                    <TextBlock Text="У вас нет предстоящих встреч" FontSize="14" FontWeight="SemiBold" Foreground="#666666" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Найдите друзей и запланируйте встречу!" FontSize="12" Foreground="#999999" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Кнопка "Все встречи" -->
+                            <Button Content="Все мои встречи →"
+                                    Style="{StaticResource PrimaryButton}"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,15,0,0"
+                                    Command="{Binding NavigateToMyBookingsCommand}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
-                <!-- Поиск и быстрые действия -->
-                <Border Grid.Row="1" 
-                        Background="White" 
-                        CornerRadius="12"
-                        Padding="20"
-                        Margin="0,0,0,25"
-                        Style="{StaticResource StatsCardStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                <!-- ===== ПРАВАЯ КОЛОНКА ===== -->
+                <StackPanel Grid.Column="1">
 
-                        <!-- Поиск -->
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="🔍 Найти идеального компаньона"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="#333333"
-                                       Margin="0,0,0,10"/>
-
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Path Data="{StaticResource SearchIcon}"
-                                      Fill="#666666"
-                                      Width="20"
-                                      Height="20"
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,10,0"/>
-
-                                <TextBox x:Name="SearchTextBox" Grid.Column="1"
-                                         Background="White"
-                                         BorderBrush="#E0E0E0"
-                                         BorderThickness="1"
-                                         FontSize="14"
-                                         VerticalAlignment="Center"
-                                         Foreground="#333333"
-                                         Padding="12"
-                                         GotFocus="SearchBox_GotFocus"
-                                         LostFocus="SearchBox_LostFocus"
-                                         KeyDown="SearchTextBox_KeyDown">
-                                    <TextBox.Style>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="TextBox">
-                                                        <Border x:Name="border" 
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                                CornerRadius="8">
-                                                            <ScrollViewer x:Name="PART_ContentHost" 
-                                                                          Margin="{TemplateBinding Padding}"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
-                                                            </Trigger>
-                                                            <Trigger Property="IsFocused" Value="True">
-                                                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </TextBox.Style>
-                                </TextBox>
-
-                                <Button x:Name="SearchButton" Grid.Column="2"
-                                        Content="Найти"
-                                        Style="{StaticResource PrimaryButton}"
-                                        Width="100"
-                                        Margin="10,0,0,0"
-                                        Click="SearchButton_Click"/>
-                            </Grid>
-
-                            <!-- Быстрые фильтры -->
-                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <TextBlock Text="Быстрый поиск:"
-                                           FontSize="12"
-                                           Foreground="#666666"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,8,0"/>
-                                <Button Content="🔥 Популярные"
-                                        Background="Transparent"
-                                        BorderBrush="#FF6B6B"
-                                        BorderThickness="1"
-                                        Foreground="#FF6B6B"
-                                        FontSize="11"
-                                        FontWeight="SemiBold"
-                                        Padding="10,4"
-                                        Margin="0,0,6,0"
-                                        Click="QuickFilter_Click"
-                                        Tag="popular"/>
-                                <Button Content="⭐ Высокий рейтинг"
-                                        Background="Transparent"
-                                        BorderBrush="#FFC107"
-                                        BorderThickness="1"
-                                        Foreground="#FFC107"
-                                        FontSize="11"
-                                        FontWeight="SemiBold"
-                                        Padding="10,4"
-                                        Margin="0,0,6,0"
-                                        Click="QuickFilter_Click"
-                                        Tag="rating"/>
-                                <Button Content="💰 По цене"
-                                        Background="Transparent"
-                                        BorderBrush="#4CAF50"
-                                        BorderThickness="1"
-                                        Foreground="#4CAF50"
-                                        FontSize="11"
-                                        FontWeight="SemiBold"
-                                        Padding="10,4"
-                                        Click="QuickFilter_Click"
-                                        Tag="price"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Быстрые статистики -->
-                        <StackPanel Grid.Column="1" Margin="20,0,0,0">
-                            <TextBlock Text="📈 Ваша активность"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="#333333"
-                                       Margin="0,0,0,10"/>
-
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <Path Data="{StaticResource TrendingUpIcon}"
-                                          Fill="#4CAF50"
-                                          Width="24"
-                                          Height="24"
-                                          VerticalAlignment="Center"/>
-                                    <TextBlock Text="В этом месяце:"
-                                               FontSize="13"
-                                               Foreground="#666666"
-                                               Margin="6,0,0,0"/>
-                                    <TextBlock x:Name="MonthlyBookingsText"
-                                               Text="0 встреч"
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Foreground="#4CAF50"
-                                               Margin="4,0,0,0"/>
-                                </StackPanel>
-
-                                <StackPanel Orientation="Horizontal">
-                                    <Path Data="{StaticResource UsersIcon}"
-                                          Fill="#2196F3"
-                                          Width="24"
-                                          Height="24"
-                                          VerticalAlignment="Center"/>
-                                    <TextBlock Text="Друзей в избранном:"
-                                               FontSize="13"
-                                               Foreground="#666666"
-                                               Margin="6,0,0,0"/>
-                                    <TextBlock x:Name="FavoritesCountText"
-                                               Text="0"
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Foreground="#2196F3"
-                                               Margin="4,0,0,0"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Основной контент -->
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Левая колонка: Статистика и ближайшие встречи -->
-                    <StackPanel Grid.Column="0" Margin="0,0,15,0">
-                        <!-- Статистика в деталях -->
-                        <Grid Margin="0,0,0,20">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="📊 Подробная статистика"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="#333333"/>
-
-                            <TextBlock Grid.Column="1"
-                                       Text="Обновлено только что"
-                                       FontSize="11"
-                                       Foreground="#999999"
-                                       HorizontalAlignment="Right"
-                                       VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="15"/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="15"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- Карточка: Всего бронирований -->
-                            <Border x:Name="TotalBookingsCard" 
-                                    Style="{StaticResource StatsCardStyle}"
-                                    MouseDown="StatsCard_MouseDown"
-                                    MouseEnter="StatsCard_MouseEnter"
-                                    MouseLeave="StatsCard_MouseLeave"
-                                    Tag="bookings"
-                                    ToolTip="Нажмите для детальной статистики по бронированиям">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <Border Background="#E8F5E8"
-                                                Width="48"
-                                                Height="48"
-                                                CornerRadius="10"
-                                                VerticalAlignment="Center">
-                                            <Path Data="{StaticResource CalendarIcon}"
-                                                  Fill="#4CAF50"
-                                                  Width="24"
-                                                  Height="24"
-                                                  Stretch="Uniform"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel Margin="12,0,0,0">
-                                            <TextBlock Text="Всего встреч"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock x:Name="TotalBookingsText"
-                                                             Text="{Binding TotalBookings}" 
-                                                             FontSize="28"
-                                                             FontWeight="Bold"
-                                                             Foreground="#333333"/>
-
-                                                <!-- Тренд встреч -->
-                                                <TextBlock x:Name="BookingsTrendText"
-                                                           Text="{Binding BookingsTrend}" 
-                                                           FontSize="11"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#4CAF50"
-                                                           Margin="8,0,0,0"
-                                                           VerticalAlignment="Bottom"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Активных: 0"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="Успешных: 0"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Карточка: Потрачено -->
-                            <Border x:Name="TotalSpentCard" Grid.Column="2" 
-                                    Style="{StaticResource StatsCardStyle}"
-                                    MouseDown="StatsCard_MouseDown"
-                                    MouseEnter="StatsCard_MouseEnter"
-                                    MouseLeave="StatsCard_MouseLeave"
-                                    Tag="spent"
-                                    ToolTip="Нажмите для детальной финансовой статистики">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <Border Background="#E8F5E8"
-                                                Width="48"
-                                                Height="48"
-                                                CornerRadius="10"
-                                                VerticalAlignment="Center">
-                                            <Path Data="{StaticResource MoneyIcon}"
-                                                  Fill="#4CAF50"
-                                                  Width="24"
-                                                  Height="24"
-                                                  Stretch="Uniform"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel Margin="12,0,0,0">
-                                            <TextBlock Text="Всего потрачено"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding TotalSpent, StringFormat={}{0:N0} ₽}"
-                                                FontSize="28"
-                                                FontWeight="Bold"
-                                                Foreground="#333333"/>
-                                                <TextBlock Text="{Binding SpentTrend}"
-                                                FontSize="11"
-                                                FontWeight="SemiBold"
-                                                Foreground="#4CAF50"
-                                                VerticalAlignment="Bottom"/> 
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Средний чек: 0 ₽"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                        <TextBlock x:Name="AvgSessionText" Grid.Column="1"
-                                                   Text="0 ч/встреча"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Карточка: Часы и друзья -->
-                            <Border x:Name="HoursCard" Grid.Column="4" 
-                                    Style="{StaticResource StatsCardStyle}"
-                                    MouseDown="StatsCard_MouseDown"
-                                    MouseEnter="StatsCard_MouseEnter"
-                                    MouseLeave="StatsCard_MouseLeave"
-                                    Tag="hours"
-                                    ToolTip="Нажмите для статистики по времени">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                        <Border Background="#E8F5E8"
-                                                Width="48"
-                                                Height="48"
-                                                CornerRadius="10"
-                                                VerticalAlignment="Center">
-                                            <Path Data="{StaticResource ClockIcon}"
-                                                  Fill="#4CAF50"
-                                                  Width="24"
-                                                  Height="24"
-                                                  Stretch="Uniform"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel Margin="12,0,0,0">
-                                            <TextBlock Text="Времени с друзьями"
-                                                       FontSize="12"
-                                                       Foreground="#666666"/>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock x:Name="TotalHoursText"
-                                                        Text="{Binding TotalHours, StringFormat={}{0} ч}" 
-                                                        FontSize="28"
-                                                        FontWeight="Bold"
-                                                        Foreground="#333333"/>
-                                                        <!-- Тренд часов -->
-                                                        <TextBlock x:Name="HoursTrendText"
-                                                        Text="{Binding HoursTrend}" 
-                                                        FontSize="11"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="#4CAF50"
-                                                        Margin="8,0,0,0"
-                                                        VerticalAlignment="Bottom"/>
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="В этом месяце: 0 ч"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="0 разных друзей"
-                                                   FontSize="12"
-                                                   Foreground="#666666"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
-                        <!-- Ближайшие встречи -->
-                        <Grid Margin="0,30,0,15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="📅 Ближайшие встречи"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="#333333"/>
-
-                            <TextBlock x:Name="UpcomingCountText" Grid.Column="2"
-                                       Text="0 предстоящих встреч"
-                                       FontSize="12"
-                                       Foreground="#666666"
-                                       VerticalAlignment="Center"/>
-                        </Grid>
-
-                        <Border Background="White"
-                                CornerRadius="12"
-                                Padding="20"
-                                Style="{StaticResource StatsCardStyle}">
-                            <StackPanel>
-                                <!-- Заголовки таблицы -->
-                                <Grid Margin="0,0,0,15">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="70"/>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="40"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <TextBlock Text="Дата"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-
-                                    <TextBlock Grid.Column="1"
-                                               Text="Друг / Цель встречи"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-
-                                    <TextBlock Grid.Column="2"
-                                               Text="Время"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"
-                                               HorizontalAlignment="Center"/>
-
-                                    <TextBlock Grid.Column="3"
-                                               Text="Статус"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"
-                                               HorizontalAlignment="Right"/>
-
-                                    <TextBlock Grid.Column="4"
-                                               Text=""
-                                               FontSize="12"
-                                               FontWeight="SemiBold"
-                                               Foreground="#666666"/>
-                                </Grid>
-
-                                <!-- Список встреч -->
-                                <ItemsControl ItemsSource="{Binding UpcomingBookings}"
-                                    x:Name="MeetingsPanel">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Style="{StaticResource BookingCardStyle}"
-                                                    MouseDown="BookingCard_MouseDown"
-                                                    Tag="{Binding BookingID}">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="70"/>
-                                                        <ColumnDefinition/>
-                                                        <ColumnDefinition Width="100"/>
-                                                        <ColumnDefinition Width="120"/>
-                                                        <ColumnDefinition Width="40"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <!-- ИСПРАВЛЕНО: Прямая привязка к свойствам модели -->
-                                                    <TextBlock Text="{Binding ScheduleDate, StringFormat=dd.MM}"
-                                                    VerticalAlignment="Center"/>
-
-                                                    <StackPanel Grid.Column="1">
-                                                        <!-- Предположим, что в UpcomingBookingItem есть FriendName -->
-                                                        <TextBlock Text="{Binding FriendName}" FontWeight="Bold"/>
-                                                        <TextBlock Text="{Binding Purpose}" Foreground="#666666" FontSize="12"/>
-                                                    </StackPanel>
-
-                                                    <TextBlock Grid.Column="2"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center">
-                                                        <TextBlock.Text>
-                                                            <MultiBinding StringFormat="{}{0:HH:mm} – {1:HH:mm}">
-                                                                <Binding Path="StartTime" />
-                                                                <Binding Path="EndTime" />
-                                                            </MultiBinding>
-                                                        </TextBlock.Text>
-                                                    </TextBlock>
-
-                                                    <TextBlock Grid.Column="3"
-                                                    Text="{Binding Status}"
-                                                    HorizontalAlignment="Right"
-                                                    VerticalAlignment="Center"
-                                                    Foreground="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
-
-                                                    <Button Grid.Column="4"
-                                                    Content="…"
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    Click="BookingMenuButton_Click"
-                                                    Tag="{Binding BookingID}"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <!-- Сообщение при отсутствии встреч -->
-                                <Border x:Name="NoMeetingsMessage"
-                                        Background="#F8F9FA"
-                                        CornerRadius="8"
-                                        Padding="30"
-                                        Margin="0,10,0,0"
-                                        Visibility="Collapsed">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="📅"
-                                                   FontSize="32"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,0,0,10"/>
-                                        <TextBlock Text="У вас нет предстоящих встреч"
-                                                   FontSize="14"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#666666"
-                                                   HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Найдите друзей и запланируйте встречу!"
-                                                   FontSize="12"
-                                                   Foreground="#999999"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,5,0,0"/>
-                                        <Button Content="Найти друзей"
-                                                Style="{StaticResource PrimaryButton}"
-                                                Margin="0,15,0,0"
-                                                Click="FindFriendButton_Click"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Кнопка "Все встречи" -->
-                                <Button Content="Все мои встречи →"
-                                        Style="{StaticResource PrimaryButton}"
-                                        HorizontalAlignment="Stretch"
-                                        Margin="0,15,0,0"
-                                        Height="44"
-                                        Click="AllMeetingsButton_Click"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-
-                    <!-- Правая колонка: Рекомендации и быстрые действия -->
-                    <StackPanel Grid.Column="1">
-                        <!-- Рекомендации -->
-                        <Grid Margin="0,0,0,15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="⭐ Персональные рекомендации"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="#333333"/>
-
-                            <Button x:Name="RefreshRecommendationsBtn" Grid.Column="1"
-                                    Content="🔄"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Width="32"
-                                    Height="32"
-                                    HorizontalAlignment="Right"
-                                    ToolTip="Обновить рекомендации"
-                                    Click="RefreshRecommendations_Click">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border x:Name="border" 
-                                                            Background="{TemplateBinding Background}"
-                                                            CornerRadius="16">
-                                                        <ContentPresenter HorizontalAlignment="Center" 
-                                                                          VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                        </Grid>
-
-                        <Border Background="White"
-                                CornerRadius="12"
-                                Padding="20"
-                                Style="{StaticResource StatsCardStyle}">
-                            <Grid>
-                                <ItemsControl ItemsSource="{Binding RecommendedFriends}"
-                                  x:Name="RecommendationsPanel">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Style="{StaticResource FriendCardStyle}"
-            Margin="0,0,0,16"
-            MouseDown="FriendCard_MouseDown"
-            ToolTip="Двойной клик для просмотра профиля">
-                                                <!-- Убираем Tag={Binding UserID}, будем брать из DataContext -->
-                                                <Grid Margin="12">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <Border Width="60" Height="60" CornerRadius="30"
-                    Background="#E8F5E8"
-                    VerticalAlignment="Top">
-                                                        <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontSize="16" FontWeight="Bold" Foreground="#4CAF50"/>
-                                                    </Border>
-
-                                                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                                        <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="14"/>
-                                                        <TextBlock Text="{Binding City}" FontSize="12" Foreground="#666666"/>
-                                                        <TextBlock>
-                    <Run Text="⭐"/>
-                    <Run Text="{Binding AverageRating, StringFormat={}{0:F1}}"/>
-                    <Run Text=" • "/>
-                    <Run Text="{Binding HourlyRate, StringFormat={}{0:N0} ₽/ч}"/>
-                                                        </TextBlock>
-                                                        <TextBlock Text="{Binding Bio}"
-                           FontSize="12" Foreground="#666666" Margin="0,4,0,0"
-                           TextTrimming="CharacterEllipsis"
-                           MaxHeight="40"/>
-                                                    </StackPanel>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <!-- Сообщение при отсутствии рекомендаций -->
-                                <Border x:Name="NoRecommendationsMessage"
-                                    Background="#F8F9FA"
-                                    CornerRadius="8"
-                                    Padding="20"
-                                    Margin="0,10,0,0"
-                                    Visibility="Collapsed">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="⭐"
-                                               FontSize="24"
-                                               HorizontalAlignment="Center"
-                                               Margin="0,0,0,8"/>
-                                        <TextBlock Text="Загрузка рекомендаций..."
-                                               FontSize="13"
-                                               Foreground="#666666"
-                                               HorizontalAlignment="Center"/>
-                                        <ProgressBar IsIndeterminate="True"
-                                                 Height="4"
-                                                 Width="100"
-                                                 Margin="0,10,0,0"/>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
-                        </Border>
-
-                        <!-- Быстрые действия -->
-                        <TextBlock Text="⚡ Быстрые действия"
+                    <!-- Рекомендации -->
+                    <Grid Margin="0,0,0,15">
+                        <TextBlock Text="⭐ Персональные рекомендации"
                                    FontSize="18"
                                    FontWeight="SemiBold"
                                    Foreground="#333333"
-                                   Margin="0,25,0,15"/>
+                                   HorizontalAlignment="Left"/>
+                        <Button HorizontalAlignment="Right"
+                                Width="36"
+                                Height="36"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Обновить рекомендации"
+                                Command="{Binding RefreshRecommendationsCommand}">
+                            <Path Data="{StaticResource RefreshIcon}"
+                                  Fill="#666666"
+                                  Width="20"
+                                  Height="20"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Button>
+                    </Grid>
 
-                        <Border Background="White"
-                                CornerRadius="12"
-                                Padding="20"
-                                Style="{StaticResource StatsCardStyle}">
-                            <StackPanel>
-                                <Button Content="🔍 Найти нового друга"
-                                        Style="{StaticResource PrimaryButton}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="44"
-                                        Margin="0,0,0,10"
-                                        Click="FindFriendButton_Click"/>
+                    <Border Style="{StaticResource StatsCardStyle}">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding RecommendedFriends}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FriendCardStyle}"
+                                            Margin="0,0,0,12"
+                                            MouseDown="FriendCard_MouseDown"
+                                            Cursor="Hand">
+                                        <Grid Margin="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
 
-                                <Button Content="📅 Запланировать встречу"
-                                        Style="{StaticResource PrimaryButton}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="44"
-                                        Margin="0,0,0,10"
-                                        Click="CreateBookingButton_Click"/>
+                                            <!-- Аватар -->
+                                            <Border Width="56"
+                                                    Height="56"
+                                                    CornerRadius="28"
+                                                    Background="#E8F5E8">
+                                                <TextBlock Text="{Binding FullName, Converter={StaticResource InitialsConverter}}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           Foreground="#4CAF50"/>
+                                            </Border>
 
-                                <Button Content="💬 Написать отзыв"
-                                        Style="{StaticResource PrimaryButton}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="44"
-                                        Margin="0,0,0,10"
-                                        Click="LeaveReviewButton_Click"/>
-
-                                <Button Content="❤️ Мое избранное"
-                                        Background="Transparent"
-                                        BorderBrush="#FF6B6B"
-                                        BorderThickness="1"
-                                        Foreground="#FF6B6B"
-                                        FontSize="14"
-                                        FontWeight="SemiBold"
-                                        Height="44"
-                                        HorizontalAlignment="Stretch"
-                                        Cursor="Hand"
-                                        Click="FavoritesButton_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border x:Name="border" 
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                                CornerRadius="8">
-                                                            <ContentPresenter HorizontalAlignment="Center" 
-                                                                              VerticalAlignment="Center"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="border" Property="Background" Value="#FFF5F5"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-
-                                <Button Content="⚙️ Настройки профиля"
-                                        Background="Transparent"
-                                        BorderBrush="#4CAF50"
-                                        BorderThickness="1"
-                                        Foreground="#4CAF50"
-                                        FontSize="14"
-                                        FontWeight="SemiBold"
-                                        Height="44"
-                                        HorizontalAlignment="Stretch"
-                                        Cursor="Hand"
-                                        Margin="0,10,0,0"
-                                        Click="ProfileSettingsButton_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border x:Name="border" 
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                                CornerRadius="8">
-                                                            <ContentPresenter HorizontalAlignment="Center" 
-                                                                              VerticalAlignment="Center"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="border" Property="Background" Value="#F0F9F0"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Последняя активность -->
-                        <TextBlock Text="🕐 Недавняя активность"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="#333333"
-                                   Margin="0,25,0,15"/>
-
-                        <Border Background="White"
-                                CornerRadius="12"
-                                Padding="20"
-                                Style="{StaticResource StatsCardStyle}">
-                            <StackPanel x:Name="RecentActivityPanel">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <Border Background="#E3F2FD"
-                                            Width="32"
-                                            Height="32"
-                                            CornerRadius="6"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="⭐"
-                                                   FontSize="14"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
+                                            <!-- Информация -->
+                                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                                <TextBlock Text="{Binding FullName}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="14"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding City}"
+                                                           FontSize="12"
+                                                           Foreground="#666666"/>
+                                                <TextBlock Margin="0,2,0,0">
+                                                    <Run Text="⭐"/>
+                                                    <Run Text="{Binding AverageRating, StringFormat={}{0:F1}}"/>
+                                                    <Run Text=" • "/>
+                                                    <Run Text="{Binding HourlyRate, StringFormat={}{0:N0} ₽/ч}"/>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Bio}"
+                                                           FontSize="12"
+                                                           Foreground="#666666"
+                                                           Margin="0,4,0,0"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="36"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
-                                    <StackPanel Margin="10,0,0,0">
-                                        <TextBlock Text="Оставили отзыв Алексею К."
-                                                   FontSize="13"
-                                                   Foreground="#333333"/>
-                                        <TextBlock Text="2 дня назад"
-                                                   FontSize="11"
-                                                   Foreground="#999999"/>
-                                    </StackPanel>
-                                </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Background="#E8F5E8"
-                                            Width="32"
-                                            Height="32"
-                                            CornerRadius="6"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="📅"
-                                                   FontSize="14"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
-                                    </Border>
-                                    <StackPanel Margin="10,0,0,0">
-                                        <TextBlock Text="Забронировали встречу с Марией С."
-                                                   FontSize="13"
-                                                   Foreground="#333333"/>
-                                        <TextBlock Text="5 дней назад"
-                                                   FontSize="11"
-                                                   Foreground="#999999"/>
-                                    </StackPanel>
+                        <!-- Нет рекомендаций -->
+                            <Border Background="#F8F9FA"
+                                CornerRadius="8"
+                                Padding="20"
+                                Visibility="{Binding HasNoRecommendations, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="⭐" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                    <TextBlock Text="Загрузка рекомендаций..." FontSize="13" Foreground="#666666" HorizontalAlignment="Center"/>
+                                    <ProgressBar IsIndeterminate="True" Height="4" Width="100" Margin="0,10,0,0"/>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Быстрые действия -->
+                    <TextBlock Text="⚡ Быстрые действия"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#333333"
+                               Margin="0,25,0,15"/>
+
+                    <Border Style="{StaticResource StatsCardStyle}">
+                        <StackPanel>
+                            <Button Content="🔍 Найти друга"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Margin="0,0,0,10"
+                                    Command="{Binding NavigateToCatalogCommand}"/>
+
+                            <Button Content="📅 Запланировать встречу"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Margin="0,0,0,10"
+                                    Command="{Binding NavigateToCatalogCommand}"/>
+
+                            <Button Content="💬 Мои отзывы"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Margin="0,0,0,10"
+                                    Command="{Binding NavigateToMyBookingsCommand}"/>
+
+                            <Button Content="⚙️ Настройки профиля"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding OpenProfileSettingsCommand}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Недавняя активность -->
+                    <TextBlock Text="🕐 Недавняя активность"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#333333"
+                               Margin="0,25,0,15"/>
+
+                    <Border Style="{StaticResource StatsCardStyle}">
+                        <ItemsControl ItemsSource="{Binding RecentActivities}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <Border Width="32"
+                                                Height="32"
+                                                CornerRadius="6"
+                                                Background="#E8F5E8">
+                                            <TextBlock Text="✓"
+                                                       FontSize="14"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="#4CAF50"/>
+                                        </Border>
+                                        <StackPanel Margin="10,0,0,0">
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="13"
+                                                       Foreground="#333333"/>
+                                            <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:dd.MM.yyyy}'}"
+                                                       FontSize="11"
+                                                       Foreground="#999999"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Grid>
     </ScrollViewer>
