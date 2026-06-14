@@ -1,12 +1,13 @@
-﻿using RentAFriendApp.Context;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using RentAFriendApp.Context;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.ReviewDTO;
 using RentAFriendApp.ViewModels.Base;
 using RentAFriendApp.Views.Friend;
-using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Input;
 
 namespace RentAFriendApp.ViewModels.Friend
 {
@@ -15,122 +16,78 @@ namespace RentAFriendApp.ViewModels.Friend
         private readonly string _token;
         private FPInfoDTO? _currentProfile;
 
-        // Статистика
+        #region Свойства
+
         private int _totalBookings;
-        public int TotalBookings
-        {
-            get => _totalBookings;
-            set => SetProperty(ref _totalBookings, value);
-        }
+        public int TotalBookings { get => _totalBookings; set => SetProperty(ref _totalBookings, value); }
 
         private int _pendingRequests;
-        public int PendingRequests
-        {
-            get => _pendingRequests;
-            set => SetProperty(ref _pendingRequests, value);
-        }
+        public int PendingRequests { get => _pendingRequests; set => SetProperty(ref _pendingRequests, value); }
 
         private decimal _totalEarnings;
-        public decimal TotalEarnings
-        {
-            get => _totalEarnings;
-            set => SetProperty(ref _totalEarnings, value);
-        }
+        public decimal TotalEarnings { get => _totalEarnings; set => SetProperty(ref _totalEarnings, value); }
 
         private double _averageRating;
         public double AverageRating
         {
             get => _averageRating;
-            set
-            {
-                SetProperty(ref _averageRating, value);
-                OnPropertyChanged(nameof(AverageRatingStars));
-                OnPropertyChanged(nameof(RatingDescription));
-            }
+            set { SetProperty(ref _averageRating, value); OnPropertyChanged(nameof(AverageRatingStars)); }
         }
 
-        // Коллекции
-        private ObservableCollection<UpcomingMeetingItem> _upcomingMeetings;
+        private ObservableCollection<UpcomingMeetingItem> _upcomingMeetings = new();
         public ObservableCollection<UpcomingMeetingItem> UpcomingMeetings
         {
             get => _upcomingMeetings;
             set => SetProperty(ref _upcomingMeetings, value);
         }
 
-        private ObservableCollection<ReviewDTO> _recentReviews;
+        private ObservableCollection<ReviewDTO> _recentReviews = new();
         public ObservableCollection<ReviewDTO> RecentReviews
         {
             get => _recentReviews;
             set => SetProperty(ref _recentReviews, value);
         }
 
-        // UI свойства
-        private string _welcomeMessage;
-        public string WelcomeMessage
-        {
-            get => _welcomeMessage;
-            set => SetProperty(ref _welcomeMessage, value);
-        }
+        private string _welcomeMessage = "Добро пожаловать!";
+        public string WelcomeMessage { get => _welcomeMessage; set => SetProperty(ref _welcomeMessage, value); }
 
-        private string _currentDate;
-        public string CurrentDate
-        {
-            get => _currentDate;
-            set => SetProperty(ref _currentDate, value);
-        }
+        private string _currentDate = DateTime.Now.ToString("dd MMMM yyyy");
+        public string CurrentDate { get => _currentDate; set => SetProperty(ref _currentDate, value); }
 
-        private string _currentUserInitials;
-        public string CurrentUserInitials
-        {
-            get => _currentUserInitials;
-            set => SetProperty(ref _currentUserInitials, value);
-        }
+        private string _currentUserInitials = "??";
+        public string CurrentUserInitials { get => _currentUserInitials; set => SetProperty(ref _currentUserInitials, value); }
 
-        private bool _hasUpcomingMeetings;
-        public bool HasUpcomingMeetings
-        {
-            get => _hasUpcomingMeetings;
-            set => SetProperty(ref _hasUpcomingMeetings, value);
-        }
+        public bool HasUpcomingMeetings => UpcomingMeetings.Count > 0;
+        public bool HasRecentReviews => RecentReviews.Count > 0;
 
-        private bool _hasRecentReviews;
-        public bool HasRecentReviews
-        {
-            get => _hasRecentReviews;
-            set => SetProperty(ref _hasRecentReviews, value);
-        }
-
-        private string _userFullName;
-        public string UserFullName
-        {
-            get => _userFullName;
-            set => SetProperty(ref _userFullName, value);
-        }
-
-        // Команды
         public ICommand EditProfileCommand { get; }
         public ICommand ManageScheduleCommand { get; }
         public ICommand ViewBookingRequestsCommand { get; }
         public ICommand RefreshCommand { get; }
+
+        public string AverageRatingStars
+        {
+            get
+            {
+                int full = (int)Math.Floor(_averageRating);
+                bool half = _averageRating - full >= 0.5;
+                return new string('★', full) + (half ? "½" : "") + new string('☆', 5 - full - (half ? 1 : 0));
+            }
+        }
+
+        #endregion
 
         public FriendHomeViewModel(string token)
         {
             _token = token;
             Title = "Панель управления";
 
-            UpcomingMeetings = new ObservableCollection<UpcomingMeetingItem>();
-            RecentReviews = new ObservableCollection<ReviewDTO>();
-
-            WelcomeMessage = "Добро пожаловать!";
-            CurrentDate = DateTime.Now.ToString("dd MMMM yyyy");
-            CurrentUserInitials = "??";
-
             EditProfileCommand = new RelayCommandAsync(EditProfile);
             ManageScheduleCommand = new RelayCommandAsync(ManageSchedule);
             ViewBookingRequestsCommand = new RelayCommandAsync(ViewBookingRequests);
             RefreshCommand = new RelayCommandAsync(LoadDataAsync);
 
-            _ = LoadDataAsync();
+            _ = LoadDataAsync(); // Только один вызов
         }
 
         private async Task LoadDataAsync()
@@ -141,238 +98,111 @@ namespace RentAFriendApp.ViewModels.Friend
                 ClearErrors();
 
                 await LoadProfileAsync();
-                await LoadStatisticsAsync();
-                await LoadUpcomingMeetingsAsync();
-                await LoadRecentReviewsAsync();
-                UpdateUIProperties();
+                if (_currentProfile == null) return;
+
+                await Task.WhenAll(
+                    LoadStatisticsAsync(),
+                    LoadUpcomingMeetingsAsync(),
+                    LoadRecentReviewsAsync()
+                );
+
+                UpdateUI();
             }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка загрузки данных: {ex.Message}");
-                Base.Messenger.Default.SendNotification("Ошибка загрузки данных");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            catch (Exception ex) { SetError(ex.Message); }
+            finally { IsBusy = false; }
         }
 
         private async Task LoadProfileAsync()
         {
-            try
-            {
-                var profilesResponse = await FriendProfileContext.GetMyProfile(_token);
-                if (profilesResponse == null)
-                {
-                    return;
-                }
-                _currentProfile = profilesResponse.Profile;
+            var resp = await FriendProfileContext.GetMyProfile(_token);
+            _currentProfile = resp?.Profile;
 
-                if (_currentProfile != null)
-                {
-                    var getUser = await UserContext.GetUser(_token);
-                    var user = getUser?.Data;
-                    if (user != null)
-                    {
-                        UserFullName = user.FullName;
-                        CurrentUserInitials = GetInitials(user.FullName);
-                        WelcomeMessage = $"Добро пожаловать, {user.FullName}!";
-                    }
-                }
-            }
-            catch (Exception ex)
+            if (_currentProfile != null)
             {
-                Console.WriteLine($"Ошибка загрузки профиля: {ex.Message}");
+                var user = await UserContext.GetUser(_token);
+                var name = user?.Data?.FullName ?? "Друг";
+                WelcomeMessage = $"Добро пожаловать, {name}!";
+                CurrentUserInitials = GetInitials(name);
             }
         }
 
         private async Task LoadStatisticsAsync()
         {
-            try
+            if (_currentProfile == null) return;
+
+            var stats = await FriendProfileContext.GetFriendProfileStats(_token, _currentProfile.ProfileID);
+            if (stats?.Statistic != null)
             {
-                if (_currentProfile == null) return;
-
-                // Получаем статистику бронирований друга
-                var getStats = await FriendProfileContext.GetFriendProfileStats(_token, _currentProfile.ProfileID);
-                var stats = getStats?.Statistic;
-                if (stats != null)
-                {
-                    TotalBookings = stats.TotalBookings;
-                    TotalEarnings = stats.TotalEarnings;
-                }
-
-                // Получаем количество ожидающих запросов
-                var pendingBookings = await BookingContext.GetMyBookings(_token, status: "Pending", page: 1, pageSize: 100);
-                PendingRequests = pendingBookings?.Bookings?.Count ?? 0;
-
-                // Получаем средний рейтинг
-                AverageRating = _currentProfile.AverageRating.HasValue ? (double)_currentProfile.AverageRating.Value : 0;
+                TotalBookings = stats.Statistic.TotalBookings;
+                TotalEarnings = stats.Statistic.TotalEarnings;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка загрузки статистики: {ex.Message}");
-            }
+
+            var pending = await BookingContext.GetMyBookings(_token, status: "Pending", page: 1, pageSize: 100);
+            PendingRequests = pending?.Bookings?.Count ?? 0;
+
+            AverageRating = (double)(_currentProfile.AverageRating ?? 0m);
         }
 
         private async Task LoadUpcomingMeetingsAsync()
         {
-            try
+            if (_currentProfile == null) return;
+
+            var upcoming = await FriendProfileContext.GetUpcomingMeetings(_token, _currentProfile.ProfileID, top: 5);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                if (_currentProfile == null) return;
-
-                await Application.Current.Dispatcher.InvokeAsync(() => UpcomingMeetings.Clear());
-
-                // Получаем ближайшие встречи
-                var upcoming = await FriendProfileContext.GetUpcomingMeetings(_token, _currentProfile.ProfileID, top: 5);
-
+                UpcomingMeetings.Clear();
                 if (upcoming?.Meetings != null)
-                {
-                    foreach (var meeting in upcoming.Meetings)
-                    {
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            UpcomingMeetings.Add(meeting);
-                        });
-                    }
-                }
-
-                HasUpcomingMeetings = UpcomingMeetings.Count > 0;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка загрузки ближайших встреч: {ex.Message}");
-            }
+                    foreach (var m in upcoming.Meetings)
+                        UpcomingMeetings.Add(m);
+                OnPropertyChanged(nameof(HasUpcomingMeetings));
+            });
         }
 
         private async Task LoadRecentReviewsAsync()
         {
-            try
+            if (_currentProfile == null) return;
+
+            var reviews = await ReviewContext.GetReviewsByFriend(_currentProfile.ProfileID, _token, page: 1, pageSize: 5);
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                if (_currentProfile == null) return;
-
-                await Application.Current.Dispatcher.InvokeAsync(() => RecentReviews.Clear());
-
-                var reviews = await ReviewContext.GetReviewsByFriend(_currentProfile.ProfileID, _token, page: 1, pageSize: 5);
-
+                RecentReviews.Clear();
                 if (reviews?.Reviews != null)
-                {
-                    foreach (var review in reviews.Reviews)
-                    {
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
-                        {
-                            RecentReviews.Add(review);
-                        });
-                    }
-                }
-
-                HasRecentReviews = RecentReviews.Count > 0;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка загрузки отзывов: {ex.Message}");
-            }
+                    foreach (var r in reviews.Reviews)
+                        RecentReviews.Add(r);
+                OnPropertyChanged(nameof(HasRecentReviews));
+            });
         }
 
-        private void UpdateUIProperties()
+        private void UpdateUI()
         {
             CurrentDate = DateTime.Now.ToString("dd MMMM yyyy");
-
-            if (!string.IsNullOrEmpty(UserFullName))
-            {
-                CurrentUserInitials = GetInitials(UserFullName);
-                WelcomeMessage = $"Добро пожаловать, {UserFullName}!";
-            }
+            OnPropertyChanged(nameof(HasUpcomingMeetings));
+            OnPropertyChanged(nameof(HasRecentReviews));
         }
 
-        private string GetInitials(string fullName)
+        private string GetInitials(string name)
         {
-            if (string.IsNullOrEmpty(fullName)) return "??";
-
-            var parts = fullName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 2)
-                return (parts[0][0].ToString() + parts[1][0].ToString()).ToUpper();
-
-            if (parts.Length == 1)
-                return parts[0].Length >= 2 ? parts[0].Substring(0, 2).ToUpper() : parts[0].ToUpper();
-
-            return "??";
+            if (string.IsNullOrWhiteSpace(name)) return "??";
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}".ToUpper() : name[..Math.Min(2, name.Length)].ToUpper();
         }
 
-        private async Task EditProfile()
+        private async Task EditProfile() => Navigate(new EditProfilePage(_token));
+        private async Task ManageSchedule() => Navigate(new SchedulePage(_token));
+        private async Task ViewBookingRequests() => Navigate(new BookingRequestsPage(_token));
+
+        private async Task Navigate(Page page)
         {
-            try
-            {
-                var editProfilePage = new EditProfilePage(_token);
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    MainWindow.Instanse.MainFrame.Navigate(editProfilePage);
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка открытия редактора профиля: {ex.Message}");
-            }
+            await Application.Current.Dispatcher.InvokeAsync(() => MainWindow.Instanse?.MainFrame.Navigate(page));
         }
-
-        private async Task ManageSchedule()
+        public string RatingDescription => _averageRating switch
         {
-            try
-            {
-                var schedulePage = new SchedulePage(_token);
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    MainWindow.Instanse.MainFrame.Navigate(schedulePage);
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка открытия расписания: {ex.Message}");
-            }
-        }
-
-        private async Task ViewBookingRequests()
-        {
-            try
-            {
-                var bookingRequestsPage = new BookingRequestsPage(_token);
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    MainWindow.Instanse.MainFrame.Navigate(bookingRequestsPage);
-                });
-            }
-            catch (Exception ex)
-            {
-                SetError($"Ошибка открытия запросов: {ex.Message}");
-            }
-        }
-
-        // Вычисляемые свойства для UI
-        public string AverageRatingStars
-        {
-            get
-            {
-                if (AverageRating < 1 || AverageRating > 5)
-                    return "☆☆☆☆☆";
-
-                int fullStars = (int)Math.Floor(AverageRating);
-                int halfStar = AverageRating - fullStars >= 0.5 ? 1 : 0;
-
-                return new string('★', fullStars) +
-                       (halfStar == 1 ? "½" : "") +
-                       new string('☆', 5 - fullStars - halfStar);
-            }
-        }
-
-        public string RatingDescription
-        {
-            get
-            {
-                if (AverageRating >= 4.5) return "Отлично";
-                if (AverageRating >= 3.5) return "Хорошо";
-                if (AverageRating >= 2.5) return "Нормально";
-                if (AverageRating >= 1.5) return "Плохо";
-                return "Ужасно";
-            }
-        }
+            >= 4.5 => "Отлично",
+            >= 3.5 => "Хорошо",
+            >= 2.5 => "Нормально",
+            >= 1.5 => "Плохо",
+            > 0 => "Ужасно",
+            _ => "Нет оценок"
+        };
     }
 }

@@ -5,6 +5,7 @@ using System.Windows.Media;
 using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.ViewModels.Base;
+using RentAFriendApp.Views.Client;
 
 namespace RentAFriendApp.ViewModels.Friend
 {
@@ -137,16 +138,12 @@ namespace RentAFriendApp.ViewModels.Friend
             finally { IsBusy = false; }
         }
 
-        private async Task OpenChatAsync(int bookingId)
+        private Task OpenChatAsync(int bookingId)
         {
             var booking = Items.FirstOrDefault(b => b.BookingID == bookingId);
-            if (booking == null) return;
-
-            var chat = await ChatContext.GetOrCreateChat(_token, booking.ClientId);
-            if (chat != null)
-            {
-                MessageBox.Show("Будет добавлена в следующем обновлении");
-            }
+            if (booking == null) return Task.CompletedTask;
+            MainWindow.Instanse?.MainFrame.Navigate(new ChatPage(_token, booking.ClientId));
+            return Task.CompletedTask;
         }
     }
 

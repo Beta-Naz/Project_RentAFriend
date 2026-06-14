@@ -15,7 +15,6 @@ namespace RentAFriendApp.ViewModels.Client
     {
         private readonly string _token;
         private readonly DispatcherTimer _refreshTimer;
-        private readonly Random _random = new();
         private UserLoginDTO? _currentUser;
 
         #region Свойства

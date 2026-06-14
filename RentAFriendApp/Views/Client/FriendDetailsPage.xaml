@@ -281,10 +281,6 @@
 
                 <!-- Кнопки избранное/поделиться -->
                 <StackPanel Grid.Row="1" HorizontalAlignment="Right" Height="40" Orientation="Horizontal">
-                    <Button x:Name="AddToFavoritesButton" Style="{StaticResource IconButtonStyle}" 
-                            Height="40" Width="40" Margin="0,0,8,0" Click="AddToFavoritesButton_Click">
-                        <Path Data="{StaticResource HeartIcon}" Fill="#666666" Width="24" Height="22"/>
-                    </Button>
                     <Button x:Name="ShareButton" Style="{StaticResource IconButtonStyle}" 
                             Height="40" Width="40" Click="ShareButton_Click">
                         <Path Data="{StaticResource ShareIcon}" Fill="#666666" Width="24" Height="22"/>
@@ -300,7 +296,7 @@
                         </StackPanel>
 
                         <ScrollViewer x:Name="ReviewsScrollViewer" VerticalScrollBarVisibility="Auto" MaxHeight="400" ScrollChanged="ReviewsScrollViewer_ScrollChanged">
-                            <ItemsControl x:Name="ReviewsList" ItemsSource="{Binding Reviews}">
+                            <ItemsControl x:Name="ReviewsList">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Style="{StaticResource ReviewCardStyle}" MouseRightButtonDown="ReviewBorder_MouseRightButtonDown">

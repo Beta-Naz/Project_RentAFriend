@@ -9,7 +9,6 @@
       d:DesignHeight="700" d:DesignWidth="1200"
       Title="Панель управления"
       Background="#F8F9FA"
-      Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">
 
     <Page.Resources>
@@ -340,8 +339,6 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Style="{StaticResource MeetingItemStyle}"
-                                                            MouseEnter="MeetingItem_MouseEnter"
-                                                            MouseLeave="MeetingItem_MouseLeave"
                                                             PreviewMouseLeftButtonUp="MeetingItem_Click">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
@@ -364,11 +361,11 @@
 
                                                             <!-- Информация о встрече -->
                                                             <StackPanel Grid.Column="1">
-                                                                <TextBlock Text="{Binding Client.FullName}" 
+                                                                <TextBlock Text="{Binding FullName}" 
                                                                            FontSize="14" 
                                                                            FontWeight="SemiBold"
                                                                            Foreground="#333333"/>
-                                                                <TextBlock Text="{Binding Schedule.TimeRangeDisplay}" 
+                                                                <TextBlock Text="{Binding TimeRangeDisplay}" 
                                                                            FontSize="13" 
                                                                            Foreground="#666666"
                                                                            Margin="0,2,0,0"/>
@@ -553,21 +550,19 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource MeetingItemStyle}"
-                                                        MouseEnter="ReviewItem_MouseEnter"
-                                                        MouseLeave="ReviewItem_MouseLeave"
                                                         PreviewMouseLeftButtonUp="ReviewItem_Click">
                                                     <StackPanel>
                                                         <!-- Рейтинг и имя -->
                                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                            <TextBlock Text="{Binding RatingStars}" 
+                                                            <TextBlock Text="{Binding Rating, StringFormat='★{0}'}" 
                                                                        FontSize="14"
                                                                        Foreground="#FFC107"/>
-                                                            <TextBlock Text="{Binding Tag.ReviewerName}" 
+                                                            <TextBlock Text="{Binding ClientName}" 
                                                                        FontSize="13"
                                                                        FontWeight="SemiBold"
                                                                        Foreground="#333333"
                                                                        Margin="10,0,0,0"/>
-                                                            <TextBlock Text="{Binding Tag.DateDisplay}" 
+                                                            <TextBlock Text="{Binding CreatedAt, StringFormat=dd.MM.yyyy}" 
                                                                        FontSize="11"
                                                                        Foreground="#888888"
                                                                        HorizontalAlignment="Right"

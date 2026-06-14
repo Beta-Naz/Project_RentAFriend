@@ -309,8 +309,29 @@ namespace RentAFriendApp.Views.Client
 
         private void BookButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_vm?.SelectedTimeSlot == null) { MessageBox.Show("Выберите время"); return; }
-            (Window.GetWindow(this) as MainWindow)?.MainFrame.Navigate(new BookingPage(_token, _vm.CurrentFriend!));
+            if (_vm?.SelectedTimeSlot == null)
+            {
+                MessageBox.Show("Выберите время встречи", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var bookingPage = new BookingPage(_token, _vm.CurrentFriend!)
+            {
+                PreSelectedDate = _vm.SelectedDate,
+                PreSelectedSlot = new TimeSlotInfo
+                {
+                    ScheduleID = _vm.SelectedTimeSlot.ScheduleID,
+                    StartTime = _vm.SelectedTimeSlot.StartTime,
+                    EndTime = _vm.SelectedTimeSlot.EndTime,
+                    Duration = _vm.SelectedTimeSlot.EndTime - _vm.SelectedTimeSlot.StartTime,
+                    TotalAmount = _vm.CurrentFriend?.HourlyRate.HasValue == true
+                        ? _vm.CurrentFriend.HourlyRate.Value * (decimal)(_vm.SelectedTimeSlot.EndTime - _vm.SelectedTimeSlot.StartTime).TotalHours
+                        : 0,
+                    IsSelected = true
+                }
+            };
+
+            (Window.GetWindow(this) as MainWindow)?.MainFrame.Navigate(bookingPage);
         }
 
         private void MessageButton_Click(object sender, RoutedEventArgs e)
@@ -320,7 +341,6 @@ namespace RentAFriendApp.Views.Client
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e) => NavigationService?.GoBack();
-        private void AddToFavoritesButton_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Добавлено в избранное!", "Успех");
         private void ShareButton_Click(object sender, RoutedEventArgs e)
         {
             try { Clipboard.SetText($"https://rentafriend.com/friend/{_profileId}"); MessageBox.Show("Ссылка скопирована!"); }

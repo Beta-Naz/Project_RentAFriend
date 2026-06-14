@@ -47,7 +47,7 @@ namespace RentAFriendApp.Context
         /// <summary>
         /// Создать временной слот (для друга)
         /// </summary>
-        public static async Task<CreateScheduleResponse?> CreateTimeSlot(string token, CreateScheduleResponse scheduleData)
+        public static async Task<CreateScheduleResponse?> CreateTimeSlot(string token, CreateScheduleDTO scheduleData)
         {
             using HttpClient client = new();
             client.DefaultRequestHeaders.Add("TOKEN", token);

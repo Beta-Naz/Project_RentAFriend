@@ -19,6 +19,8 @@ namespace RentAFriendApp.Views.Client
 {
     public partial class BookingPage : Page
     {
+        public DateTime? PreSelectedDate { get; set; }
+        public TimeSlotInfo? PreSelectedSlot { get; set; }
         private readonly string _token;
         private BookingViewModel _viewModel;
         private FPInfoDTO _friendProfile;
@@ -51,16 +53,14 @@ namespace RentAFriendApp.Views.Client
             }), DispatcherPriority.Background);
         }
 
-        private async System.Threading.Tasks.Task LoadDataAsync()
+        private async Task LoadDataAsync()
         {
             try
             {
-                // Обновляем профиль через API
                 var updatedProfile = await FriendProfileContext.GetFriendProfileById(_friendProfile.ProfileID, _token);
                 if (updatedProfile?.Profile != null)
-                {
                     _friendProfile = updatedProfile.Profile;
-                }
+
                 if (_friendProfile == null)
                 {
                     Dispatcher.Invoke(() =>
@@ -77,6 +77,10 @@ namespace RentAFriendApp.Views.Client
                 {
                     DataContext = _viewModel;
                     UpdateFriendInfo(_friendProfile);
+
+                    if (PreSelectedDate.HasValue)
+                        _currentDate = PreSelectedDate.Value;
+
                     UpdateDateDisplay();
                     ShowLoading(false);
                     LoadAvailableTimeSlots();
@@ -90,6 +94,27 @@ namespace RentAFriendApp.Views.Client
                     MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     NavigationService?.GoBack();
                 });
+            }
+        }
+        private void SelectPreSelectedSlot()
+        {
+            if (PreSelectedSlot == null) return;
+
+            foreach (var child in TimeSlotsPanel.Children)
+            {
+                if (child is Border border && border.Tag is TimeSlotInfo slot)
+                {
+                    if (slot.ScheduleID == PreSelectedSlot.ScheduleID)
+                    {
+                        // Симулируем клик по слоту
+                        TimeSlot_MouseDown(border, new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+                        {
+                            RoutedEvent = Border.MouseDownEvent,
+                            Source = border
+                        });
+                        break;
+                    }
+                }
             }
         }
 
@@ -186,6 +211,10 @@ namespace RentAFriendApp.Views.Client
 
                 UpdateDateDisplay();
                 ValidateForm();
+                if (PreSelectedSlot != null)
+                {
+                    SelectPreSelectedSlot();
+                }
             }
             catch (Exception ex)
             {
@@ -683,7 +712,7 @@ namespace RentAFriendApp.Views.Client
         }
     }
 
-    internal class TimeSlotInfo
+    public class TimeSlotInfo
     {
         public int ScheduleID { get; set; }
         public TimeSpan StartTime { get; set; }

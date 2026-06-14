@@ -1,0 +1,250 @@
+﻿<Page x:Class="RentAFriendApp.Views.Client.PaymentPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="600"
+      Title="Оплата бронирования"
+      Background="#F8F9FA"
+      Loaded="Page_Loaded">
+
+    <Page.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="28"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="20" Opacity="0.08" ShadowDepth="0"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#388E3C"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#BDBDBD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
+                                <Setter TargetName="border" Property="Background" Value="#F1F8F1"/>
+                                <Setter Property="Foreground" Value="#4CAF50"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#4CAF50"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20" MaxWidth="550">
+            <StackPanel>
+
+                <!-- Заголовок -->
+                <TextBlock Text="💳 Оплата бронирования" FontSize="26" FontWeight="Bold" Foreground="#333333" Margin="0,0,0,6"/>
+                <TextBlock Text="Безопасная оплата через платёжный шлюз" FontSize="13" Foreground="#999999" Margin="0,0,0,28"/>
+
+                <!-- Информация о бронировании -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="📋 Детали заказа" FontSize="16" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,16"/>
+
+                        <Border Background="#F8F9FA" CornerRadius="10" Padding="16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    <TextBlock Text="Встреча с" FontSize="13" Foreground="#999999" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="{Binding FriendName}" FontSize="13" FontWeight="SemiBold" Foreground="#4CAF50" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <Grid Grid.Row="1" Margin="0,0,0,8">
+                                    <TextBlock Text="Дата и время" FontSize="13" Foreground="#999999" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="{Binding DateTimeDisplay}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <Grid Grid.Row="2" Margin="0,0,0,8">
+                                    <TextBlock Text="Длительность" FontSize="13" Foreground="#999999" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="{Binding DurationDisplay}" FontSize="13" FontWeight="SemiBold" Foreground="#333333" HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <Rectangle Grid.Row="3" Height="1" Fill="#E0E0E0" Margin="0,11,0,32"/>
+
+                                <Grid Grid.Row="3" Margin="0,12,0,0">
+                                    <TextBlock Text="Итого к оплате" FontSize="16" FontWeight="SemiBold" Foreground="#333333" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBlock  Text="{Binding TotalAmount, StringFormat={}{0:N0} ₽}" FontSize="24" FontWeight="Bold" Foreground="#4CAF50" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Данные карты -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="💳 " FontSize="16"/>
+                            <TextBlock Text="Банковская карта" FontSize="16" FontWeight="SemiBold" Foreground="#333333"/>
+                        </StackPanel>
+                        <TextBlock Text="Данные карты не сохраняются" FontSize="12" Foreground="#999999" Margin="0,0,0,20"/>
+
+                        <!-- Номер карты -->
+                        <TextBlock Text="Номер карты" FontSize="13" FontWeight="Medium" Foreground="#333333" Margin="0,0,0,6"/>
+                        <TextBox x:Name="CardNumberBox" Style="{StaticResource InputStyle}" MaxLength="19"
+                                 TextChanged="CardNumber_TextChanged" Tag="0000 0000 0000 0000"/>
+
+                        <!-- Срок + CVV -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Срок действия" FontSize="13" FontWeight="Medium" Foreground="#333333" Margin="0,0,0,6"/>
+                                <TextBox x:Name="ExpiryBox" Style="{StaticResource InputStyle}" MaxLength="5"
+                                         TextChanged="Expiry_TextChanged" Tag="ММ/ГГ"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="CVV/CVC" FontSize="13" FontWeight="Medium" Foreground="#333333" Margin="0,0,0,6"/>
+                                <TextBox x:Name="CvvBox" Style="{StaticResource InputStyle}" MaxLength="4"
+                                         TextChanged="Cvv_TextChanged" Tag="•••"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Имя держателя -->
+                        <TextBlock Text="Имя держателя карты" FontSize="13" FontWeight="Medium" Foreground="#333333" Margin="0,16,0,6"/>
+                        <TextBox x:Name="CardHolderBox" Style="{StaticResource InputStyle}"
+                                 TextChanged="CardHolder_TextChanged" Tag="IVAN IVANOV"/>
+
+                        <!-- Иконки карт -->
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <TextBlock Text="💳" FontSize="20" Foreground="#999999"/>
+                            <TextBlock Text=" Принимаем все основные карты" FontSize="11" Foreground="#999999" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Email для чека -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="📧 Чек об оплате" FontSize="16" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,4"/>
+                        <TextBlock Text="Электронный чек будет отправлен на указанный email" FontSize="12" Foreground="#999999" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Email для чека" FontSize="13" FontWeight="Medium" Foreground="#333333" Margin="0,0,0,6"/>
+                        <TextBox x:Name="EmailBox" Style="{StaticResource InputStyle}"
+                                 TextChanged="Email_TextChanged" Tag="example@mail.ru"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Кнопки -->
+                <Grid Margin="0,0,0,40">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="Назад" Style="{StaticResource SecondaryButton}" Height="48" Click="BtnBack_Click"/>
+
+                    <Button Grid.Column="2" x:Name="BtnPay" Content="💳 Оплатить"
+                            Style="{StaticResource PrimaryButton}" IsEnabled="False" Click="BtnPay_Click"/>
+                </Grid>
+            </StackPanel>
+            
+        </Grid>
+    </ScrollViewer>
+        <Border x:Name="SuccessPanel" Visibility="Collapsed"
+             Background="White" CornerRadius="16" Padding="40"
+             HorizontalAlignment="Center" VerticalAlignment="Center"
+             Width="420" Margin="0,60,0,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" Opacity="0.15" ShadowDepth="0"/>
+            </Border.Effect>
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock Text="✓" FontSize="64" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                <TextBlock Text="Оплата прошла успешно!" FontSize="22" FontWeight="Bold"
+       Foreground="#4CAF50" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                <TextBlock x:Name="SuccessEmailText" Text="" FontSize="13"
+       Foreground="#999999" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                <TextBlock Text="Чек отправлен на указанный email" FontSize="12"
+       Foreground="#BDBDBD" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                <Button Content="Вернуться к бронированиям" Style="{StaticResource PrimaryButton}"
+    Width="250" Click="BtnBackToBookings_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

@@ -651,20 +651,14 @@ namespace RentAFriendApp.ViewModels.Friend
             }
         }
 
-        private static bool IsValidEmail(string email)
+        private bool IsValidEmail(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                return false;
+            if (string.IsNullOrWhiteSpace(email)) return false;
 
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$";
+
+            bool isValid = Regex.IsMatch(email, pattern);
+            return isValid;
         }
 
         private bool CheckForChanges()

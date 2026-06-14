@@ -541,14 +541,10 @@
                                     Margin="0,0,0,10"
                                     Command="{Binding NavigateToCatalogCommand}"/>
 
-                            <Button Content="💬 Мои отзывы"
+                            <Button Content="💬 Оставить отзыв"
                                     Style="{StaticResource PrimaryButton}"
                                     Margin="0,0,0,10"
                                     Command="{Binding NavigateToMyBookingsCommand}"/>
-
-                            <Button Content="⚙️ Настройки профиля"
-                                    Style="{StaticResource SecondaryButton}"
-                                    Command="{Binding OpenProfileSettingsCommand}"/>
                         </StackPanel>
                     </Border>
 

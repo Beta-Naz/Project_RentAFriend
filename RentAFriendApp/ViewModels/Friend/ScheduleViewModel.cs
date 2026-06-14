@@ -207,7 +207,7 @@ namespace RentAFriendApp.ViewModels.Friend
         }
 
         public bool HasSlots => ScheduleSlots != null && ScheduleSlots.Any();
-        
+
         public async Task AddTimeSlotAsync()
         {
             try
@@ -215,7 +215,6 @@ namespace RentAFriendApp.ViewModels.Friend
                 IsBusy = true;
                 ClearErrors();
 
-                // Проверка на пересечение
                 var overlapData = new CheckOverlapDTO
                 {
                     ProfileID = _profileId,
@@ -232,17 +231,17 @@ namespace RentAFriendApp.ViewModels.Friend
                     return;
                 }
 
-                // Создание слота
-                var newSlotData = new CreateScheduleResponse
+                var newSlotData = new CreateScheduleDTO
                 {
                     Date = SelectedDate,
                     StartTime = NewStartTime,
                     EndTime = NewEndTime
                 };
 
-                var createdSlot = await ScheduleContext.CreateTimeSlot(_token, newSlotData);
+                var getCreatedSlot = await ScheduleContext.CreateTimeSlot(_token, newSlotData);
+                var createdSlot = getCreatedSlot?.Slot;
 
-                if (createdSlot != null)
+                if (createdSlot != null && getCreatedSlot != null)
                 {
                     var newSlot = new ScheduleSlot(this)
                     {
@@ -251,11 +250,17 @@ namespace RentAFriendApp.ViewModels.Friend
                         EndTime = createdSlot.EndTime,
                         IsAvailable = createdSlot.IsAvailable,
                         IsBooked = false,
-                        Date = createdSlot.Date
+                        Date = getCreatedSlot.Date
                     };
 
                     ScheduleSlots?.Add(newSlot);
                     SortScheduleSlots();
+
+
+                    OnPropertyChanged(nameof(TotalSlots));
+                    OnPropertyChanged(nameof(AvailableSlots));
+                    OnPropertyChanged(nameof(BookedSlots));
+                    OnPropertyChanged(nameof(HasScheduleSlots));
                     await UpdateCalendarDayAsync(SelectedDate, true);
 
                     NewStartTime = new TimeSpan(9, 0, 0);
@@ -271,6 +276,7 @@ namespace RentAFriendApp.ViewModels.Friend
             finally
             {
                 IsBusy = false;
+                OnPropertyChanged(nameof(CanAddTimeSlot));
             }
         }
 
@@ -600,6 +606,7 @@ namespace RentAFriendApp.ViewModels.Friend
                 _scheduleViewModel = scheduleViewModel;
                 RemoveTimeSlotCommand = new RelayCommandAsync(async () => await _scheduleViewModel.RemoveTimeSlotAsync(this), () => true);
                 ToggleAvailabilityCommand = new RelayCommandAsync(async () => await _scheduleViewModel.ToggleAvailabilityAsync(this), () => !IsBooked);
+
                 UpdateToggleIcon();
             }
             public void UpdateToggleIcon()

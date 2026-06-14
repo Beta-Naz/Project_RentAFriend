@@ -12,5 +12,6 @@
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public string? MeetingLocation { get; set; }
+        public string TimeRangeDisplay => $"{StartTime:hh\\:mm} – {EndTime:hh\\:mm}";
     }
 }

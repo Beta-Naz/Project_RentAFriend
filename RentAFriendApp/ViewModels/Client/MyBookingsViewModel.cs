@@ -224,16 +224,24 @@ namespace RentAFriendApp.ViewModels.Client
             return Task.CompletedTask;
         }
 
-        private async Task ProcessPaymentAsync(int bookingId)
+        private Task ProcessPaymentAsync(int bookingId)
         {
-            try
+            var booking = _allBookings.FirstOrDefault(b => b.BookingID == bookingId);
+            if (booking == null) return Task.CompletedTask;
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                IsBusy = true;
-                await BookingContext.PayBooking(_token, bookingId);
-                await LoadAllBookingsAsync();
-            }
-            catch (Exception ex) { SetError(ex.Message); }
-            finally { IsBusy = false; }
+                MainWindow.Instanse?.MainFrame.Navigate(new PaymentPage(
+                    _token,
+                    booking.BookingID,
+                    booking.FriendName,
+                    booking.Date,
+                    booking.StartTime,
+                    booking.EndTime,
+                    booking.TotalAmount));
+            });
+
+            return Task.CompletedTask;
         }
         #endregion
     }

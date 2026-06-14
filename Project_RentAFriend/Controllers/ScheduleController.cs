@@ -179,11 +179,11 @@ namespace Project_RentAFriend.Controllers
 
                 return Ok(new
                 {
-                    message = "Слот успешно создан",
-                    schedule = new
+                    Message = "Слот успешно создан",
+                    newSlot.Date,
+                    Slot = new
                     {
                         newSlot.ScheduleID,
-                        newSlot.Date,
                         newSlot.StartTime,
                         newSlot.EndTime,
                         newSlot.IsAvailable

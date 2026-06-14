@@ -333,8 +333,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
                       CanContentScroll="True">
-            <Grid Margin="20"
-                  Style="{StaticResource FadeInAnimation}">
+            <Grid Margin="20">
                 <!-- Заголовок и навигация -->
                 <Grid>
                     <Grid.RowDefinitions>
@@ -445,8 +444,8 @@
                                             <!-- Рейтинг -->
                                             <Path Data="{StaticResource StarIcon}"
                                                   Fill="#FFC107"
-                                                  Width="16"
-                                                  Height="16"
+                                                  Width="23"
+                                                  Height="22"
                                                   VerticalAlignment="Center"/>
                                             <TextBlock x:Name="RatingText"
                                                        Text="0.0"

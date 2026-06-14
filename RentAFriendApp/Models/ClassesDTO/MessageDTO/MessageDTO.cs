@@ -13,6 +13,7 @@
         public bool IsEdited { get; set; }
 
         private static int _currentUserId;
+        public static int CurrentUserId => _currentUserId;
         public static void SetCurrentUserId(int userId) => _currentUserId = userId;
 
         // Исходящее ли сообщение

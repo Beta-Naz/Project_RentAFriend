@@ -10,6 +10,6 @@
         public bool IsRead { get; set; }
         public string MessageType { get; set; } = "Text";
 
-        public DateTime CreatedAt;
+        public DateTime CreatedAt { get; set; }
     }
 }
