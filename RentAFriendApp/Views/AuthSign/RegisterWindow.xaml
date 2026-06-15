@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:RentAFriendApp.Converters"
         mc:Ignorable="d"
         Title="RentAFriend - Регистрация" 
         Height="650" 
@@ -11,7 +12,7 @@
         Background="#F8F9FA">
 
     <Window.Resources>
-        <!-- Переиспользуем стили из LoginWindow -->
+        <converters:BooleanToVisibilityConverter  x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="ModernTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#333333"/>
@@ -121,7 +122,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Изменено на ToggleButton для поддержки IsChecked -->
         <Style x:Key="RoleCardButton" TargetType="ToggleButton">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#333333"/>
@@ -526,37 +526,37 @@
                                     </CheckBox>
 
                                     <!-- Сообщение об ошибке -->
-                                    <Border Grid.Row="7" 
+                                        <Border Grid.Row="7" 
                                             x:Name="ErrorBorder"
                                             Background="#FFF5F5" 
                                             BorderBrush="#FFCDD2" 
                                             BorderThickness="1"
                                             CornerRadius="8" 
                                             Padding="12"
-                                            Visibility="Collapsed"
-                                            Margin="0,0,0,20">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition/>
-                                            </Grid.ColumnDefinitions>
-                                            <Path Data="{StaticResource AlertIcon}" 
-                                                  Fill="#D32F2F" 
-                                                  Width="20" 
-                                                  Height="20"
-                                                  Margin="0,0,8,0"
-                                                  Stretch="Uniform"/>
-                                            <TextBlock Grid.Column="1" 
-                                                       x:Name="ErrorText" 
-                                                       Text="Пароли не совпадают" 
-                                                       Foreground="#D32F2F"
-                                                       FontSize="13"
-                                                       VerticalAlignment="Center"
-                                                       TextWrapping="Wrap"/>
-                                        </Grid>
-                                    </Border>
+                                            Margin="0,0,0,20"
+                                            Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <Path Data="{StaticResource AlertIcon}" 
+                                                    Fill="#D32F2F" 
+                                                    Width="20" 
+                                                    Height="20"
+                                                    Margin="0,0,8,0"
+                                                    Stretch="Uniform"/>
+                                                <TextBlock Grid.Column="1" 
+                                                    x:Name="ErrorText" 
+                                                    Text="{Binding ErrorMessage}" 
+                                                    Foreground="#D32F2F"
+                                                    FontSize="13"
+                                                    VerticalAlignment="Center"
+                                                    TextWrapping="Wrap"/>
+                                            </Grid>
+                                        </Border>
 
-                                    <!-- Кнопка регистрации -->
+                                        <!-- Кнопка регистрации -->
                                     <Button Grid.Row="8" 
                                             x:Name="RegisterButton"
                                             Click="RegisterButton_Click"

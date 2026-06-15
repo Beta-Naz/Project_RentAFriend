@@ -197,7 +197,7 @@ namespace Project_RentAFriend.Controllers
                 }
 
                 bool result = await _dbManager.Users.AnyAsync(u => u.Email == email);
-                return Ok(new { result, ok = true });
+                return Ok(new { ok = result });
             }
             catch (Exception ex)
             {

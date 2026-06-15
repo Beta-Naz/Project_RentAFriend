@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using RentAFriendApp.ViewModels.AuthSign;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -8,14 +9,15 @@ namespace RentAFriendApp.Views.AuthSign
 {
     public partial class RegisterWindow : Window
     {
+        private RegisterViewModel? _viewModel;
         public RegisterWindow()
         {
             InitializeComponent();
 
             // Установка DataContext
-            var registerViewModel = new ViewModels.AuthSign.RegisterViewModel(ShowLoginWindow, OnRegistrationSuccess);
-
-            DataContext = registerViewModel;
+            var registerViewModel = new RegisterViewModel(ShowLoginWindow, OnRegistrationSuccess);
+            _viewModel = registerViewModel;
+            DataContext = _viewModel;
 
             // Привязка PasswordBox к ViewModel
             PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
@@ -26,6 +28,7 @@ namespace RentAFriendApp.Views.AuthSign
 
             // Фокус на выборе роли при загрузке
             Loaded += (s, e) => ClientRoleButton.Focus();
+            
         }
 
         private void ShowLoginWindow()
@@ -38,7 +41,6 @@ namespace RentAFriendApp.Views.AuthSign
 
         private void OnRegistrationSuccess()
         {
-            // Успешная регистрация - открываем окно входа
             var loginWindow = new LoginWindow();
             loginWindow.Show();
 
@@ -56,8 +58,6 @@ namespace RentAFriendApp.Views.AuthSign
             if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
             {
                 viewModel.Password = PasswordBox.Password;
-
-                // Валидация пароля в реальном времени
                 ValidatePasswordStrength(PasswordBox.Password);
             }
         }
@@ -118,13 +118,12 @@ namespace RentAFriendApp.Views.AuthSign
         {
             if (sender is ToggleButton button && button.IsChecked == false)
             {
-                // Если обе кнопки не выбраны, скрываем информацию
                 if (ClientRoleButton.IsChecked == false && FriendRoleButton.IsChecked == false)
                 {
                     RoleInfoBorder.Visibility = Visibility.Collapsed;
                     ContinueButton.IsEnabled = false;
 
-                    if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
+                    if (DataContext is RegisterViewModel viewModel)
                     {
                         viewModel.SelectedRole = null;
                     }
@@ -134,7 +133,7 @@ namespace RentAFriendApp.Views.AuthSign
 
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
+            if (DataContext is RegisterViewModel viewModel)
             {
                 viewModel.ContinueToStep2Command.Execute(null);
 
@@ -213,12 +212,14 @@ namespace RentAFriendApp.Views.AuthSign
             if (DataContext is ViewModels.AuthSign.RegisterViewModel viewModel)
             {
                 ValidateEmail(EmailTextBox.Text);
+                _viewModel?.CanRegister();
             }
         }
 
         private void PhoneTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ValidatePhone(PhoneTextBox.Text);
+            _viewModel?.CanRegister();
         }
 
         // Автоматическое форматирование телефона
@@ -376,10 +377,12 @@ namespace RentAFriendApp.Views.AuthSign
                     case 1:
                         color = System.Windows.Media.Colors.Red;
                         tooltip = "Очень слабый пароль";
+                        _viewModel.SetError("Очень слабый пароль");
                         break;
                     case 2:
                         color = System.Windows.Media.Colors.Orange;
                         tooltip = "Слабый пароль";
+                        _viewModel?.CanRegister();
                         break;
                     case 3:
                         color = System.Windows.Media.Colors.Yellow;
@@ -403,7 +406,6 @@ namespace RentAFriendApp.Views.AuthSign
             PasswordBox.BorderBrush = new System.Windows.Media.SolidColorBrush(color);
             PasswordBox.ToolTip = tooltip;
 
-            // Показываем индикатор силы пароля
             ShowPasswordStrengthIndicator(strength);
         }
 
@@ -463,21 +465,17 @@ namespace RentAFriendApp.Views.AuthSign
             }
 
             bool passwordsMatch = PasswordBox.Password == ConfirmPasswordBox.Password;
-
+            _viewModel?.CanRegister();
             if (!passwordsMatch)
             {
                 ConfirmPasswordBox.BorderBrush = new System.Windows.Media.SolidColorBrush(
                     System.Windows.Media.Colors.Red);
                 ConfirmPasswordBox.ToolTip = "Пароли не совпадают";
-
-                // Показываем сообщение об ошибке
-                ShowErrorMessage("Пароли не совпадают");
             }
             else
             {
                 ConfirmPasswordBox.ClearValue(PasswordBox.BorderBrushProperty);
                 ConfirmPasswordBox.ToolTip = "Пароли совпадают";
-                HideErrorMessage();
             }
         }
 
@@ -494,25 +492,6 @@ namespace RentAFriendApp.Views.AuthSign
                 RoleDescription.Text = "Как друг вы сможете предлагать свои услуги компаньона, " +
                                       "устанавливать расписание, назначать цены и получать заказы.";
             }
-        }
-
-        // Показать сообщение об ошибке
-        private void ShowErrorMessage(string message)
-        {
-            ErrorText.Text = message;
-            ErrorBorder.Visibility = Visibility.Visible;
-
-            // Анимация появления
-            ErrorBorder.Opacity = 0;
-            ErrorBorder.BeginAnimation(OpacityProperty,
-                new System.Windows.Media.Animation.DoubleAnimation(1,
-                    TimeSpan.FromSeconds(0.3)));
-        }
-
-        // Скрыть сообщение об ошибке
-        private void HideErrorMessage()
-        {
-            ErrorBorder.Visibility = Visibility.Collapsed;
         }
 
         // Конвертер для валидации email (дополнительный класс)

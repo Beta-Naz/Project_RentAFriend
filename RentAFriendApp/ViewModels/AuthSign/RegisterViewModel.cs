@@ -66,7 +66,11 @@ namespace RentAFriendApp.ViewModels.AuthSign
         public bool AgreeToTerms
         {
             get => _agreeToTerms;
-            set => SetProperty(ref _agreeToTerms, value);
+            set
+            {
+                SetProperty(ref _agreeToTerms, value);
+                CanRegister();
+            }
         }
 
         private int _currentStep = 1;
@@ -139,15 +143,47 @@ namespace RentAFriendApp.ViewModels.AuthSign
             return Task.CompletedTask;
         }
 
-        private bool CanRegister()
+        public bool CanRegister()
         {
-            return CurrentStep == 2 &&
-                   !IsBusy &&
-                   !string.IsNullOrWhiteSpace(FullName) &&
-                   !string.IsNullOrWhiteSpace(Email) &&
-                   !string.IsNullOrWhiteSpace(Password) &&
-                   !string.IsNullOrWhiteSpace(ConfirmPassword) &&
-                   AgreeToTerms;
+            ClearErrors();
+            bool canRegister = false;
+            if(CurrentStep != 2)
+            {
+                SetError("Как?");
+            }
+            else if (string.IsNullOrWhiteSpace(FullName))
+            {
+                SetError("Полное имя не должно быть пустым");
+            }
+            else if (string.IsNullOrWhiteSpace(Email))
+            {
+                SetError("Почта не может быть пустой");
+            }
+            if (!IsValidEmail(Email.Trim()))
+            {
+                SetError("Формат почты неправильный");
+            }
+            else if (string.IsNullOrWhiteSpace(Password))
+            {
+                SetError("Пароль не может быть пустым");
+            }
+            else if (Password != ConfirmPassword)
+            {
+                SetError("Пароли не совпадают");
+            }
+            else if (!AgreeToTerms)
+            {
+                SetError("Необходимо согласиться с условиями использования");
+            }
+            else if (IsBusy) 
+            {
+                SetError("Попробуйте через несколько секунд");
+            }
+            else
+            {
+                canRegister = true;
+            }
+                return canRegister;
         }
 
         private async Task RegisterAsync()
@@ -156,23 +192,6 @@ namespace RentAFriendApp.ViewModels.AuthSign
             {
                 IsBusy = true;
                 ClearErrors();
-                if (Password != ConfirmPassword)
-                {
-                    SetError("Пароли не совпадают");
-                    return;
-                }
-
-                if (!AgreeToTerms)
-                {
-                    SetError("Необходимо согласиться с условиями использования");
-                    return;
-                }
-
-                if (!IsValidEmail(Email.Trim()))
-                {
-                    SetError("Формат почты неправильный");
-                    return;
-                }
                 bool isExistEmail = await UserContext.ExistsEmail(Email.Trim());
                 if (isExistEmail)
                 {
