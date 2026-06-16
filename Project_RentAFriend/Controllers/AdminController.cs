@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project_RentAFriend.Classes;
-using Project_RentAFriend.Models;
+using Project_RentAFriend.Context;
 
 namespace Project_RentAFriend.Controllers
 {

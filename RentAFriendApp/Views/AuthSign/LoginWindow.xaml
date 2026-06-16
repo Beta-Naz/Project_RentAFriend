@@ -12,7 +12,6 @@
         Keyboard.KeyDown="Window_KeyDown">
 
     <Window.Resources>
-        <!-- Современные стили для WPF без Material Design -->
         <Style x:Key="ModernTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#333333"/>

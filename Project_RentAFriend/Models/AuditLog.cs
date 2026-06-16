@@ -38,9 +38,6 @@ namespace Project_RentAFriend.Models
             UserAgent = userAgent;
             LoggedAt = loggedAt;
         }
-        public AuditLog()
-        {
-
-        }
+        public AuditLog(){}
     }
 }
