@@ -4,12 +4,13 @@ using System.Net;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.ScheduleDTO;
 using RentAFriendApp.Models.ClassesDTO.ScheduleDTO.Response;
+using RentAFriendApp.Classes;
 
 namespace RentAFriendApp.Context
 {
     class ScheduleContext
     {
-        private static readonly string _url = "https://localhost:7091/schedule";
+        private static readonly string _url = Config.URL +  "schedule";
 
         /// <summary>
         /// Получить расписание на конкретную дату

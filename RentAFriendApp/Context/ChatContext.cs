@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using RentAFriendApp.Models.ClassesDTO.ChatDTO.Response;
 using System.Net;
 using System.Net.Http;
@@ -7,7 +8,7 @@ namespace RentAFriendApp.Context
 {
     class ChatContext
     {
-        private static readonly string _url = "https://localhost:7091/chat";
+        private static readonly string _url = Config.URL + "chat";
 
         /// <summary>
         /// Получить или создать чат с другом

@@ -1,16 +1,16 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.UserDTO;
 using RentAFriendApp.Models.ClassesDTO.UserDTO.Response;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 
 namespace RentAFriendApp.Context
 {
     class UserContext
     {
-        private static readonly string _url = "https://localhost:7091/user";
+        private static readonly string _url = Config.URL + "user";
         public static async Task<Auth?> Login(string email , string password)
         {
             using HttpClient client = new();

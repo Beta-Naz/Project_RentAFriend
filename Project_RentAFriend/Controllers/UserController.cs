@@ -195,7 +195,6 @@ namespace Project_RentAFriend.Controllers
                 {
                     return StatusCode(500, new { message = "Ошибка базы данных", ok = false });
                 }
-
                 bool result = await _dbManager.Users.AnyAsync(u => u.Email == email);
                 return Ok(new { ok = result });
             }

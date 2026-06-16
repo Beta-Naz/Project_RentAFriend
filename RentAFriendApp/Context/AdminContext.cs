@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using System.Net;
 using System.Net.Http;
 
@@ -6,7 +7,7 @@ namespace RentAFriendApp.Context
 {
     class AdminContext
     {
-        private static readonly string _url = "https://localhost:7091/admin";
+        private static readonly string _url = Config.URL + "admin";
 
         // Получить статистику
         public static async Task<AdminStatsDTO?> GetStatistics(string token)

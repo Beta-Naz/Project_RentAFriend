@@ -1,6 +1,8 @@
 ﻿using RentAFriendApp.Models;
 using System;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 
@@ -38,7 +40,25 @@ namespace RentAFriendApp.Views.AuthSign
 
             this.BeginAnimation(OpacityProperty, anim);
         }
+        private bool ValidateEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return false;
 
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-z]+\.[a-z]{2,10}$";
+
+            bool isValid = Regex.IsMatch(email, pattern);
+            if (!isValid)
+            {
+                EmailTextBox.BorderBrush = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Colors.Red);
+            }
+            else
+            {
+                EmailTextBox.ClearValue(TextBox.BorderBrushProperty);
+            }
+
+            return isValid;
+        }
         private void OnLoginSuccess(Auth authData)
         {
             if (_isClosing || !IsLoaded)
@@ -129,6 +149,14 @@ namespace RentAFriendApp.Views.AuthSign
                 CloseWithAnimation();
             }
             base.OnClosing(e);
+        }
+
+        private void EmailTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (DataContext is ViewModels.AuthSign.LoginViewModel viewModel)
+            {
+                ValidateEmail(viewModel.Email);
+            }
         }
     }
 }

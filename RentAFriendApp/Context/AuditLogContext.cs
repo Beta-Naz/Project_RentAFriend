@@ -3,12 +3,13 @@ using System.Net.Http;
 using System.Net;
 using RentAFriendApp.Models.ClassesDTO.AuditLogDTO;
 using RentAFriendApp.Models.ClassesDTO.AuditLogDTO.Response;
+using RentAFriendApp.Classes;
 
 namespace RentAFriendApp.Context
 {
     class AuditLogContext
     {
-        private static readonly string _url = "https://localhost:7091/audit";
+        private static readonly string _url = Config.URL +  "audit";
 
         /// <summary>
         /// Получить все логи (только для администратора)

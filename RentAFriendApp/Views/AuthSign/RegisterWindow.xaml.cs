@@ -294,7 +294,7 @@ namespace RentAFriendApp.Views.AuthSign
         private bool ValidateEmail(string email)
         {            if (string.IsNullOrWhiteSpace(email)) return false;
 
-            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$";
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-z]+\.[a-z]{2,10}$";
 
             bool isValid = Regex.IsMatch(email, pattern);
             if (!isValid)

@@ -8,7 +8,7 @@ namespace Project_RentAFriend.Classes
             "server=localhost;" +
             "database=rentafrienddb;" +
             "uid=root;" +
-            "pwd=1234;";
+            "pwd=;";
         public static readonly MySqlServerVersion CurrentVersion = new(new Version(8, 0, 11));
     }
 }

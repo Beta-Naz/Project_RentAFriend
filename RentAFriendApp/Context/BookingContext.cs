@@ -4,12 +4,13 @@ using System.Net;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO;
 using RentAFriendApp.Models.ClassesDTO.BookingDTO.Response;
+using RentAFriendApp.Classes;
 
 namespace RentAFriendApp.Context
 {
     class BookingContext
     {
-        private static readonly string _url = "https://localhost:7091/booking";
+        private static readonly string _url = Config.URL + "booking";
 
         /// <summary>
         /// Создать новое бронирование

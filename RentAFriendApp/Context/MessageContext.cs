@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using RentAFriendApp.Models.ClassesDTO.MessageDTO;
 using RentAFriendApp.Models.ClassesDTO.MessageDTO.Response;
 using System.Net;
@@ -8,7 +9,7 @@ namespace RentAFriendApp.Context
 {
     class MessageContext
     {
-        private static readonly string _url = "https://localhost:7091/message";
+        private static readonly string _url = Config.URL + "message";
 
         /// <summary>
         /// Получить сообщения чата

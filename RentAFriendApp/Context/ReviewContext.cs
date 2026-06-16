@@ -3,13 +3,14 @@ using RentAFriendApp.Models.ClassesDTO.ReviewDTO.Response;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
+using RentAFriendApp.Classes;
 
 
 namespace RentAFriendApp.Context
 {
     class ReviewContext
     {
-        private static readonly string _url = "https://localhost:7091/review";
+        private static readonly string _url = Config.URL +  "review";
 
         /// <summary>
         /// Создать отзыв на бронирование (только клиент)

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using RentAFriendApp.Models.ClassesDTO.NotificationDTO;
 using RentAFriendApp.Models.ClassesDTO.NotificationDTO.Response;
 using System.Net;
@@ -8,7 +9,7 @@ namespace RentAFriendApp.Context
 {
     class NotificationContext
     {
-        private static readonly string _url = "https://localhost:7091/notification";
+        private static readonly string _url = Config.URL +  "notification";
 
         /// <summary>
         /// Получить все уведомления пользователя

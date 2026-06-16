@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RentAFriendApp.Classes;
 using RentAFriendApp.Models;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
@@ -10,7 +11,7 @@ namespace RentAFriendApp.Context
 {
     class FriendProfileContext
     {
-        private static readonly string _url = "https://localhost:7091/friend";
+        private static readonly string _url = Config.URL + "friend";
 
         /// <summary>
         /// Создать профиль друга
