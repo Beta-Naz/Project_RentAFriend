@@ -12,7 +12,6 @@ namespace RentAFriendApp.ViewModels.Client
         private readonly string _token;
         private FPInfoDTO _selectedFriend;
 
-        // Данные для бронирования
         private DateTime _selectedDate = DateTime.Today;
         public DateTime SelectedDate
         {
@@ -75,7 +74,6 @@ namespace RentAFriendApp.ViewModels.Client
             set => SetProperty(ref _specialRequests, value);
         }
 
-        // Вычисляемые свойства
         private TimeSpan _duration;
         public TimeSpan Duration
         {

@@ -130,7 +130,7 @@
                     HorizontalOffset="-230" 
                     VerticalOffset="60"
                     Height="Auto"
-                    StaysOpen="False"
+                    StaysOpen="false"
                     AllowsTransparency="True">
                     <Border Background="White" CornerRadius="12" Width="220"
                         BorderBrush="#E0E0E0" BorderThickness="1">
@@ -138,12 +138,6 @@
                             <DropShadowEffect ShadowDepth="4" BlurRadius="16" Opacity="0.12"/>
                         </Border.Effect>
                         <StackPanel Margin="4">
-                            <Button x:Name="BtnMenuNotifications" 
-                            Content="🔔  Уведомления" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Height="44"
-                            FontSize="14"
-                            Click="BtnMenuNotifications_Click"/>
                             <Border Height="1" Background="#F0F0F0" Margin="8,4"/>
                             <Button Height="44"
                                 Style="{StaticResource NavButtonStyle}"
@@ -166,7 +160,7 @@
                         PlacementTarget="{Binding ElementName=MainGrid}"
                         Placement="Right"
                         HorizontalOffset="-390" VerticalOffset="60"
-                        StaysOpen="False"
+                        StaysOpen="false"
                         AllowsTransparency="True"
                         Width="380"/>
             </Grid>

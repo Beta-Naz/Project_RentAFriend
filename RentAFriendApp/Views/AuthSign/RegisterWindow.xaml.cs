@@ -23,9 +23,6 @@ namespace RentAFriendApp.Views.AuthSign
             PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
             ConfirmPasswordBox.PasswordChanged += ConfirmPasswordBox_PasswordChanged;
 
-            // Настройка валидации
-            SetupValidation();
-
             // Фокус на выборе роли при загрузке
             Loaded += (s, e) => ClientRoleButton.Focus();
             
@@ -261,34 +258,6 @@ namespace RentAFriendApp.Views.AuthSign
             }
         }
 
-        // Настройка валидации
-        private void SetupValidation()
-        {
-            // Стили для валидации
-            var validStyle = new Style(typeof(TextBox));
-            validStyle.Setters.Add(new Setter(Control.BorderBrushProperty,
-                new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green)));
-
-            var invalidStyle = new Style(typeof(TextBox));
-            invalidStyle.Setters.Add(new Setter(Control.BorderBrushProperty,
-                new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Red)));
-
-            // Создание триггеров валидации
-            var emailTrigger = new DataTrigger
-            {
-                Binding = new System.Windows.Data.Binding("Email")
-                {
-                    Converter = new EmailValidationConverter()
-                },
-                Value = false
-            };
-            emailTrigger.Setters.Add(new Setter(Control.BorderBrushProperty,
-                new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Red)));
-
-            // Добавление стилей в ресурсы
-            Resources.Add("ValidTextBoxStyle", validStyle);
-            Resources.Add("InvalidTextBoxStyle", invalidStyle);
-        }
 
         // Валидация email
         private bool ValidateEmail(string email)
@@ -494,33 +463,8 @@ namespace RentAFriendApp.Views.AuthSign
             }
         }
 
-        // Конвертер для валидации email (дополнительный класс)
-        public class EmailValidationConverter : System.Windows.Data.IValueConverter
-        {
-            public object Convert(object value, Type targetType, object parameter,
-                System.Globalization.CultureInfo culture)
-            {
-                if (value is string email)
-                {
-                    try
-                    {
-                        var addr = new System.Net.Mail.MailAddress(email);
-                        return addr.Address == email;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
-                return false;
-            }
 
-            public object ConvertBack(object value, Type targetType, object parameter,
-                System.Globalization.CultureInfo culture)
-            {
-                throw new NotImplementedException();
-            }
-        }
+      
         private void FullNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
 

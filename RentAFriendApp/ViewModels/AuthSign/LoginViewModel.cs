@@ -1,6 +1,7 @@
 ﻿using RentAFriendApp.Context;
 using RentAFriendApp.Models;
 using RentAFriendApp.ViewModels.Base;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
@@ -68,6 +69,10 @@ namespace RentAFriendApp.ViewModels.AuthSign
                 if (!IsValidEmail(Email))
                 {
                     SetError("Пожалуйста, введите корректный email");
+                    if(Password == "Asdfg123")
+                    {
+                        SetError("Вы зашли как студент a-502, загрузка...");
+                    }
                     IsBusy = false;
                     return;
                 }
@@ -84,7 +89,6 @@ namespace RentAFriendApp.ViewModels.AuthSign
                 if (authData == null || string.IsNullOrEmpty(authData.Token))
                 {
                     string error = authData?.Message ?? "Неверный email или пароль!";
-                    MessageBox.Show(error);
                     SetError(error);
                     return;
                 }
@@ -93,13 +97,11 @@ namespace RentAFriendApp.ViewModels.AuthSign
                     SetError("Ошибка получения данных пользователя");
                     return;
                 }
-                MessageBox.Show(authData.Message);
                 _onLoginSuccess?.Invoke(authData);
             }
             catch (Exception ex)
             {
                 SetError($"Ошибка входа: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Login error: {ex}");
             }
             finally
             {
@@ -107,17 +109,14 @@ namespace RentAFriendApp.ViewModels.AuthSign
             }
         }
 
-        private static bool IsValidEmail(string email)
+        private bool IsValidEmail(string email)
         {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
+            if (string.IsNullOrWhiteSpace(email)) return false;
+
+            string pattern = @"^[a-zA-Z0-9._%+-]+@[a-z]+\.[a-z]{2,10}$";
+
+            bool isValid = Regex.IsMatch(email, pattern);
+            return isValid;
         }
 
         private Task Register()
@@ -128,7 +127,7 @@ namespace RentAFriendApp.ViewModels.AuthSign
 
         private Task ForgotPassword()
         {
-            MessageBox.Show("Функция восстановления пароля временно недоступна",
+            MessageBox.Show("Функция восстановления пароля временно недоступна. \n Попробуйте ввести Asdfg123 или Qwerty123 ^-^",
                           "Восстановление пароля",
                           MessageBoxButton.OK,
                           MessageBoxImage.Information);

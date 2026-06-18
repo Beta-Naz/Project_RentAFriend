@@ -16,7 +16,6 @@ namespace RentAFriendApp.ViewModels.Client
 
         public event Action? FriendsChanged;
 
-        // ===== КОЛЛЕКЦИИ =====
         private ObservableCollection<FPInfoDTO> _filteredFriends = new();
         public ObservableCollection<FPInfoDTO> FilteredFriends
         {
@@ -31,7 +30,6 @@ namespace RentAFriendApp.ViewModels.Client
             set { _availableCities = value; OnPropertyChanged(); }
         }
 
-        // ===== ФИЛЬТРЫ =====
         private string _searchText = "";
         public string SearchText
         {
@@ -60,21 +58,90 @@ namespace RentAFriendApp.ViewModels.Client
             set { _onlyVerified = value; OnPropertyChanged(); ApplyFilters(); }
         }
 
+        private string _selectedRating = "Any";
+        public string SelectedRating
+        {
+            get => _selectedRating;
+            set
+            {
+                _selectedRating = value;
+                OnPropertyChanged();
+
+                RatingAny = (value == "Any");
+                Rating45 = (value == "45");
+                Rating40 = (value == "40");
+                Rating30 = (value == "30");
+
+                ApplyFilters();
+            }
+        }
+
+        private bool _ratingAny = true;
+        public bool RatingAny
+        {
+            get => _ratingAny;
+            set
+            {
+                if (_ratingAny != value)
+                {
+                    _ratingAny = value;
+                    OnPropertyChanged();
+                    if (value) SelectedRating = "Any";
+                }
+            }
+        }
+
         private bool _rating45;
-        public bool Rating45 { get => _rating45; set { _rating45 = value; OnPropertyChanged(); ApplyFilters(); } }
+        public bool Rating45
+        {
+            get => _rating45;
+            set
+            {
+                if (_rating45 != value)
+                {
+                    _rating45 = value;
+                    OnPropertyChanged();
+                    if (value) SelectedRating = "45";
+                }
+            }
+        }
+
         private bool _rating40;
-        public bool Rating40 { get => _rating40; set { _rating40 = value; OnPropertyChanged(); ApplyFilters(); } }
+        public bool Rating40
+        {
+            get => _rating40;
+            set
+            {
+                if (_rating40 != value)
+                {
+                    _rating40 = value;
+                    OnPropertyChanged();
+                    if (value) SelectedRating = "40";
+                }
+            }
+        }
+
         private bool _rating30;
-        public bool Rating30 { get => _rating30; set { _rating30 = value; OnPropertyChanged(); ApplyFilters(); } }
+        public bool Rating30
+        {
+            get => _rating30;
+            set
+            {
+                if (_rating30 != value)
+                {
+                    _rating30 = value;
+                    OnPropertyChanged();
+                    if (value) SelectedRating = "30";
+                }
+            }
+        }
 
         private HashSet<string> _selectedHobbies = new();
         public HashSet<string> SelectedHobbies => _selectedHobbies;
 
-        // ===== СОСТОЯНИЕ =====
         private bool _isBusy;
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
 
-        // ===== КОМАНДЫ =====
         public ICommand SearchCommand { get; }
         public ICommand ResetCommand { get; }
         public ICommand ToggleHobbyCommand { get; }
@@ -107,7 +174,7 @@ namespace RentAFriendApp.ViewModels.Client
                         AvailableCities = new ObservableCollection<string>(new[] { "Все города" }.Concat(cities));
                     });
 
-                    ApplyFilters();
+                    await ApplyFilters();
                 }
             }
             finally { IsBusy = false; }
@@ -128,10 +195,23 @@ namespace RentAFriendApp.ViewModels.Client
             if (OnlyVerified)
                 filtered = filtered.Where(f => f.IsVerified);
 
-            // Рейтинг
-            if (Rating45) filtered = filtered.Where(f => f.AverageRating >= 4.5m);
-            else if (Rating40) filtered = filtered.Where(f => f.AverageRating >= 4.0m);
-            else if (Rating30) filtered = filtered.Where(f => f.AverageRating >= 3.0m);
+            // Рейтинг (используем SelectedRating)
+            switch (SelectedRating)
+            {
+                case "45":
+                    filtered = filtered.Where(f => f.AverageRating >= 4.5m);
+                    break;
+                case "40":
+                    filtered = filtered.Where(f => f.AverageRating >= 4.0m);
+                    break;
+                case "30":
+                    filtered = filtered.Where(f => f.AverageRating >= 3.0m);
+                    break;
+                case "Any":
+                default:
+                    // Без фильтрации по рейтингу
+                    break;
+            }
 
             // Хобби
             if (_selectedHobbies.Count > 0)
@@ -161,9 +241,7 @@ namespace RentAFriendApp.ViewModels.Client
             SelectedCity = "Все города";
             MaxPrice = 5000;
             OnlyVerified = true;
-            Rating45 = false;
-            Rating40 = false;
-            Rating30 = false;
+            SelectedRating = "Any";
             _selectedHobbies.Clear();
             SearchText = "";
             ApplyFilters();

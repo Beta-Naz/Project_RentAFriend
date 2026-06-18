@@ -63,13 +63,13 @@ namespace RentAFriendApp.Views.AuthSign
         {
             if (_isClosing || !IsLoaded)
                 return;
-
-            Dispatcher.Invoke(() =>
-            {
-                var mainWindow = new MainWindow(authData);
-                mainWindow.Show();
-                CloseWithAnimation();
-            });
+           Dispatcher.Invoke(() =>
+           {
+               var mainWindow = new MainWindow(authData);
+               mainWindow.Show();
+               CloseWithAnimation();
+           });
+           
         }
 
         private void ShowRegisterWindow()

@@ -14,7 +14,28 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
-
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="20" Padding="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F0F0F0"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- Стиль карточки -->
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
@@ -76,6 +97,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Geometry x:Key="ArrowBackIcon">M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z</Geometry>
     </Page.Resources>
 
     <Grid Margin="20">
@@ -96,7 +118,11 @@
                 <!-- Заголовок -->
                 <Border Padding="20,18" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1">
                     <Grid>
-                        <TextBlock Text="💬 Сообщения" FontSize="18" FontWeight="SemiBold" Foreground="#333333" VerticalAlignment="Center"/>
+                        <Button x:Name="BackButton" Style="{StaticResource IconButtonStyle}"
+                            Height="40" Width="40" Click="BackButton_Click" HorizontalAlignment="Left">
+                            <Path Data="{StaticResource ArrowBackIcon}" Fill="#666666" Width="24" Height="24"/>
+                        </Button>
+                        <TextBlock Text="💬 Сообщения" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#333333" VerticalAlignment="Center"/>
                         <Button HorizontalAlignment="Right" Style="{StaticResource IconButton}"
                                 Command="{Binding RefreshCommand}" ToolTip="Обновить">
                             <TextBlock Text="🔄" FontSize="18"/>

@@ -1,16 +1,12 @@
 ﻿using RentAFriendApp.Classes;
 using RentAFriendApp.Context;
 using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO;
-using RentAFriendApp.Models.ClassesDTO.FriendProfileDTO.Response;
 using RentAFriendApp.Models.ClassesDTO.UserDTO;
 using RentAFriendApp.ViewModels.Base;
-using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace RentAFriendApp.ViewModels.Friend
@@ -289,7 +285,7 @@ namespace RentAFriendApp.ViewModels.Friend
 
         public string CityValidation => string.IsNullOrWhiteSpace(City) ? "⚠ Обязательное поле" :
                                        City.Length < 2 ? "⚠ Минимум 2 символа" : "✓";
-        public string AgeValidation => Age.HasValue && (Age < 18 || Age > 100) ? "⚠ От 18 до 100 лет" : "✓";
+        public string AgeValidation => Age.HasValue ? (Age < 18 || Age > 100) ? "⚠ От 18 до 100 лет" : "✓" : "⚠ Обязательное поле";
         public string HourlyRateValidation => ValidationHelper.HourlyRateTextValidation(HourlyRateText, HourlyRate);
         public string ChangesCountDisplay => GetChangesCount() > 0 ? $"{GetChangesCount()} изменений" : "Нет изменений";
         public string HobbiesValidation => HobbiesList.Count > 20 ? "⚠ Максимум 20 хобби" : "✓";

@@ -167,6 +167,10 @@ namespace RentAFriendApp.ViewModels.AuthSign
             {
                 SetError("Пароль не может быть пустым");
             }
+            else if (Password.Length < 8)
+            {
+                SetError("Длина пароля должна быть больше 8 символов");
+            }
             else if (Password != ConfirmPassword)
             {
                 SetError("Пароли не совпадают");
@@ -183,7 +187,7 @@ namespace RentAFriendApp.ViewModels.AuthSign
             {
                 canRegister = true;
             }
-                return canRegister;
+            return canRegister;
         }
 
         private async Task RegisterAsync()

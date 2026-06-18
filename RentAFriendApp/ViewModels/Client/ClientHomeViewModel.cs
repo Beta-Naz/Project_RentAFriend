@@ -279,7 +279,7 @@ namespace RentAFriendApp.ViewModels.Client
             var top = profiles.Profiles
                 .Where(p => p != null)
                 .OrderByDescending(p => p.AverageRating)
-                .Take(10)
+                .Take(3)
                 .ToList();
 
             Application.Current.Dispatcher.Invoke(() =>

@@ -59,8 +59,9 @@ namespace Project_RentAFriend.Controllers
                 };
 
                 _dbManager.FriendProfiles.Add(newFriendProfile);
-                var createLog = new AuditLog(userId, "CREATE_FRIEND_PROFILE", "FriendProfiles", newFriendProfile.ProfileID, null, $"Создан профиль друга: City={infoDTO.City}, Age={infoDTO.Age}, HourlyRate={infoDTO.HourlyRate}",
-    HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
+                var createLog = new AuditLog(userId, "CREATE_FRIEND_PROFILE", "FriendProfiles", newFriendProfile.ProfileID, null, 
+                    $"Создан профиль друга: City={infoDTO.City}, Age={infoDTO.Age}, HourlyRate={infoDTO.HourlyRate}",
+                HttpContext.Connection.RemoteIpAddress?.ToString(), Request.Headers.UserAgent.ToString(), DateTime.UtcNow);
                 _dbManager.AuditLogs.Add(createLog);
                 await _dbManager.SaveChangesAsync();
 

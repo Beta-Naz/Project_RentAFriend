@@ -16,13 +16,12 @@ namespace RentAFriendApp
         {
             InitializeComponent();
             Instanse = this;
-            _currentData = authData; // ← сначала присваиваем!
+            _currentData = authData;
 
-            // Теперь создаём панель уведомлений
             var notifPanel = new Views.Controls.NotificationPanel(_currentData?.Token ?? "");
             notifPanel.OnCloseRequested += NotificationPanel_CloseRequested;
             notifPanel.OnUnreadCountChanged += NotificationPanel_UnreadCountChanged;
-            _notificationPanelControl = notifPanel; // ← правильное имя поля
+            _notificationPanelControl = notifPanel;
 
             if (authData != null)
             {
@@ -105,26 +104,7 @@ namespace RentAFriendApp
         {
             BurgerMenuPopup.IsOpen = !BurgerMenuPopup.IsOpen;
         }
-
-        // Клик по колокольчику — сразу открывает панель уведомлений
-        private void BtnNotifications_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (NotificationPopup.Child == null && _notificationPanelControl != null)
-            {
-                NotificationPopup.Child = _notificationPanelControl;
-            }
-
-            NotificationPopup.IsOpen = !NotificationPopup.IsOpen;
-            _isNotificationPanelOpen = NotificationPopup.IsOpen;
-
-            if (_isNotificationPanelOpen)
-            {
-                _ = UpdateBadgeAsync();
-            }
-        }
-
-        // Из бургер-меню: "Уведомления"
-        private void BtnMenuNotifications_Click(object sender, RoutedEventArgs e)
+        private void BtnNotifications_Click(object sender, RoutedEventArgs e)
         {
             BurgerMenuPopup.IsOpen = false;
 
@@ -142,7 +122,6 @@ namespace RentAFriendApp
             }
         }
 
-        // Из бургер-меню: "Выйти"
         private void BtnMenuLogout_Click(object sender, RoutedEventArgs e)
         {
             BurgerMenuPopup.IsOpen = false;
@@ -155,7 +134,6 @@ namespace RentAFriendApp
             }
         }
 
-        // Закрытие панели уведомлений
         private void NotificationPanel_CloseRequested()
         {
             NotificationPopup.IsOpen = false;
@@ -163,7 +141,6 @@ namespace RentAFriendApp
             _ = UpdateBadgeAsync();
         }
 
-        // Обновление бейджа с количеством
         private void NotificationPanel_UnreadCountChanged(int count)
         {
             Dispatcher.Invoke(() =>

@@ -11,7 +11,34 @@
 
     <Page.Resources>
         <convertes:InitialsConverter x:Key="InitialsConverter"/>
-
+        <Style x:Key="ChipRadioButton" TargetType="RadioButton">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="#616161"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                        CornerRadius="16" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4CAF50"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- Стиль карточки друга -->
         <Style x:Key="FriendCardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
@@ -206,13 +233,19 @@
                     <Border Style="{StaticResource FilterCardStyle}">
                         <StackPanel>
                             <TextBlock Text="⭐ Рейтинг" FontSize="15" FontWeight="SemiBold" 
-                                       Foreground="#333333" Margin="0,0,0,10"/>
-                            <ToggleButton Content="★★★★★ от 4.5" Style="{StaticResource ChipButton}" 
-                                          Margin="0,0,0,6" IsChecked="{Binding Rating45}"/>
-                            <ToggleButton Content="★★★★☆ от 4.0" Style="{StaticResource ChipButton}" 
-                                          Margin="0,0,0,6" IsChecked="{Binding Rating40}"/>
-                            <ToggleButton Content="★★★☆☆ от 3.0" Style="{StaticResource ChipButton}" 
-                                          IsChecked="{Binding Rating30}"/>
+                   Foreground="#333333" Margin="0,0,0,10"/>
+                            <RadioButton Content="★★★★★ от 4.5" Style="{StaticResource ChipRadioButton}" 
+                      Margin="0,0,0,6" GroupName="Rating"
+                      IsChecked="{Binding Rating45}"/>
+                            <RadioButton Content="★★★★☆ от 4.0" Style="{StaticResource ChipRadioButton}" 
+                      Margin="0,0,0,6" GroupName="Rating"
+                      IsChecked="{Binding Rating40}"/>
+                            <RadioButton Content="★★★☆☆ от 3.0" Style="{StaticResource ChipRadioButton}" 
+                      Margin="0,0,0,6" GroupName="Rating"
+                      IsChecked="{Binding Rating30}"/>
+                            <RadioButton Content="Любой рейтинг" Style="{StaticResource ChipRadioButton}" 
+                      GroupName="Rating"
+                      IsChecked="{Binding RatingAny}"/>
                         </StackPanel>
                     </Border>
 

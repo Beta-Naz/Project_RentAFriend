@@ -56,5 +56,7 @@ namespace RentAFriendApp.Views.Client
         {
             _viewModel.Dispose();
         }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e) => NavigationService?.GoBack();
     }
 }
