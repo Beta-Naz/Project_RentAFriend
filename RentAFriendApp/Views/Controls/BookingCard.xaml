@@ -9,6 +9,7 @@
 
     <UserControl.Resources>
         <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+        <converters:StatusToTextConverter x:Key="StatusToTextConverter"/>
 
         <Style x:Key="BookingCardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
@@ -74,7 +75,7 @@
 
             <!-- Статус -->
             <TextBlock Grid.Column="3"
-                       Text="{Binding Status}"
+                       Text="{Binding Status, Converter={StaticResource StatusToTextConverter}}"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Center"
                        FontSize="13"
