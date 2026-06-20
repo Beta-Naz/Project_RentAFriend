@@ -3,13 +3,16 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:converters="clr-namespace:RentAFriendApp.Converters"
       mc:Ignorable="d" 
-      d:DesignHeight="900" d:DesignWidth="700"
+      d:DesignHeight="1200" d:DesignWidth="700"
       Title="Оставить отзыв"
       Background="#F8F9FA"
       Loaded="Page_Loaded">
 
     <Page.Resources>
+        <converters:BooleanToVisibilityConverter  x:Key="BooleanToVisibilityConverter"/>
+        <Geometry x:Key="AlertIcon">M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16</Geometry>
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="CornerRadius" Value="16"/>
@@ -203,16 +206,17 @@
                             </TextBlock>
                         </Grid>
 
-                        <TextBox x:Name="TitleTextBox"
+                        <TextBox
                             Height="48"
                             Background="#F8F9FA"
+                            TextChanged="TextBox_TextChanged"
                             BorderBrush="#E0E0E0"
+                            Text="{Binding TitleReview, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             BorderThickness="1"
                             FontSize="14"
                             Foreground="#333333"
                             Padding="15,12"
-                            MaxLength="80"
-                            TextChanged="TitleTextBox_TextChanged">
+                            MaxLength="80">
                             <TextBox.Template>
                                 <ControlTemplate TargetType="TextBox">
                                     <Border x:Name="border" 
@@ -252,7 +256,8 @@
                             </TextBlock>
                         </Grid>
 
-                        <TextBox x:Name="ReviewTextBox"
+                        <TextBox
+                            Text="{Binding ReviewText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                             MinHeight="140"
                             MaxHeight="250"
                             Background="#F8F9FA"
@@ -285,7 +290,35 @@
                         </TextBox>
                     </StackPanel>
                 </Border>
-
+                <Border Grid.Row="7" 
+                    x:Name="ErrorBorder"
+                    Background="#FFF5F5" 
+                    BorderBrush="#FFCDD2" 
+                    BorderThickness="1"
+                    CornerRadius="8" 
+                    Padding="12"
+                    Margin="0,0,0,20"
+                    Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Path Data="{StaticResource AlertIcon}" 
+                    Fill="#D32F2F" 
+                    Width="20" 
+                    Height="20"
+                    Margin="0,0,8,0"
+                    Stretch="Uniform"/>
+                        <TextBlock Grid.Column="1" 
+                    x:Name="ErrorText" 
+                    Text="{Binding ErrorMessage}" 
+                    Foreground="#D32F2F"
+                    FontSize="13"
+                    VerticalAlignment="Center"
+                    TextWrapping="Wrap"/>
+                    </Grid>
+                </Border>
                 <!-- Кнопки -->
                 <Grid Margin="0,0,0,40">
                     <Grid.ColumnDefinitions>
@@ -303,7 +336,6 @@
                             x:Name="BtnSubmit"
                             Content="✅ Отправить отзыв"
                             Style="{StaticResource PrimaryButton}"
-                            IsEnabled="False"
                             Click="BtnSubmit_Click"/>
                 </Grid>
             </StackPanel>

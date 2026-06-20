@@ -104,7 +104,6 @@ namespace RentAFriendApp.Views.Client
         {
             BtnPay.IsEnabled = false;
             BtnPay.Content = "⏳ Обработка...";
-
             try
             {
                 var result = await BookingContext.PayBooking(_viewModel.Token, _viewModel.BookingId);
@@ -153,6 +152,15 @@ namespace RentAFriendApp.Views.Client
         private void BtnBack_Click(object sender, RoutedEventArgs e)
         {
             NavigationService?.GoBack();
+        }
+
+        private void CardNumberBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !IsTextNumeric(e.Text);
+        }
+        private bool IsTextNumeric(string text)
+        {
+            return text.All(char.IsDigit);
         }
     }
 }

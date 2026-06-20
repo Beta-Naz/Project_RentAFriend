@@ -37,12 +37,42 @@ namespace RentAFriendApp.ViewModels.Client
         private string _email = "";
         public string Email { get => _email; set { SetProperty(ref _email, value); OnPropertyChanged(nameof(IsFormValid)); } }
 
-        public bool IsFormValid =>
-            CardNumber.Length == 16 &&
-            Expiry.Length == 4 &&
-            Cvv.Length == 3 &&
-            CardHolder.Length >= 5 &&
-            IsValidEmail(Email);
+        public bool IsFormValid => IsValid();
+        private bool IsValid()
+        {
+            ClearErrors();
+            if (CardNumber.Length != 16)
+            {
+                SetError("Номер карты должен содержать 16 цифр");
+                return false;
+            }
+            if (Expiry.Length != 4)
+            {
+                SetError("Срок действия должен содержать 4 цифры");
+                return false;
+            }
+            if (Cvv.Length != 3)
+            {
+                SetError("CVV/CVC должен содержать 3 цифры");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(CardHolder) && CardHolder.Length < 2)
+            {
+                SetError("Имя держателя карты должно быть больше 2 символов");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(Email))
+            {
+                SetError("Адрес электронной почты не должен быть пустым");
+                return false;
+            }
+            if (!IsValidEmail(Email))
+            {
+                SetError("Неправльный формат адреса электронной почты");
+                return false;
+            }
+            return true;
+      }
 
         #endregion
 

@@ -61,29 +61,19 @@ namespace RentAFriendApp.Views.Client
             RatingLabel.Foreground = new SolidColorBrush(Color.FromRgb(76, 175, 80));
 
             _viewModel.Rating = _selectedRating;
-            UpdateSubmitButton();
-        }
-
-        private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _viewModel.Title = TitleTextBox.Text;
-            TitleCharCount.Text = TitleTextBox.Text.Length.ToString();
         }
 
         private void ReviewTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            _viewModel.ReviewText = ReviewTextBox.Text;
-            CharCount.Text = ReviewTextBox.Text.Length.ToString();
-            UpdateSubmitButton();
-        }
-
-        private void UpdateSubmitButton()
-        {
-            BtnSubmit.IsEnabled = _selectedRating > 0 && ReviewTextBox.Text.Trim().Length >= 20;
+            CharCount.Text = _viewModel.ReviewText.Length.ToString();
         }
 
         private async void BtnSubmit_Click(object sender, RoutedEventArgs e)
         {
+            if (!_viewModel.IsValid)
+            {
+                return;
+            }
             BtnSubmit.IsEnabled = false;
             BtnSubmit.Content = "⏳ Отправка...";
 
@@ -103,6 +93,11 @@ namespace RentAFriendApp.Views.Client
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             NavigationService?.GoBack();
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TitleCharCount.Text = _viewModel.TitleReview.Length.ToString();
         }
     }
 }

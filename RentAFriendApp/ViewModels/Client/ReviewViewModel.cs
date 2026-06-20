@@ -52,37 +52,55 @@ namespace RentAFriendApp.ViewModels.Client
         public int Rating
         {
             get => _rating;
-            set => SetProperty(ref _rating, value);
+            set
+            {
+                if(SetProperty(ref _rating, value))
+                {
+                    ClearErrors();
+                }
+            }
         }
 
-        private string _title = "";
-        public string Title
+        private string _titleReview = "";
+        public string TitleReview
         {
-            get => _title;
-            set => SetProperty(ref _title, value);
+            get => _titleReview;
+            set
+            {
+                if (SetProperty(ref _titleReview, value))
+                {
+                    ClearErrors();
+                }
+            }
         }
 
         private string _reviewText = "";
         public string ReviewText
         {
             get => _reviewText;
-            set => SetProperty(ref _reviewText, value);
+            set
+            {
+                if (SetProperty(ref _reviewText, value))
+                {
+                    ClearErrors();
+                }
+            }
         }
 
+        public bool IsValid => IsValidForm();
         #endregion
 
         #region Команды
         public ICommand SubmitReviewCommand { get; }
         #endregion
 
+
         public ReviewViewModel(string token, int bookingId)
         {
             _token = token;
             _bookingId = bookingId;
-            Title = "Оставить отзыв";
 
             SubmitReviewCommand = new RelayCommandAsync(SubmitReviewAsync);
-
             _ = LoadBookingInfoAsync();
         }
 
@@ -120,30 +138,6 @@ namespace RentAFriendApp.ViewModels.Client
 
         private async Task SubmitReviewAsync()
         {
-            if (Rating < 1 || Rating > 5)
-            {
-                SetError("Пожалуйста, поставьте оценку");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Title))
-            {
-                SetError("Заголовок не должен быть пустым");
-                return;
-            }
-
-            if (Title.Trim().Length > 80)
-            {
-                SetError("Заголовок не должен быть больше 80 символов");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(ReviewText) || ReviewText.Trim().Length < 20)
-            {
-                SetError("Отзыв должен содержать минимум 20 символов");
-                return;
-            }
-
             try
             {
                 IsBusy = true;
@@ -186,6 +180,33 @@ namespace RentAFriendApp.ViewModels.Client
             {
                 IsBusy = false;
             }
+        }
+        public bool IsValidForm()
+        {
+            if (Rating < 1 || Rating > 5)
+            {
+                SetError("Пожалуйста, поставьте оценку");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(TitleReview))
+            {
+                SetError("Заголовок не должен быть пустым");
+                return false;
+            }
+
+            if (TitleReview.Trim().Length > 80)
+            {
+                SetError("Заголовок не должен быть больше 80 символов");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(TitleReview) || ReviewText.Trim().Length < 20)
+            {
+                SetError("Отзыв должен содержать минимум 20 символов");
+                return false;
+            }
+            return true;
         }
     }
 }

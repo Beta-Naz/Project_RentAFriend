@@ -159,6 +159,7 @@ namespace RentAFriendApp.ViewModels.Client
         public ICommand OpenFriendProfileCommand { get; }
         public ICommand ShowDetailedStatisticsCommand { get; }
         public ICommand OpenProfileSettingsCommand { get; }
+        public ICommand FindRandomFriend { get; }
         #endregion
 
         public ClientHomeViewModel(string token)
@@ -166,7 +167,7 @@ namespace RentAFriendApp.ViewModels.Client
             _token = token;
             Title = "Главная";
 
-            // Команды
+            FindRandomFriend = new RelayCommandAsync(NavigateToRandomProfile);
             RefreshCommand = new RelayCommandAsync(LoadDataAsync);
             RefreshRecommendationsCommand = new RelayCommandAsync(LoadRecommendedFriendsAsync);
             NavigateToCatalogCommand = new RelayCommand(NavigateToCatalog);
@@ -318,6 +319,14 @@ namespace RentAFriendApp.ViewModels.Client
         #endregion
 
         #region Действия
+        private async Task NavigateToRandomProfile()
+        {
+            var profiles = await FriendProfileContext.GetAllProfiles(_token);
+            if (profiles?.Profiles == null) return;
+            Random random = new Random();
+            int idFriend = random.Next(0, profiles.Count);
+            OpenProfileFriend(idFriend);
+        }
         private async Task CancelBookingAsync(int bookingId)
         {
             var result = MessageBox.Show(
@@ -383,7 +392,8 @@ namespace RentAFriendApp.ViewModels.Client
 
         private void NavigateToMyBookings() =>
             MainWindow.Instanse?.MainFrame.Navigate(new MyBookingsPage(_token));
-
+        private void OpenProfileFriend(int idFriend) =>
+              MainWindow.Instanse?.MainFrame.Navigate(new FriendDetailsPage(_token, idFriend));
         private void OpenProfileSettings() =>
             MessageBox.Show("Настройки профиля в разработке", "Настройки",
                 MessageBoxButton.OK, MessageBoxImage.Information);
